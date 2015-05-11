@@ -1,0 +1,34 @@
+// This file is part of Parsito <http://github.com/ufal/parsito/>.
+//
+// Copyright 2015 Institute of Formal and Applied Linguistics, Faculty of
+// Mathematics and Physics, Charles University in Prague, Czech Republic.
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#pragma once
+
+#include "common.h"
+#include "tree.h"
+#include "utils/string_piece.h"
+
+namespace ufal {
+namespace parsito {
+
+class tree_input_format {
+ public:
+  virtual ~tree_input_format() {}
+
+  virtual bool read_block(FILE* f, string& block) = 0;
+  virtual void set_block(string_piece block) = 0;
+  virtual bool next_tree(tree& t) = 0;
+
+  // Static factory methods
+  static tree_input_format* new_input_format(const string& name);
+
+  static tree_input_format* new_conllu_input_format();
+};
+
+} // namespace parsito
+} // namespace ufal
