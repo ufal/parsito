@@ -1,0 +1,5 @@
+/.build/
+*.swp
+libparsito.*
+run_parsito
+train_parsito
