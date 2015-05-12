@@ -35,6 +35,20 @@ bool getline(FILE *f, string& line) {
   return true;
 }
 
+bool getline(string_piece& text, string_piece& line) {
+  if (!text.len) return false;
+
+  line.str = text.str;
+  line.len = 0;
+  while (line.len < text.len && line.str[line.len] != '\n') line.len++;
+
+  text.str += line.len + (line.len < text.len);
+  text.len -= line.len + (line.len < text.len);
+  if (line.len && line.str[line.len - 1] == '\r') line.len--;
+
+  return true;
+}
+
 bool getpara(FILE *f, string& para) {
   if (feof(f)) return (para.clear(), false);
 

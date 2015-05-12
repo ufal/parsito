@@ -17,13 +17,13 @@ namespace parsito {
 
 // Read line and strip '\n'.
 bool getline(FILE *f, string& line);
+bool getline(string_piece& text, string_piece& line);
 
 // Read a paragraph separated by an empty line. All '\n' are left intact.
 bool getpara(FILE* f, string& para);
 
 // Split given text on the separator character.
 void split(const string& text, char sep, vector<string>& tokens);
-
 void split(string_piece text, char sep, vector<string_piece>& tokens);
 
 } // namespace parsito
