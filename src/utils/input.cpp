@@ -74,5 +74,16 @@ void split(const string& text, char sep, vector<string>& tokens) {
   tokens.emplace_back(text, index);
 }
 
+void split(string_piece text, char sep, vector<string_piece>& tokens) {
+  tokens.clear();
+  if (!text.len) return;
+
+  const char* str = text.str;
+  for (const char* next; (next = (const char*) memchr(str, sep, text.str + text.len - str)); str = next + 1)
+    tokens.emplace_back(str, next - str);
+
+  tokens.emplace_back(str, text.str + text.len - str);
+}
+
 } // namespace parsito
 } // namespace ufal

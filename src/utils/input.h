@@ -10,6 +10,7 @@
 #pragma once
 
 #include "common.h"
+#include "string_piece.h"
 
 namespace ufal {
 namespace parsito {
@@ -22,6 +23,8 @@ bool getpara(FILE* f, string& para);
 
 // Split given text on the separator character.
 void split(const string& text, char sep, vector<string>& tokens);
+
+void split(string_piece text, char sep, vector<string_piece>& tokens);
 
 } // namespace parsito
 } // namespace ufal
