@@ -14,7 +14,7 @@ C_FLAGS += $(call include_dir,.)
 
 LZMA_DEC_O = utils/compressor_load utils/lzma/LzmaDec
 LZMA_ENC_O = utils/compressor_save utils/lzma/LzmaEnc utils/lzma/LzFind
-PARSITO_O = $(LZMA_DEC_O) tree/tree_input_format tree/tree_output_format
+PARSITO_O = $(LZMA_DEC_O) tree/tree_format
 PARSITO_O += version/version
 
 # library

@@ -11,10 +11,27 @@
 
 #include "common.h"
 #include "tree.h"
+#include "utils/string_piece.h"
 
 namespace ufal {
 namespace parsito {
 
+// Input format
+class tree_input_format {
+ public:
+  virtual ~tree_input_format() {}
+
+  virtual bool read_block(FILE* f, string& block) = 0;
+  virtual void set_block(string_piece block) = 0;
+  virtual bool next_tree(tree& t) = 0;
+
+  // Static factory methods
+  static tree_input_format* new_input_format(const string& name);
+
+  static tree_input_format* new_conllu_input_format();
+};
+
+// Output format
 class tree_output_format {
  public:
   virtual ~tree_output_format() {}
