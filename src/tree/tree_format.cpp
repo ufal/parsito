@@ -16,7 +16,7 @@ namespace parsito {
 // Input CoNLL-U format
 class tree_input_format_conllu : public tree_input_format {
  public:
-  virtual bool read_block(FILE* f, string& block) override;
+  virtual bool read_block(FILE* f, string& block) const override;
   virtual void set_block(string_piece block) override;
   virtual bool next_tree(tree& t) override;
 
@@ -25,7 +25,7 @@ class tree_input_format_conllu : public tree_input_format {
   unsigned index;
 };
 
-bool tree_input_format_conllu::read_block(FILE* f, string& block) {
+bool tree_input_format_conllu::read_block(FILE* f, string& block) const {
   return getpara(f, block);
 }
 
@@ -34,7 +34,7 @@ void tree_input_format_conllu::set_block(string_piece block) {
   index = 0;
 }
 
-bool tree_input_format_conllu::next_tree(tree& t) {
+bool tree_input_format_conllu::next_tree(tree& /*t*/) {
   // TODO
   return false;
 }
@@ -42,10 +42,10 @@ bool tree_input_format_conllu::next_tree(tree& t) {
 // Output CoNLL-U format
 class tree_output_format_conllu : public tree_output_format {
  public:
-  virtual void append_tree(const tree& t, string& block) override;
+  virtual void append_tree(const tree& t, string& block) const override;
 };
 
-void tree_output_format_conllu::append_tree(const tree& t, string& block) {
+void tree_output_format_conllu::append_tree(const tree& t, string& block) const {
   for (size_t i = 0; i < t.nodes.size(); i++) {
     block.append(to_string(i + 1)).push_back('\t');
     block.append(t.nodes[i].form).push_back('\t');

@@ -21,7 +21,7 @@ class tree_input_format {
  public:
   virtual ~tree_input_format() {}
 
-  virtual bool read_block(FILE* f, string& block) = 0;
+  virtual bool read_block(FILE* f, string& block) const = 0;
   virtual void set_block(string_piece block) = 0;
   virtual bool next_tree(tree& t) = 0;
 
@@ -36,7 +36,7 @@ class tree_output_format {
  public:
   virtual ~tree_output_format() {}
 
-  virtual void append_tree(const tree& t, string& block) = 0;
+  virtual void append_tree(const tree& t, string& block) const = 0;
 
   // Static factory methods
   static tree_output_format* new_output_format(const string& name);
