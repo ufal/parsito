@@ -29,6 +29,7 @@ bool getline(FILE *f, string& line) {
 
   int len = offset + strlen(line.data() + offset);
   if (len && line[len - 1] == '\n') len--;
+  if (len && line[len - 1] == '\r') len--;
   line.resize(len);
 
   return true;
@@ -57,7 +58,7 @@ bool getpara(FILE *f, string& para) {
     if (eof) break;
 
     offset += strlen(para.data() + offset);
-  } while (offset > last_offset + 1);
+  } while (offset > last_offset + 2 || (offset == last_offset + 2 && para[last_offset] != '\r'));
 
   para.resize(offset);
   return !para.empty();
