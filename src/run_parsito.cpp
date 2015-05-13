@@ -35,10 +35,10 @@ int main(int argc, char* argv[]) {
                        {"output", options::value{"conllu"}},
                        {"version", options::value::none},
                        {"help", options::value::none}}, argc, argv, options) ||
-      options.count("help") ||
-      (argc < 2 && !options.count("version")))
+      options.count("help"))
     runtime_errorf("Usage: %s [options]\n"
                     "Options: --input=conllu\n"
+                    "         --output=conllu\n"
                     "         --version\n"
                     "         --help", argv[0]);
   if (options.count("version"))
