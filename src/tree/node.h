@@ -21,10 +21,13 @@ class node {
   string tag;
   string ctag; // universal part-of-speech tag
   string feats; // list of Morphological features
-  unsigned head; // head, 0 is root
+  unsigned head; // head, 0 is root (head of root is root)
   string deprel; // dependency relation to the HEAD
   string deps; // secondary dependencies
   string misc; // miscellaneous information
+
+  node() : head(0) {}
+  node(const string& form) : form(form), head(0) {}
 };
 
 } // namespace parsito
