@@ -17,15 +17,17 @@
 using namespace ufal::parsito;
 
 void parse(FILE* in, FILE* out, tree_input_format& input_format, const tree_output_format& output_format) {
-  string input, output;
+  string input, output, error;
   tree t;
   while (input_format.read_block(in, input)) {
     input_format.set_block(input);
-    while (input_format.next_tree(t)) {
+    while (input_format.next_tree(t, error)) {
       output_format.append_tree(t, output);
       fputs(output.c_str(), out);
       output.clear();
     }
+    if (!error.empty())
+      runtime_errorf("%s", error.c_str());
   }
 }
 
