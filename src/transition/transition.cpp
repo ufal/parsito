@@ -25,20 +25,6 @@ void transition_left_arc::perform(configuration& c, tree& t) const {
   t.set_head(child->id, parent->id);
 }
 
-void transition_left_arc::load(binary_decoder& data) {
-  unsigned label_len = data.next_1B();
-  label.assign(data.next<char>(label_len), label_len);
-}
-
-void transition_left_arc::save(binary_encoder& enc) const {
-  enc.add_1B(label.size());
-  enc.add_str(label);
-}
-
-void transition_left_arc::set_label(const string& label) {
-  this->label.assign(label);
-}
-
 // Right arc
 bool transition_right_arc::applicable(const configuration& c) const {
   return c.stack.size() >= 2;
@@ -49,20 +35,6 @@ void transition_right_arc::perform(configuration& c, tree& t) const {
   node* child = c.stack.back(); c.stack.pop_back();
   node* parent = c.stack.back();
   t.set_head(child->id, parent->id);
-}
-
-void transition_right_arc::load(binary_decoder& data) {
-  unsigned label_len = data.next_1B();
-  label.assign(data.next<char>(label_len), label_len);
-}
-
-void transition_right_arc::save(binary_encoder& enc) const {
-  enc.add_1B(label.size());
-  enc.add_str(label);
-}
-
-void transition_right_arc::set_label(const string& label) {
-  this->label.assign(label);
 }
 
 // Shift
@@ -104,20 +76,6 @@ void transition_left_arc_2::perform(configuration& c, tree& t) const {
   t.set_head(child->id, parent->id);
 }
 
-void transition_left_arc_2::load(binary_decoder& data) {
-  unsigned label_len = data.next_1B();
-  label.assign(data.next<char>(label_len), label_len);
-}
-
-void transition_left_arc_2::save(binary_encoder& enc) const {
-  enc.add_1B(label.size());
-  enc.add_str(label);
-}
-
-void transition_left_arc_2::set_label(const string& label) {
-  this->label.assign(label);
-}
-
 // Right arc 2
 bool transition_right_arc_2::applicable(const configuration& c) const {
   return c.stack.size() >= 3;
@@ -130,20 +88,6 @@ void transition_right_arc_2::perform(configuration& c, tree& t) const {
   node* parent = c.stack.back();
   c.buffer.push_back(to_buffer);
   t.set_head(child->id, parent->id);
-}
-
-void transition_right_arc_2::load(binary_decoder& data) {
-  unsigned label_len = data.next_1B();
-  label.assign(data.next<char>(label_len), label_len);
-}
-
-void transition_right_arc_2::save(binary_encoder& enc) const {
-  enc.add_1B(label.size());
-  enc.add_str(label);
-}
-
-void transition_right_arc_2::set_label(const string& label) {
-  this->label.assign(label);
 }
 
 } // namespace parsito

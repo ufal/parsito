@@ -12,8 +12,6 @@
 #include "common.h"
 #include "configuration.h"
 #include "tree/tree.h"
-#include "utils/binary_decoder.h"
-#include "utils/binary_encoder.h"
 
 namespace ufal {
 namespace parsito {
@@ -25,34 +23,25 @@ class transition {
 
   virtual bool applicable(const configuration& c) const = 0;
   virtual void perform(configuration& c, tree& t) const = 0;
-
-  virtual void load(binary_decoder& /*data*/) {}
-  virtual void save(binary_encoder& /*enc*/) const {}
 };
 
 // Specific transition classes
 class transition_left_arc : public transition {
  public:
+  transition_left_arc(const string& label) : label(label) {}
+
   virtual bool applicable(const configuration& c) const override;
   virtual void perform(configuration& c, tree& t) const override;
-
-  virtual void load(binary_decoder& data) override;
-  virtual void save(binary_encoder& enc) const override;
-
-  void set_label(const string& label);
  private:
   string label;
 };
 
 class transition_right_arc : public transition {
  public:
+  transition_right_arc(const string& label) : label(label) {}
+
   virtual bool applicable(const configuration& c) const override;
   virtual void perform(configuration& c, tree& t) const override;
-
-  virtual void load(binary_decoder& data) override;
-  virtual void save(binary_encoder& enc) const override;
-
-  void set_label(const string& label);
  private:
   string label;
 };
@@ -71,26 +60,20 @@ class transition_swap : public transition {
 
 class transition_left_arc_2 : public transition {
  public:
+  transition_left_arc_2(const string& label) : label(label) {}
+
   virtual bool applicable(const configuration& c) const override;
   virtual void perform(configuration& c, tree& t) const override;
-
-  virtual void load(binary_decoder& data) override;
-  virtual void save(binary_encoder& enc) const override;
-
-  void set_label(const string& label);
  private:
   string label;
 };
 
 class transition_right_arc_2 : public transition {
  public:
+  transition_right_arc_2(const string& label) : label(label) {}
+
   virtual bool applicable(const configuration& c) const override;
   virtual void perform(configuration& c, tree& t) const override;
-
-  virtual void load(binary_decoder& data) override;
-  virtual void save(binary_encoder& enc) const override;
-
-  void set_label(const string& label);
  private:
   string label;
 };
