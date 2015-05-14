@@ -1,7 +1,7 @@
 include Makefile.builtem
 
-EXECUTABLES = $(call exe,run_parsito train_parsito)
-LIBRARIES = $(call lib,libparsito)
+EXECUTABLES = run_parsito train_parsito
+LIBRARIES = libparsito
 
 .PHONY: all exe lib full
 all: exe
