@@ -10,23 +10,28 @@
 #pragma once
 
 #include "common.h"
-#include "transition.h"
+#include "transition_system.h"
 
 namespace ufal {
 namespace parsito {
 
-class transition_system {
+class transition_system_projective : public transition_system {
  public:
-  virtual ~transition_system() {}
+  virtual unsigned transition_count() const override;
+  virtual void init(configuration& c, tree& t, const tree* golden = nullptr) override;
+  virtual void perform(unsigned transition) override;
+  virtual void losses(vector<int>& losses) override;
 
-  virtual unsigned transition_count() const = 0;
-  virtual void init(configuration& c, tree& t, const tree* golden = nullptr) = 0;
-  virtual void perform(unsigned transition) = 0;
-  virtual void losses(vector<int>& losses) = 0;
+  virtual void create(const vector<string>& labels) override;
 
-  virtual void create(const vector<string>& labels) = 0;
-  static transition_system* create(const string& name);
+ private:
+  configuration* c = nullptr;
+  tree* t = nullptr;
+  const tree* golden = nullptr;
+
+  vector<unique_ptr<transition>> transitions;
 };
 
 } // namespace parsito
 } // namespace ufal
+

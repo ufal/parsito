@@ -8,11 +8,13 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "transition_system.h"
+#include "transition_system_projective.h"
 
 namespace ufal {
 namespace parsito {
 
-transition_system* transition_system::create(const string& /*name*/) {
+transition_system* transition_system::create(const string& name) {
+  if (name.compare("projective") == 0) return new transition_system_projective();
   return nullptr;
 }
 
