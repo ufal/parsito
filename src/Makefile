@@ -14,8 +14,8 @@ C_FLAGS += $(call include_dir,.)
 
 LZMA_DEC_O = utils/compressor_load utils/lzma/LzmaDec
 LZMA_ENC_O = utils/compressor_save utils/lzma/LzmaEnc utils/lzma/LzFind
-PARSITO_O = $(LZMA_DEC_O) tree/tree tree/tree_format
-PARSITO_O += version/version
+PARSITO_O = $(LZMA_DEC_O)
+PARSITO_O += transition/transition tree/tree tree/tree_format version/version
 
 # library
 $(call lib,libparsito): $(call obj,$(PARSITO_O))
