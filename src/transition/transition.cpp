@@ -35,6 +35,10 @@ void transition_left_arc::save(binary_encoder& enc) const {
   enc.add_str(label);
 }
 
+void transition_left_arc::set_label(const string& label) {
+  this->label.assign(label);
+}
+
 // Right arc
 bool transition_right_arc::applicable(const configuration& c) const {
   return c.stack.size() >= 2;
@@ -55,6 +59,10 @@ void transition_right_arc::load(binary_decoder& data) {
 void transition_right_arc::save(binary_encoder& enc) const {
   enc.add_1B(label.size());
   enc.add_str(label);
+}
+
+void transition_right_arc::set_label(const string& label) {
+  this->label.assign(label);
 }
 
 // Shift
@@ -106,6 +114,10 @@ void transition_left_arc_2::save(binary_encoder& enc) const {
   enc.add_str(label);
 }
 
+void transition_left_arc_2::set_label(const string& label) {
+  this->label.assign(label);
+}
+
 // Right arc 2
 bool transition_right_arc_2::applicable(const configuration& c) const {
   return c.stack.size() >= 3;
@@ -128,6 +140,10 @@ void transition_right_arc_2::load(binary_decoder& data) {
 void transition_right_arc_2::save(binary_encoder& enc) const {
   enc.add_1B(label.size());
   enc.add_str(label);
+}
+
+void transition_right_arc_2::set_label(const string& label) {
+  this->label.assign(label);
 }
 
 } // namespace parsito

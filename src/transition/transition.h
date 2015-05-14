@@ -39,6 +39,7 @@ class transition_left_arc : public transition {
   virtual void load(binary_decoder& data) override;
   virtual void save(binary_encoder& enc) const override;
 
+  void set_label(const string& label);
  private:
   string label;
 };
@@ -51,6 +52,7 @@ class transition_right_arc : public transition {
   virtual void load(binary_decoder& data) override;
   virtual void save(binary_encoder& enc) const override;
 
+  void set_label(const string& label);
  private:
   string label;
 };
@@ -75,6 +77,7 @@ class transition_left_arc_2 : public transition {
   virtual void load(binary_decoder& data) override;
   virtual void save(binary_encoder& enc) const override;
 
+  void set_label(const string& label);
  private:
   string label;
 };
@@ -87,6 +90,7 @@ class transition_right_arc_2 : public transition {
   virtual void load(binary_decoder& data) override;
   virtual void save(binary_encoder& enc) const override;
 
+  void set_label(const string& label);
  private:
   string label;
 };
