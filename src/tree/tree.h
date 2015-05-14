@@ -17,8 +17,16 @@ namespace parsito {
 
 class tree {
  public:
+  tree();
+
+  bool empty();
+  void clear();
+  node& add_node(const string& form);
+  void set_head(int id, int head);
+
   vector<node> nodes;
-  vector<vector<unsigned>> children;
+
+  static const string root_form;
 };
 
 } // namespace parsito

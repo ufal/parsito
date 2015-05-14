@@ -16,18 +16,21 @@ namespace parsito {
 
 class node {
  public:
+  int id; // 0 is root, >0 is sentence node, <0 is undefined
+
   string form;
   string lemma;
   string tag;
   string ctag; // universal part-of-speech tag
   string feats; // list of Morphological features
-  unsigned head; // head, 0 is root (head of root is root)
+  int head; // head, 0 is root, <0 is without parent
   string deprel; // dependency relation to the HEAD
   string deps; // secondary dependencies
   string misc; // miscellaneous information
 
-  node() : head(0) {}
-  node(const string& form) : form(form), head(0) {}
+  vector<int> children;
+
+  node(int id = -1, const string& form = string()) : id(id), form(form), head(-1) {}
 };
 
 } // namespace parsito
