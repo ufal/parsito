@@ -35,8 +35,7 @@ void tree_input_format_conllu::set_block(string_piece block) {
 }
 
 bool tree_input_format_conllu::next_tree(tree& t, string& error) {
-  t.nodes.clear();
-  t.children.clear();
+  t.clear();
   error.clear();
 
   string_piece line;
@@ -64,7 +63,7 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
     int id = strtol(tokens[0].str, &end_of_int, 10);
     if (end_of_int != tokens[0].str + tokens[0].len)
       return error.assign("Cannot parse numeric id value '").append(tokens[0].str, tokens[0].len).append("'!"), false;
-    if (id != int(t.nodes.size()) + !t.nodes.size())
+    if (id != int(t.nodes.size()))
       return error.assign("Wrong numeric id value '").append(tokens[0].str, tokens[0].len).append("'!"), false;
 
     int head = strtol(tokens[6].str, &end_of_int, 10);
@@ -73,13 +72,8 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
     if (head < 0)
       return error.assign("Numeric head value '").append(tokens[0].str, tokens[0].len).append("' cannot be negative!"), false;
 
-    // Add root node if needed
-    if (t.nodes.empty())
-      t.nodes.emplace_back("<root>");
-
     // Add new node
-    t.nodes.emplace_back(string(tokens[1].str, tokens[1].len));
-    auto& node = t.nodes.back();
+    auto& node = t.add_node(string(tokens[1].str, tokens[1].len));
     if (!(tokens[2].len == 1 && tokens[2].str[0] == '_')) node.lemma.assign(tokens[2].str, tokens[2].len);
     if (!(tokens[3].len == 1 && tokens[3].str[0] == '_')) node.ctag.assign(tokens[3].str, tokens[3].len);
     if (!(tokens[4].len == 1 && tokens[4].str[0] == '_')) node.tag.assign(tokens[4].str, tokens[4].len);
@@ -90,7 +84,12 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
     if (!(tokens[9].len == 1 && tokens[9].str[0] == '_')) node.misc.assign(tokens[9].str, tokens[9].len);
   }
 
-  return !t.nodes.empty();
+  // Set heads correctly
+  for (auto&& node : t.nodes)
+    if (node.id)
+      t.set_head(node.id, node.head);
+
+  return !t.empty();
 }
 
 // Output CoNLL-U format
