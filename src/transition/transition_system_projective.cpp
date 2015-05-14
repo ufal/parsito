@@ -21,8 +21,6 @@ void transition_system_projective::init(configuration& c, tree& t, const tree* g
   this->c = &c;
   this->t = &t;
   this->golden = golden;
-
-  // TODO
 }
 
 void transition_system_projective::perform(unsigned transition) {
@@ -30,7 +28,11 @@ void transition_system_projective::perform(unsigned transition) {
     transitions[transition]->perform(*c, *t);
 }
 
-void transition_system_projective::losses(vector<int>& /*losses*/) {
+void transition_system_projective::losses(vector<int>& losses) {
+  losses.clear();
+
+  if (!c || !t || !golden || transitions.empty()) return;
+
   // TODO
 }
 
