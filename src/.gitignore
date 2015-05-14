@@ -1,4 +1,5 @@
 /.build/
+*.exe
 *.swp
 libparsito.*
 run_parsito
