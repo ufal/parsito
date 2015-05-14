@@ -37,8 +37,9 @@ int main(int argc, char* argv[]) {
                        {"output", options::value{"conllu"}},
                        {"version", options::value::none},
                        {"help", options::value::none}}, argc, argv, options) ||
-      options.count("help"))
-    runtime_errorf("Usage: %s [options]\n"
+      options.count("help") ||
+      (argc < 2 && !options.count("version")))
+    runtime_errorf("Usage: %s [options] model_file\n"
                     "Options: --input=conllu\n"
                     "         --output=conllu\n"
                     "         --version\n"
@@ -56,7 +57,7 @@ int main(int argc, char* argv[]) {
   if (!output_format)
     runtime_errorf("Unknown output format '%s'!", output.c_str());
 
-  process_args(1, argc, argv, parse, *input_format, *output_format);
+  process_args(2, argc, argv, parse, *input_format, *output_format);
 
   return 0;
 }
