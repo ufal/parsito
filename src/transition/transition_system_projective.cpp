@@ -7,7 +7,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "transition.h"
 #include "transition_system_projective.h"
 
 namespace ufal {
@@ -30,7 +29,52 @@ void transition_system_projective::perform(configuration& c, tree& t, unsigned t
     transitions[transition]->perform(c, t);
 }
 
-transition_oracle* transition_system_projective::oracle(const string& /*name*/) const {
+// Static oracle
+class transition_system_projective_oracle_static : public transition_oracle {
+ public:
+  transition_system_projective_oracle_static(const vector<string>& labels) : labels(labels) {}
+
+  virtual void outcomes(const configuration& c, const tree& t, const tree& golden, const vector<double>& predictions, vector<double>& outcomes) const override;
+ private:
+  const vector<string>& labels;
+};
+
+void transition_system_projective_oracle_static::outcomes(const configuration& c, const tree& /*t*/, const tree& golden, const vector<double>& /*predictions*/, vector<double>& outcomes) const {
+  outcomes.assign(1 + 2 * labels.size(), 0);
+
+  // Use left if appropriate
+  if (c.stack.size() >= 2) {
+    node* parent = c.stack[c.stack.size() - 1];
+    node* child = c.stack[c.stack.size() - 2];
+    if (golden.nodes[child->id].head == parent->id) {
+      for (size_t i = 0; i < labels.size(); i++)
+        if (golden.nodes[child->id].deprel == labels[i]) {
+          outcomes[1 + 2*i] = 1;
+          return;
+        }
+    }
+  }
+
+  // Use right if appropriate
+  if (c.stack.size() >= 2) {
+    node* child = c.stack[c.stack.size() - 1];
+    node* parent = c.stack[c.stack.size() - 2];
+    if (golden.nodes[child->id].head == parent->id) {
+      for (size_t i = 0; i < labels.size(); i++)
+        if (golden.nodes[child->id].deprel == labels[i]) {
+          outcomes[1 + 2*i + 1] = 1;
+          return;
+        }
+    }
+  }
+
+  // Otherwise, just shift
+  outcomes[0] = 1;
+}
+
+// Oracle factory method
+transition_oracle* transition_system_projective::oracle(const string& name) const {
+  if (name.compare("static") == 0) return new transition_system_projective_oracle_static(labels);
   return nullptr;
 }
 
