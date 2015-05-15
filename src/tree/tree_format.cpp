@@ -87,7 +87,7 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
   // Set heads correctly
   for (auto&& node : t.nodes)
     if (node.id)
-      t.set_head(node.id, node.head);
+      t.set_head(node.id, node.head, node.deprel);
 
   return !t.empty();
 }

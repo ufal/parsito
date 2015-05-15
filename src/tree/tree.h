@@ -22,7 +22,7 @@ class tree {
   bool empty();
   void clear();
   node& add_node(const string& form);
-  void set_head(int id, int head);
+  void set_head(int id, int head, const string& deprel);
 
   vector<node> nodes;
 

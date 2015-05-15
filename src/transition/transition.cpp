@@ -22,7 +22,7 @@ void transition_left_arc::perform(configuration& c, tree& t) const {
   node* parent = c.stack.back(); c.stack.pop_back();
   node* child = c.stack.back(); c.stack.pop_back();
   c.stack.push_back(parent);
-  t.set_head(child->id, parent->id);
+  t.set_head(child->id, parent->id, label);
 }
 
 // Right arc
@@ -34,7 +34,7 @@ void transition_right_arc::perform(configuration& c, tree& t) const {
   if (!applicable(c)) return;
   node* child = c.stack.back(); c.stack.pop_back();
   node* parent = c.stack.back();
-  t.set_head(child->id, parent->id);
+  t.set_head(child->id, parent->id, label);
 }
 
 // Shift
@@ -73,7 +73,7 @@ void transition_left_arc_2::perform(configuration& c, tree& t) const {
   node* child = c.stack.back(); c.stack.pop_back();
   c.stack.push_back(ignore);
   c.stack.push_back(parent);
-  t.set_head(child->id, parent->id);
+  t.set_head(child->id, parent->id, label);
 }
 
 // Right arc 2
@@ -87,7 +87,7 @@ void transition_right_arc_2::perform(configuration& c, tree& t) const {
   node* to_buffer = c.stack.back(); c.stack.pop_back();
   node* parent = c.stack.back();
   c.buffer.push_back(to_buffer);
-  t.set_head(child->id, parent->id);
+  t.set_head(child->id, parent->id, label);
 }
 
 } // namespace parsito
