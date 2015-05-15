@@ -21,13 +21,12 @@ class tree_input_format {
  public:
   virtual ~tree_input_format() {}
 
-  virtual bool read_block(FILE* f, string& block) const = 0;
+  virtual bool read_block(istream& in, string& block) const = 0;
   virtual void set_block(string_piece block) = 0;
   virtual bool next_tree(tree& t, string& error) = 0;
 
   // Static factory methods
   static tree_input_format* new_input_format(const string& name);
-
   static tree_input_format* new_conllu_input_format();
 };
 

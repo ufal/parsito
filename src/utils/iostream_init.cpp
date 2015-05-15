@@ -7,24 +7,31 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
+#ifdef _WIN32
+#include <fcntl.h>
+#include <io.h>
+#endif
 
-#include "common.h"
+#include "iostream_init.h"
 
 namespace ufal {
 namespace parsito {
 
-class file_ptr {
- public:
-  file_ptr(FILE* f = nullptr) : f(f) {}
-  file_ptr(file_ptr&& other) : f(other.f) { other.f = nullptr; }
-  file_ptr& operator=(file_ptr&& other) { if (f) fclose(f); f = other.f; other.f = nullptr; return *this; }
-  ~file_ptr() { if (f) fclose(f); }
+void iostream_init() {
+  iostream::sync_with_stdio(false);
+}
 
-  operator FILE* () const { return f; }
- private:
-  FILE* f;
-};
+void iostream_init_binary_input() {
+#ifdef _WIN32
+  _setmode(_fileno(stdin), _O_BINARY);
+#endif
+}
+
+void iostream_init_binary_output() {
+#ifdef _WIN32
+  _setmode(_fileno(stdout), _O_BINARY);
+#endif
+}
 
 } // namespace parsito
 } // namespace ufal

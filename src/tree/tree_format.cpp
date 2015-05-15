@@ -10,7 +10,7 @@
 #include <cstring>
 
 #include "tree_format.h"
-#include "utils/input.h"
+#include "utils/split.h"
 
 namespace ufal {
 namespace parsito {
@@ -18,7 +18,7 @@ namespace parsito {
 // Input CoNLL-U format
 class tree_input_format_conllu : public tree_input_format {
  public:
-  virtual bool read_block(FILE* f, string& block) const override;
+  virtual bool read_block(istream& in, string& block) const override;
   virtual void set_block(string_piece block) override;
   virtual bool next_tree(tree& t, string& error) override;
 
@@ -26,8 +26,16 @@ class tree_input_format_conllu : public tree_input_format {
   string_piece block;
 };
 
-bool tree_input_format_conllu::read_block(FILE* f, string& block) const {
-  return getpara(f, block);
+bool tree_input_format_conllu::read_block(istream& in, string& block) const {
+  block.clear();
+
+  string line;
+  while (getline(in, line)) {
+    block.append(line).push_back('\n');
+    if (line.empty()) break;
+  }
+
+  return !block.empty();
 }
 
 void tree_input_format_conllu::set_block(string_piece block) {
@@ -38,9 +46,14 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
   t.clear();
   error.clear();
 
-  string_piece line;
   vector<string_piece> tokens;
-  while (getline(block, line)) {
+  while (block.len) {
+    // Read line
+    string_piece line(block.str, 0);
+    while (line.len < block.len && line.str[line.len] != '\n') line.len++;
+    block.str += line.len + (line.len < block.len);
+    block.len -= line.len + (line.len < block.len);
+
     // Empty lines denote end of tree, unless at the beginning
     if (!line.len) {
       if (t.nodes.empty()) continue;
