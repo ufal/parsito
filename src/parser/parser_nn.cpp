@@ -16,9 +16,15 @@ void parser_nn::parse(tree& /*t*/) const {
 }
 
 void parser_nn::load(binary_decoder& data) {
+  // Load labels
   labels.resize(data.next_2B());
   for (auto&& label : labels)
     data.next_str(label);
+
+  // Load transition system
+  string system_name;
+  data.next_str(system_name);
+  system.reset(transition_system::create(system_name, labels));
 }
 
 } // namespace parsito

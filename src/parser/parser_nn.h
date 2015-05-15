@@ -11,6 +11,7 @@
 
 #include "common.h"
 #include "parser.h"
+#include "transition/transition_system.h"
 
 namespace ufal {
 namespace parsito {
@@ -24,6 +25,7 @@ class parser_nn : public parser {
 
  private:
   vector<string> labels;
+  unique_ptr<transition_system> system;
 };
 
 } // namespace parsito
