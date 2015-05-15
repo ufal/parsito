@@ -11,6 +11,7 @@
 
 #include "common.h"
 #include "transition.h"
+#include "transition_oracle.h"
 
 namespace ufal {
 namespace parsito {
@@ -20,12 +21,10 @@ class transition_system {
   virtual ~transition_system() {}
 
   virtual unsigned transition_count() const = 0;
-  virtual void init(configuration& c, tree& t, const tree* golden = nullptr) = 0;
-  virtual void perform(unsigned transition) = 0;
-  virtual void losses(vector<int>& losses) = 0;
+  virtual void perform(configuration& c, tree& t, unsigned transition) const = 0;
+  virtual transition_oracle* oracle(const string& name) const = 0;
 
-  virtual void create(const vector<string>& labels) = 0;
-  static transition_system* create(const string& name);
+  static transition_system* create(const string& name, const vector<string>& labels);
 };
 
 } // namespace parsito

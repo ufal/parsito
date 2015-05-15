@@ -13,8 +13,8 @@
 namespace ufal {
 namespace parsito {
 
-transition_system* transition_system::create(const string& name) {
-  if (name.compare("projective") == 0) return new transition_system_projective();
+transition_system* transition_system::create(const string& name, const vector<string>& labels) {
+  if (name.compare("projective") == 0) return new transition_system_projective(labels);
   return nullptr;
 }
 

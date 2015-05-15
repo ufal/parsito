@@ -13,36 +13,25 @@
 namespace ufal {
 namespace parsito {
 
-unsigned transition_system_projective::transition_count() const {
-  return transitions.size();
-}
-
-void transition_system_projective::init(configuration& c, tree& t, const tree* golden) {
-  this->c = &c;
-  this->t = &t;
-  this->golden = golden;
-}
-
-void transition_system_projective::perform(unsigned transition) {
-  if (c && t && transition < transitions.size())
-    transitions[transition]->perform(*c, *t);
-}
-
-void transition_system_projective::losses(vector<int>& losses) {
-  losses.clear();
-
-  if (!c || !t || !golden || transitions.empty()) return;
-
-  // TODO
-}
-
-void transition_system_projective::create(const vector<string>& labels) {
-  transitions.clear();
+transition_system_projective::transition_system_projective(const vector<string>& labels) : labels(labels) {
   transitions.emplace_back(new transition_shift());
   for (auto&& label : labels) {
     transitions.emplace_back(new transition_left_arc(label));
     transitions.emplace_back(new transition_right_arc(label));
   }
+}
+
+unsigned transition_system_projective::transition_count() const {
+  return transitions.size();
+}
+
+void transition_system_projective::perform(configuration& c, tree& t, unsigned transition) const {
+  if (transition < transitions.size())
+    transitions[transition]->perform(c, t);
+}
+
+transition_oracle* transition_system_projective::oracle(const string& /*name*/) const {
+  return nullptr;
 }
 
 } // namespace parsito

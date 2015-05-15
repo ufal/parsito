@@ -10,24 +10,18 @@
 #pragma once
 
 #include "common.h"
-#include "transition_system.h"
+#include "configuration.h"
+#include "tree/tree.h"
 
 namespace ufal {
 namespace parsito {
 
-class transition_system_projective : public transition_system {
+class transition_oracle {
  public:
-  transition_system_projective(const vector<string>& labels);
+  virtual ~transition_oracle() {}
 
-  virtual unsigned transition_count() const override;
-  virtual void perform(configuration& c, tree& t, unsigned transition) const override;
-  virtual transition_oracle* oracle(const string& name) const override;
-
- private:
-  const vector<string>& labels;
-  vector<unique_ptr<transition>> transitions;
+  virtual void outcomes(const configuration& c, const tree& t, const tree& golden, const vector<double>& predictions, vector<double>& outcomes) const = 0;
 };
 
 } // namespace parsito
 } // namespace ufal
-
