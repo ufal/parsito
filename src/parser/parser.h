@@ -10,6 +10,7 @@
 #pragma once
 
 #include "common.h"
+#include "transition/configuration.h"
 #include "tree/tree.h"
 #include "utils/binary_decoder.h"
 
@@ -20,7 +21,7 @@ class parser {
  public:
   virtual ~parser() {};
 
-  virtual void parse(tree& t) const = 0;
+  virtual void parse(tree& t, configuration& c) const = 0;
 
   static parser* load(const char* file);
   static parser* load(istream& in);

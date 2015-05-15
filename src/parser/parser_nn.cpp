@@ -12,7 +12,7 @@
 namespace ufal {
 namespace parsito {
 
-void parser_nn::parse(tree& /*t*/) const {
+void parser_nn::parse(tree& t, configuration& c) const {
 }
 
 void parser_nn::load(binary_decoder& data) {
