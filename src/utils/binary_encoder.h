@@ -10,6 +10,7 @@
 #pragma once
 
 #include "common.h"
+#include "string_piece.h"
 
 namespace ufal {
 namespace parsito {
@@ -23,10 +24,8 @@ class binary_encoder {
   inline void add_2B(unsigned val);
   inline void add_4B(unsigned val);
   inline void add_double(double val);
-  inline void add_str(const char* str);
-  inline void add_str(const string& str);
-  inline void add_data(const vector<unsigned char>& str);
-  inline void add_data(const unsigned char* begin, const unsigned char* end);
+  inline void add_str(string_piece str);
+  inline void add_data(const char* data, size_t length);
 
   vector<unsigned char> data;
 };
@@ -57,23 +56,21 @@ void binary_encoder::add_double(double val) {
 }
 
 
-void binary_encoder::add_str(const char* str) {
-  while (*str)
-    data.push_back(*str++);
+void binary_encoder::add_str(string_piece str) {
+  if (str.len < 255) {
+    data.push_back(str.len);
+  } else {
+    data.push_back(255);
+    add_4B(str.len);
+  }
+
+  while (str.len--)
+    data.push_back(*str.str++);
 }
 
-void binary_encoder::add_str(const string& str) {
-  for (auto&& chr : str)
-    data.push_back(chr);
-}
-
-void binary_encoder::add_data(const vector<unsigned char>& str) {
-  for (auto&& chr : str)
-    data.push_back(chr);
-}
-
-void binary_encoder::add_data(const unsigned char* begin, const unsigned char* end) {
-  data.insert(data.end(), begin, end);
+void binary_encoder::add_data(const char* data, size_t length) {
+  while (length--)
+    this->data.push_back(*data++);
 }
 
 } // namespace parsito

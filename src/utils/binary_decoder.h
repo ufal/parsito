@@ -29,6 +29,7 @@ class binary_decoder {
   inline unsigned next_1B() throw (binary_decoder_error);
   inline unsigned next_2B() throw (binary_decoder_error);
   inline unsigned next_4B() throw (binary_decoder_error);
+  inline void next_str(string& str) throw (binary_decoder_error);
   template <class T> inline const T* next(unsigned elements) throw (binary_decoder_error);
 
   inline bool is_end();
@@ -68,6 +69,12 @@ unsigned binary_decoder::next_4B() throw (binary_decoder_error) {
   unsigned result = *(uint32_t*)data;
   data += sizeof(uint32_t);
   return result;
+}
+
+void binary_decoder::next_str(string& str) throw (binary_decoder_error) {
+  unsigned len = next_1B();
+  if (len == 255) len = next_4B();
+  str.assign(next<char>(len), len);
 }
 
 template <class T> const T* binary_decoder::next(unsigned elements) throw (binary_decoder_error) {

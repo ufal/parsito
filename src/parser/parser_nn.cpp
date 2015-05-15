@@ -17,10 +17,8 @@ void parser_nn::parse(tree& /*t*/) const {
 
 void parser_nn::load(binary_decoder& data) {
   labels.resize(data.next_2B());
-  for (auto&& label : labels) {
-    unsigned label_len = data.next_1B();
-    label.assign(data.next<char>(label_len), label_len);
-  }
+  for (auto&& label : labels)
+    data.next_str(label);
 }
 
 } // namespace parsito

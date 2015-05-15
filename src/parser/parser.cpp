@@ -29,8 +29,8 @@ parser* parser::load(istream& in) {
   if (!compressor::load(in, data)) return nullptr;
 
   try {
-    unsigned name_len = data.next_1B();
-    string name(data.next<char>(name_len), name_len);
+    string name;
+    data.next_str(name);
 
     result.reset(create(name));
     if (!result) return nullptr;
