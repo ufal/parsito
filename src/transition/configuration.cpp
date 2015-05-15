@@ -7,22 +7,24 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
-
-#include "common.h"
-#include "tree/tree.h"
+#include "configuration.h"
 
 namespace ufal {
 namespace parsito {
 
-class configuration {
- public:
-  void init(tree& t);
-  bool final();
+void configuration::init(tree& t) {
+  stack.clear();
+  if (!t.nodes.empty()) stack.push_back(&t.nodes[0]);
 
-  vector<node*> stack;
-  vector<node*> buffer;
-};
+  buffer.clear();
+  buffer.reserve(t.nodes.size());
+  for (size_t i = t.nodes.size(); i > 1; i--)
+    buffer.push_back(&t.nodes[i]);
+}
+
+bool configuration::final() {
+  return buffer.empty() && stack.size() <= 1;
+}
 
 } // namespace parsito
 } // namespace ufal
