@@ -20,7 +20,7 @@ class transition_system_projective : public transition_system {
   transition_system_projective(const vector<string>& labels);
 
   virtual unsigned transition_count() const override;
-  virtual void perform(configuration& c, tree& t, unsigned transition) const override;
+  virtual void perform(configuration& c, unsigned transition) const override;
   virtual transition_oracle* oracle(const string& name) const override;
 
  private:

@@ -12,14 +12,19 @@
 namespace ufal {
 namespace parsito {
 
-void configuration::init(tree& t) {
+void configuration::init(tree* t) {
+  assert(t);
+
+  t->unlink_all_nodes();
+  this->t = t;
+
   stack.clear();
-  if (!t.nodes.empty()) stack.push_back(&t.nodes[0]);
+  if (!t->nodes.empty()) stack.push_back(&t->nodes[0]);
 
   buffer.clear();
-  buffer.reserve(t.nodes.size());
-  for (size_t i = t.nodes.size(); i > 1; i--)
-    buffer.push_back(&t.nodes[i]);
+  buffer.reserve(t->nodes.size());
+  for (size_t i = t->nodes.size(); i > 1; i--)
+    buffer.push_back(&t->nodes[i]);
 }
 
 bool configuration::final() {

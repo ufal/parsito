@@ -15,16 +15,13 @@ namespace parsito {
 void parser_nn::parse(tree& t, configuration& c) const {
   assert(system);
 
-  // Unlink all nodes in the given tree
-  t.unlink_all_nodes();
-
   // Create configuration
-  c.init(t);
+  c.init(&t);
 
   // Compute which transitions to perform and perform them
   while (!c.final()) {
     unsigned transition = 0; // TODO: compute which transition to perform
-    system->perform(c, t, transition);
+    system->perform(c, transition);
   }
 }
 

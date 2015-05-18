@@ -17,9 +17,10 @@ namespace parsito {
 
 class configuration {
  public:
-  void init(tree& t);
+  void init(tree* t);
   bool final();
 
+  tree* t;
   vector<node*> stack;
   vector<node*> buffer;
 };
