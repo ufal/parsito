@@ -7,9 +7,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include <cstring>
+//#include <cstring>
 
 #include "tree_format.h"
+#include "utils/parse_int.h"
 #include "utils/split.h"
 
 namespace ufal {
@@ -72,16 +73,15 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
     if (memchr(tokens[0].str, '-', tokens[0].len)) continue;
 
     // Parse node ID and head
-    char* end_of_int;
-    int id = strtol(tokens[0].str, &end_of_int, 10);
-    if (end_of_int != tokens[0].str + tokens[0].len)
-      return error.assign("Cannot parse numeric id value '").append(tokens[0].str, tokens[0].len).append("'!"), false;
+    int id;
+    if (!parse_int(tokens[0].str, "CoNLL-U id", id, error))
+      return false;
     if (id != int(t.nodes.size()))
       return error.assign("Wrong numeric id value '").append(tokens[0].str, tokens[0].len).append("'!"), false;
 
-    int head = strtol(tokens[6].str, &end_of_int, 10);
-    if (end_of_int != tokens[6].str + tokens[6].len)
-      return error.assign("Cannot parse numeric head value '").append(tokens[6].str, tokens[6].len).append("'!"), false;
+    int head;
+    if (!parse_int(tokens[6].str, "CoNLL-U head", head, error))
+      return false;
     if (head < 0)
       return error.assign("Numeric head value '").append(tokens[0].str, tokens[0].len).append("' cannot be negative!"), false;
 
