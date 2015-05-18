@@ -8,6 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "common.h"
+#include "parser/parser.h"
 #include "utils/iostream_init.h"
 #include "utils/options.h"
 #include "utils/process_args.h"
@@ -16,12 +17,20 @@
 
 using namespace ufal::parsito;
 
-void parse(istream& in, ostream& out, tree_input_format& input_format, const tree_output_format& output_format) {
+void parse(istream& in, ostream& out, const parser& p, tree_input_format& input_format, const tree_output_format& output_format) {
   string input, output, error;
   tree t;
+  configuration c;
+
+  // Read blocks containing input trees
   while (input_format.read_block(in, input)) {
+    // Process all trees in the block
     input_format.set_block(input);
     while (input_format.next_tree(t, error)) {
+      // Parse the tree
+      p.parse(t, c);
+
+      // Output the parsed tree
       output_format.append_tree(t, output);
       out << output;
       output.clear();
@@ -59,7 +68,11 @@ int main(int argc, char* argv[]) {
   if (!output_format)
     runtime_failure("Unknown output format '" << output << "'!");
 
-  process_args(2, argc, argv, parse, *input_format, *output_format);
+  unique_ptr<parser> p(parser::load(argv[1]));
+  if (!p)
+    runtime_failure("Cannot load parser from file '" << argv[1] << "'!");
+
+  process_args(2, argc, argv, parse, *p, *input_format, *output_format);
 
   return 0;
 }
