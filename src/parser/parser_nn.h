@@ -10,6 +10,7 @@
 #pragma once
 
 #include "common.h"
+#include "configuration/node_extractor.h"
 #include "parser.h"
 #include "transition/transition_system.h"
 
@@ -26,6 +27,8 @@ class parser_nn : public parser {
  private:
   vector<string> labels;
   unique_ptr<transition_system> system;
+
+  node_extractor nodes;
 };
 
 } // namespace parsito

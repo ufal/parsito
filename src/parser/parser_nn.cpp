@@ -35,6 +35,12 @@ void parser_nn::load(binary_decoder& data) {
   string system_name;
   data.next_str(system_name);
   system.reset(transition_system::create(system_name, labels));
+
+  // Load node extractor
+  string node_extractor_description, node_extractor_error;
+  data.next_str(node_extractor_description);
+  if (!nodes.create(node_extractor_description, node_extractor_error))
+    throw binary_decoder_error("Cannot load node extractor");
 }
 
 } // namespace parsito
