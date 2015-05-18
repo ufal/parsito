@@ -13,6 +13,7 @@
 
 #include "common.h"
 #include "utils/binary_decoder.h"
+#include "utils/binary_encoder.h"
 #include "utils/string_piece.h"
 
 namespace ufal {
@@ -28,6 +29,8 @@ class embedding {
   const float* weight(int id) const; // nullpt for unknown id
 
   void load(binary_decoder& data);
+  void save(binary_encoder& enc) const;
+  bool create(string_piece description, string& error);
  private:
   unordered_map<string, int> dictionary;
   vector<float> weights;
