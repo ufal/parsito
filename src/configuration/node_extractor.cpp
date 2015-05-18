@@ -63,15 +63,12 @@ bool node_extractor::create(string_piece description, string& error) {
   error.clear();
 
   vector<string_piece> lines, parts, words;
-
   split(description, '\n', lines);
   for (auto&& line : lines) {
     if (!line.len || line.str[0] == '#') continue;
 
     // Separate start and directions
     split(line, ',', parts);
-    if (parts.empty())
-      return error.assign("Missing starting node selector on line '").append(line.str, line.len).append("'.!"), false;
 
     // Parse start
     split(parts[0], ' ', words);
