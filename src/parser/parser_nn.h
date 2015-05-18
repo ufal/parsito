@@ -11,6 +11,7 @@
 
 #include "common.h"
 #include "configuration/node_extractor.h"
+#include "configuration/value_extractor.h"
 #include "parser.h"
 #include "transition/transition_system.h"
 
@@ -29,6 +30,7 @@ class parser_nn : public parser {
   unique_ptr<transition_system> system;
 
   node_extractor nodes;
+  value_extractor values;
 };
 
 } // namespace parsito
