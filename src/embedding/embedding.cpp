@@ -13,28 +13,27 @@
 namespace ufal {
 namespace parsito {
 
-int embedding::dimension() const {
-  return dim;
-}
-
 int embedding::lookup_word(const string& word) const {
   auto it = dictionary.find(word);
   return it == dictionary.end() ? -1 : it->second;
 }
 
 float* embedding::weight(int id) {
-  if (id < 0 || id * dim >= weights.size()) return nullptr;
-  return weights.data() + id * dim;
+  if (id < 0 || id * dimension >= weights.size()) return nullptr;
+  return weights.data() + id * dimension;
 }
 
 const float* embedding::weight(int id) const {
-  if (id < 0 || id * dim >= weights.size()) return nullptr;
-  return weights.data() + id * dim;
+  if (id < 0 || id * dimension >= weights.size()) return nullptr;
+  return weights.data() + id * dimension;
 }
 
 void embedding::load(binary_decoder& data) {
-  // Load dim
-  dim = data.next_4B();
+  // Load dimemsion
+  dimension = data.next_4B();
+
+  // Load update weight
+  update_weight = *data.next<double>(1);
 
   // Load dictionary
   dictionary.clear();
@@ -45,8 +44,8 @@ void embedding::load(binary_decoder& data) {
   }
 
   // Load weights
-  const float* weights_ptr = data.next<float>(dim * dictionary.size());
-  weights.assign(weights_ptr, weights_ptr + dim * dictionary.size());
+  const float* weights_ptr = data.next<float>(dimension * dictionary.size());
+  weights.assign(weights_ptr, weights_ptr + dimension * dictionary.size());
 }
 
 } // namespace parsito
