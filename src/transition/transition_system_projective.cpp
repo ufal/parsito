@@ -75,7 +75,7 @@ void transition_system_projective_oracle_static::outcomes(const configuration& c
 
 // Oracle factory method
 transition_oracle* transition_system_projective::oracle(const string& name) const {
-  if (name.compare("static") == 0) return new transition_system_projective_oracle_static(labels);
+  if (name == "static") return new transition_system_projective_oracle_static(labels);
   return nullptr;
 }
 

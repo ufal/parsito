@@ -57,26 +57,19 @@ void value_extractor::extract(const node* n, string& value) const {
 }
 
 bool value_extractor::create(string_piece description, string& error) {
-  string literal_form = "form";
-  string literal_lemma = "lemma";
-  string literal_lemma_id = "lemma_id";
-  string literal_tag = "tag";
-  string literal_universal_tag = "universal_tag";
-  string literal_deprel = "deprel";
-
   error.clear();
 
-  if (literal_form.compare(0, literal_form.size(), description.str, description.len))
+  if (description == "form")
     selector = FORM;
-  else if (literal_lemma.compare(0, literal_lemma.size(), description.str, description.len))
+  else if (description == "lemma")
     selector = LEMMA;
-  else if (literal_lemma_id.compare(0, literal_lemma_id.size(), description.str, description.len))
+  else if (description == "lemma_id")
     selector = LEMMA_ID;
-  else if (literal_tag.compare(0, literal_tag.size(), description.str, description.len))
+  else if (description == "tag")
     selector = TAG;
-  else if (literal_universal_tag.compare(0, literal_universal_tag.size(), description.str, description.len))
+  else if (description == "universal_tag")
     selector = UNIVERSAL_TAG;
-  else if (literal_deprel.compare(0, literal_deprel.size(), description.str, description.len))
+  else if (description == "deprel")
     selector = DEPREL;
   else
     return error.assign("Cannot parse value selector '").append(description.str, description.len).append("'!"), false;

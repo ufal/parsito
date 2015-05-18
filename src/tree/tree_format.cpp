@@ -144,7 +144,7 @@ tree_input_format* tree_input_format::new_conllu_input_format() {
 }
 
 tree_input_format* tree_input_format::new_input_format(const string& name) {
-  if (name.compare("conllu") == 0) return new_conllu_input_format();
+  if (name == "conllu") return new_conllu_input_format();
   return nullptr;
 }
 
@@ -154,7 +154,7 @@ tree_output_format* tree_output_format::new_conllu_output_format() {
 }
 
 tree_output_format* tree_output_format::new_output_format(const string& name) {
-  if (name.compare("conllu") == 0) return new_conllu_output_format();
+  if (name == "conllu") return new_conllu_output_format();
   return nullptr;
 }
 

@@ -30,3 +30,5 @@ using namespace std;
 
 } // namespace parsito
 } // namespace ufal
+
+#include "utils/string_piece.h"

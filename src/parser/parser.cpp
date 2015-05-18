@@ -44,7 +44,7 @@ parser* parser::load(istream& in) {
 }
 
 parser* parser::create(const string& name) {
-  if (name.compare("nn") == 0) return new parser_nn();
+  if (name == "nn") return new parser_nn();
   return nullptr;
 }
 
