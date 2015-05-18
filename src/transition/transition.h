@@ -10,7 +10,7 @@
 #pragma once
 
 #include "common.h"
-#include "configuration.h"
+#include "configuration/configuration.h"
 #include "tree/tree.h"
 
 namespace ufal {

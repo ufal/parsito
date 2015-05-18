@@ -10,7 +10,7 @@
 #pragma once
 
 #include "common.h"
-#include "transition/configuration.h"
+#include "configuration/configuration.h"
 #include "tree/tree.h"
 #include "utils/binary_decoder.h"
 
