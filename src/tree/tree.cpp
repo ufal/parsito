@@ -35,8 +35,8 @@ node& tree::add_node(const string& form) {
 }
 
 void tree::set_head(int id, int head, const string& deprel) {
-  if (id < 0 || id >= int(nodes.size())) return;
-  if (head >= int(nodes.size())) return;
+  assert(id >= 0 && id < int(nodes.size()));
+  assert(head < int(nodes.size()));
 
   // Remove existing head
   if (nodes[id].head >= 0) {

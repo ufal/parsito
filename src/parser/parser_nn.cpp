@@ -13,7 +13,7 @@ namespace ufal {
 namespace parsito {
 
 void parser_nn::parse(tree& t, configuration& c) const {
-  if (!system) return;
+  assert(system);
 
   // Unlink all nodes in the given tree
   t.unlink_all_nodes();

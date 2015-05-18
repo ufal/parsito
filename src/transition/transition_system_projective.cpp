@@ -25,8 +25,9 @@ unsigned transition_system_projective::transition_count() const {
 }
 
 void transition_system_projective::perform(configuration& c, tree& t, unsigned transition) const {
-  if (transition < transitions.size())
-    transitions[transition]->perform(c, t);
+  assert(transition < transitions.size());
+
+  transitions[transition]->perform(c, t);
 }
 
 // Static oracle

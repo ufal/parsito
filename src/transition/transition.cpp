@@ -18,7 +18,8 @@ bool transition_left_arc::applicable(const configuration& c) const {
 }
 
 void transition_left_arc::perform(configuration& c, tree& t) const {
-  if (!applicable(c)) return;
+  assert(applicable(c));
+
   node* parent = c.stack.back(); c.stack.pop_back();
   node* child = c.stack.back(); c.stack.pop_back();
   c.stack.push_back(parent);
@@ -31,7 +32,8 @@ bool transition_right_arc::applicable(const configuration& c) const {
 }
 
 void transition_right_arc::perform(configuration& c, tree& t) const {
-  if (!applicable(c)) return;
+  assert(applicable(c));
+
   node* child = c.stack.back(); c.stack.pop_back();
   node* parent = c.stack.back();
   t.set_head(child->id, parent->id, label);
@@ -43,7 +45,8 @@ bool transition_shift::applicable(const configuration& c) const {
 }
 
 void transition_shift::perform(configuration& c, tree& /*t*/) const {
-  if (!applicable(c)) return;
+  assert(applicable(c));
+
   c.stack.push_back(c.buffer.back());
   c.buffer.pop_back();
 }
@@ -54,7 +57,8 @@ bool transition_swap::applicable(const configuration& c) const {
 }
 
 void transition_swap::perform(configuration& c, tree& /*t*/) const {
-  if (!applicable(c)) return;
+  assert(applicable(c));
+
   node* top = c.stack.back(); c.stack.pop_back();
   node* to_buffer = c.stack.back(); c.stack.pop_back();
   c.stack.push_back(top);
@@ -67,7 +71,8 @@ bool transition_left_arc_2::applicable(const configuration& c) const {
 }
 
 void transition_left_arc_2::perform(configuration& c, tree& t) const {
-  if (!applicable(c)) return;
+  assert(applicable(c));
+
   node* parent = c.stack.back(); c.stack.pop_back();
   node* ignore = c.stack.back(); c.stack.pop_back();
   node* child = c.stack.back(); c.stack.pop_back();
@@ -82,7 +87,8 @@ bool transition_right_arc_2::applicable(const configuration& c) const {
 }
 
 void transition_right_arc_2::perform(configuration& c, tree& t) const {
-  if (!applicable(c)) return;
+  assert(applicable(c));
+
   node* child = c.stack.back(); c.stack.pop_back();
   node* to_buffer = c.stack.back(); c.stack.pop_back();
   node* parent = c.stack.back();
