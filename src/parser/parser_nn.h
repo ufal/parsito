@@ -30,7 +30,6 @@ class parser_nn : public parser {
   unique_ptr<transition_system> system;
 
   node_extractor nodes;
-  value_extractor values;
 };
 
 } // namespace parsito

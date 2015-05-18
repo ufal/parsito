@@ -13,22 +13,18 @@
 namespace ufal {
 namespace parsito {
 
-const string value_extractor::literal_unknown = "<unk>";
+const string value_extractor::literal_not_found = "</s>";
 
-void value_extractor::extract(const node* n, vector<string>& values) const {
-  if (!n) {
-    values.assign(selectors.size(), literal_unknown);
-    return;
-  }
-
-  values.resize(selectors.size());
-  for (size_t i = 0; i < selectors.size(); i++)
-    switch (selectors[i]) {
+void value_extractor::extract(const node* n, string& value) const {
+  if (!n)
+    value.assign(literal_not_found);
+  else
+    switch (selector) {
       case FORM:
-        values[i].assign(n->form);
+        value.assign(n->form);
         break;
       case LEMMA:
-        values[i].assign(n->lemma);
+        value.assign(n->lemma);
         break;
       case LEMMA_ID:
         if (!n->misc.empty()) {
@@ -42,20 +38,20 @@ void value_extractor::extract(const node* n, vector<string>& values) const {
             if (lid_end == string::npos) lid_end = n->misc.size();
 
             // Store the lemma_id
-            values[i].assign(n->misc, lid, lid_end - lid);
+            value.assign(n->misc, lid, lid_end - lid);
             break;
           }
         }
-        values[i].assign(n->lemma);
+        value.assign(n->lemma);
         break;
       case TAG:
-        values[i].assign(n->tag);
+        value.assign(n->tag);
         break;
       case UNIVERSAL_TAG:
-        values[i].assign(n->ctag);
+        value.assign(n->ctag);
         break;
       case DEPREL:
-        values[i].assign(n->deprel);
+        value.assign(n->deprel);
         break;
     }
 }
@@ -68,29 +64,23 @@ bool value_extractor::create(string_piece description, string& error) {
   string literal_universal_tag = "universal_tag";
   string literal_deprel = "deprel";
 
-  selectors.clear();
   error.clear();
 
-  vector<string_piece> lines;
-  split(description, '\n', lines);
-  for (auto&& line : lines) {
-    if (!line.len || line.str[0] == '#') continue;
+  if (literal_form.compare(0, literal_form.size(), description.str, description.len))
+    selector = FORM;
+  else if (literal_lemma.compare(0, literal_lemma.size(), description.str, description.len))
+    selector = LEMMA;
+  else if (literal_lemma_id.compare(0, literal_lemma_id.size(), description.str, description.len))
+    selector = LEMMA_ID;
+  else if (literal_tag.compare(0, literal_tag.size(), description.str, description.len))
+    selector = TAG;
+  else if (literal_universal_tag.compare(0, literal_universal_tag.size(), description.str, description.len))
+    selector = UNIVERSAL_TAG;
+  else if (literal_deprel.compare(0, literal_deprel.size(), description.str, description.len))
+    selector = DEPREL;
+  else
+    return error.assign("Cannot parse value selector '").append(description.str, description.len).append("'!"), false;
 
-    if (literal_form.compare(0, literal_form.size(), line.str, line.len))
-      selectors.emplace_back(FORM);
-    else if (literal_lemma.compare(0, literal_lemma.size(), line.str, line.len))
-      selectors.emplace_back(LEMMA);
-    else if (literal_lemma_id.compare(0, literal_lemma_id.size(), line.str, line.len))
-      selectors.emplace_back(LEMMA_ID);
-    else if (literal_tag.compare(0, literal_tag.size(), line.str, line.len))
-      selectors.emplace_back(TAG);
-    else if (literal_universal_tag.compare(0, literal_universal_tag.size(), line.str, line.len))
-      selectors.emplace_back(UNIVERSAL_TAG);
-    else if (literal_deprel.compare(0, literal_deprel.size(), line.str, line.len))
-      selectors.emplace_back(DEPREL);
-    else
-      return error.assign("Cannot parse value selector '").append(line.str, line.len).append("'!"), false;
-  }
   return true;
 }
 
