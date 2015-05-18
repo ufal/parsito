@@ -80,10 +80,15 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
       return error.assign("Wrong numeric id value '").append(tokens[0].str, tokens[0].len).append("'!"), false;
 
     int head;
-    if (!parse_int(tokens[6].str, "CoNLL-U head", head, error))
-      return false;
-    if (head < 0)
-      return error.assign("Numeric head value '").append(tokens[0].str, tokens[0].len).append("' cannot be negative!"), false;
+    if (tokens[6].len == 1 && tokens[6].str[0] == '_') {
+      head = -1;
+    } else {
+      if (!parse_int(tokens[6].str, "CoNLL-U head", head, error))
+        return false;
+      if (head < 0)
+        return error.assign("Numeric head value '").append(tokens[0].str, tokens[0].len).append("' cannot be negative!"), false;
+    }
+
 
     // Add new node
     auto& node = t.add_node(string(tokens[1].str, tokens[1].len));
@@ -99,7 +104,7 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
 
   // Set heads correctly
   for (auto&& node : t.nodes)
-    if (node.id)
+    if (node.id && node.head >= 0)
       t.set_head(node.id, node.head, node.deprel);
 
   return !t.empty();
@@ -125,7 +130,7 @@ void tree_output_format_conllu::append_tree(const tree& t, string& block) const 
     block.append(underscore_on_empty(t.nodes[i].ctag)).push_back('\t');
     block.append(underscore_on_empty(t.nodes[i].tag)).push_back('\t');
     block.append(underscore_on_empty(t.nodes[i].feats)).push_back('\t');
-    block.append(to_string(t.nodes[i].head)).push_back('\t');
+    block.append(t.nodes[i].head < 0 ? "_" : to_string(t.nodes[i].head)).push_back('\t');
     block.append(underscore_on_empty(t.nodes[i].deprel)).push_back('\t');
     block.append(underscore_on_empty(t.nodes[i].deps)).push_back('\t');
     block.append(underscore_on_empty(t.nodes[i].misc)).push_back('\n');
