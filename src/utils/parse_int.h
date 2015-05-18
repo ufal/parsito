@@ -9,26 +9,20 @@
 
 #pragma once
 
-#include <cerrno>
-
 #include "common.h"
+#include "string_piece.h"
 
 namespace ufal {
 namespace parsito {
 
 // Try to parse an int from given string. If the int cannot be parsed or does
-// not fit into int, an error is displayed and program exits. If that happens,
-// the value_name argument is used in the error message.
-inline int parse_int(const char* str, const char* value_name) {
-  char* end;
+// not fit into int, false is returned and the error string is filled using the
+// value_name argument.
+bool parse_int(string_piece str, const char* value_name, int& value, string& error);
 
-  errno = 0;
-  long result = strtol(str, &end, 10);
-  if (*end || errno == ERANGE || result != int(result))
-    runtime_errorf("Cannot parse %s int value: '%s'!", value_name, str);
-
-  return int(result);
-}
+// Try to parse an int from given string. If the int cannot be parsed or does
+// not fit into int, an error is displayed and program exits.
+int parse_int(string_piece str, const char* value_name);
 
 } // namespace parsito
 } // namespace ufal

@@ -16,7 +16,7 @@ LZMA_DEC_O = utils/compressor_load utils/lzma/LzmaDec
 LZMA_ENC_O = utils/compressor_save utils/lzma/LzmaEnc utils/lzma/LzFind
 PARSITO_O = $(LZMA_DEC_O) configuration/configuration parser/parser parser/parser_nn
 PARSITO_O += transition/transition transition/transition_system transition/transition_system_projective
-PARSITO_O += tree/tree tree/tree_format utils/split version/version
+PARSITO_O += tree/tree tree/tree_format utils/parse_int utils/split version/version
 
 # library
 $(call lib,libparsito): $(call obj,$(PARSITO_O))
