@@ -32,9 +32,19 @@ void embedding::save(binary_encoder& enc) const {
   enc.add_data((const char*) weights.data(), sizeof(float) * dimension * dictionary.size());
 }
 
-bool embedding::create(string_piece /*description*/, string& /*error*/) {
-  // TODO
-  return false;
+void embedding::create(unsigned dimension, double update_weight, const vector<pair<string, vector<float>>>& words) {
+  assert(update_weight >= 0);
+
+  this->dimension = dimension;
+  this->update_weight = update_weight;
+
+  dictionary.clear();
+  weights.clear();
+  for (auto&& word : words) {
+    assert(word.second.size() == dimension);
+    dictionary.emplace(word.first, dictionary.size());
+    weights.insert(weights.end(), word.second.begin(), word.second.end());
+  }
 }
 
 } // namespace parsito

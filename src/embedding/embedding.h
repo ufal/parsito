@@ -30,7 +30,7 @@ class embedding {
 
   void load(binary_decoder& data);
   void save(binary_encoder& enc) const;
-  bool create(string_piece description, string& error);
+  void create(unsigned dimension, double update_weight, const vector<pair<string, vector<float>>>& words);
  private:
   double update_weight;
 
