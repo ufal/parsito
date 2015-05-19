@@ -137,6 +137,7 @@ void parser_nn_trainer::train(bool /*direct_connections*/, unsigned /*hidden_lay
       vector<float> projected_weights(dimension);
       while (getline(in, line) && (max_size <= 0 || int(weights.size()) < max_size)) {
         split(line, ' ', parts);
+        if (!parts.empty() && !parts.back().len) parts.pop_back(); // Ignore space at the end of line
         if (int(parts.size()) != file_dimension + 1) runtime_failure("Wrong number of values on line '" << line << "' of embedding file '" << tokens[4]);
         for (int i = 0; i < file_dimension; i++)
           input_weights[i] = parse_double(parts[1 + i], "embedding weight");
@@ -169,6 +170,7 @@ void parser_nn_trainer::train(bool /*direct_connections*/, unsigned /*hidden_lay
           word_weight = normal(generator);
 
         weights.emplace_back(count.second, word_weights);
+        words_covered += -count.first;
       }
     }
 
