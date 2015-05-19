@@ -20,7 +20,7 @@ class transition_oracle {
  public:
   virtual ~transition_oracle() {}
 
-  virtual void outcomes(const configuration& c, const tree& t, const tree& golden, const vector<double>& predictions, vector<double>& outcomes) const = 0;
+  virtual unsigned outcome(const configuration& c, const tree& t, const tree& golden, const vector<double>& predictions) const = 0;
 };
 
 } // namespace parsito

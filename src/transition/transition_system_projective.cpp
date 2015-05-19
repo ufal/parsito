@@ -35,24 +35,20 @@ class transition_system_projective_oracle_static : public transition_oracle {
  public:
   transition_system_projective_oracle_static(const vector<string>& labels) : labels(labels) {}
 
-  virtual void outcomes(const configuration& c, const tree& t, const tree& golden, const vector<double>& predictions, vector<double>& outcomes) const override;
+  virtual unsigned outcome(const configuration& c, const tree& t, const tree& golden, const vector<double>& predictions) const override;
  private:
   const vector<string>& labels;
 };
 
-void transition_system_projective_oracle_static::outcomes(const configuration& c, const tree& /*t*/, const tree& golden, const vector<double>& /*predictions*/, vector<double>& outcomes) const {
-  outcomes.assign(1 + 2 * labels.size(), 0);
-
+unsigned transition_system_projective_oracle_static::outcome(const configuration& c, const tree& /*t*/, const tree& golden, const vector<double>& /*predictions*/) const {
   // Use left if appropriate
   if (c.stack.size() >= 2) {
     node* parent = c.stack[c.stack.size() - 1];
     node* child = c.stack[c.stack.size() - 2];
     if (golden.nodes[child->id].head == parent->id) {
       for (size_t i = 0; i < labels.size(); i++)
-        if (golden.nodes[child->id].deprel == labels[i]) {
-          outcomes[1 + 2*i] = 1;
-          return;
-        }
+        if (golden.nodes[child->id].deprel == labels[i])
+          return 1 + 2*i;
     }
   }
 
@@ -62,15 +58,13 @@ void transition_system_projective_oracle_static::outcomes(const configuration& c
     node* parent = c.stack[c.stack.size() - 2];
     if (golden.nodes[child->id].head == parent->id) {
       for (size_t i = 0; i < labels.size(); i++)
-        if (golden.nodes[child->id].deprel == labels[i]) {
-          outcomes[1 + 2*i + 1] = 1;
-          return;
-        }
+        if (golden.nodes[child->id].deprel == labels[i])
+          return 1 + 2*i + 1;
     }
   }
 
   // Otherwise, just shift
-  outcomes[0] = 1;
+  return 0;
 }
 
 // Oracle factory method
