@@ -13,47 +13,42 @@
 namespace ufal {
 namespace parsito {
 
-const string value_extractor::literal_not_found = "</s>";
+void value_extractor::extract(const node& n, string& value) const {
+  switch (selector) {
+    case FORM:
+      value.assign(n.form);
+      break;
+    case LEMMA:
+      value.assign(n.lemma);
+      break;
+    case LEMMA_ID:
+      if (!n.misc.empty()) {
+        // Try finding LId= in misc column
+        auto lid = n.misc.find("LId=");
+        if (lid != string::npos) {
+          lid += 4;
 
-void value_extractor::extract(const node* n, string& value) const {
-  if (!n)
-    value.assign(literal_not_found);
-  else
-    switch (selector) {
-      case FORM:
-        value.assign(n->form);
-        break;
-      case LEMMA:
-        value.assign(n->lemma);
-        break;
-      case LEMMA_ID:
-        if (!n->misc.empty()) {
-          // Try finding LId= in misc column
-          auto lid = n->misc.find("LId=");
-          if (lid != string::npos) {
-            lid += 4;
+          // Find optional | ending the lemma_id
+          auto lid_end = n.misc.find('|', lid);
+          if (lid_end == string::npos) lid_end = n.misc.size();
 
-            // Find optional | ending the lemma_id
-            auto lid_end = n->misc.find('|', lid);
-            if (lid_end == string::npos) lid_end = n->misc.size();
-
-            // Store the lemma_id
-            value.assign(n->misc, lid, lid_end - lid);
-            break;
-          }
+          // Store the lemma_id
+          value.assign(n.misc, lid, lid_end - lid);
+          break;
         }
-        value.assign(n->lemma);
-        break;
-      case TAG:
-        value.assign(n->tag);
-        break;
-      case UNIVERSAL_TAG:
-        value.assign(n->ctag);
-        break;
-      case DEPREL:
-        value.assign(n->deprel);
-        break;
-    }
+      }
+      value.assign(n.lemma);
+      break;
+    case TAG:
+      value.assign(n.tag);
+      break;
+    case UNIVERSAL_TAG:
+      value.assign(n.ctag);
+      break;
+    case DEPREL:
+      value.assign(n.deprel);
+      break;
+  }
 }
 
 bool value_extractor::create(string_piece description, string& error) {

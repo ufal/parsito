@@ -18,15 +18,13 @@ namespace parsito {
 
 class value_extractor {
  public:
-  void extract(const node* n, string& value) const;
+  void extract(const node& n, string& value) const;
 
   bool create(string_piece description, string& error);
 
  private:
   enum value_t { FORM = 0, LEMMA = 1, LEMMA_ID = 2, TAG = 3, UNIVERSAL_TAG = 4, DEPREL = 5 };
   value_t selector;
-
-  static const string literal_not_found;
 };
 
 } // namespace parsito
