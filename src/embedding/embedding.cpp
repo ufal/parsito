@@ -28,6 +28,12 @@ const float* embedding::weight(int id) const {
   return weights.data() + id * dimension;
 }
 
+void embedding::update_weights(int /*id*/, const float* /*error*/) {
+  if (!update_weight) return;
+
+//TODO
+}
+
 void embedding::load(binary_decoder& data) {
   // Load dimemsion
   dimension = data.next_4B();

@@ -22,16 +22,18 @@ namespace parsito {
 class embedding {
  public:
   unsigned dimension;
-  double update_weight;
 
   int lookup_word(const string& word) const; // <0 is not_found
   float* weight(int id); // nullptr for unknown id
   const float* weight(int id) const; // nullpt for unknown id
+  void update_weights(int id, const float* error);
 
   void load(binary_decoder& data);
   void save(binary_encoder& enc) const;
   bool create(string_piece description, string& error);
  private:
+  double update_weight;
+
   unordered_map<string, int> dictionary;
   vector<float> weights;
 };
