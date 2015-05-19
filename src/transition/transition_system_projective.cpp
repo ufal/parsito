@@ -43,22 +43,22 @@ class transition_system_projective_oracle_static : public transition_oracle {
 unsigned transition_system_projective_oracle_static::outcome(const configuration& c, const tree& /*t*/, const tree& golden, const vector<double>& /*predictions*/) const {
   // Use left if appropriate
   if (c.stack.size() >= 2) {
-    node* parent = c.stack[c.stack.size() - 1];
-    node* child = c.stack[c.stack.size() - 2];
-    if (golden.nodes[child->id].head == parent->id) {
+    int parent = c.stack[c.stack.size() - 1];
+    int child = c.stack[c.stack.size() - 2];
+    if (golden.nodes[child].head == parent) {
       for (size_t i = 0; i < labels.size(); i++)
-        if (golden.nodes[child->id].deprel == labels[i])
+        if (golden.nodes[child].deprel == labels[i])
           return 1 + 2*i;
     }
   }
 
   // Use right if appropriate
   if (c.stack.size() >= 2) {
-    node* child = c.stack[c.stack.size() - 1];
-    node* parent = c.stack[c.stack.size() - 2];
-    if (golden.nodes[child->id].head == parent->id) {
+    int child = c.stack[c.stack.size() - 1];
+    int parent = c.stack[c.stack.size() - 2];
+    if (golden.nodes[child].head == parent) {
       for (size_t i = 0; i < labels.size(); i++)
-        if (golden.nodes[child->id].deprel == labels[i])
+        if (golden.nodes[child].deprel == labels[i])
           return 1 + 2*i + 1;
     }
   }

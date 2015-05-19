@@ -14,11 +14,11 @@
 namespace ufal {
 namespace parsito {
 
-void node_extractor::extract(const configuration& c, vector<node*>& nodes) const {
+void node_extractor::extract(const configuration& c, vector<int>& nodes) const {
   nodes.clear();
   for (auto&& selector : selectors) {
     // Start by locating starting node
-    node* current = nullptr;
+    int current = -1;
     switch (selector.start.first) {
       case STACK:
         if (selector.start.second < int(c.stack.size()))
@@ -31,21 +31,22 @@ void node_extractor::extract(const configuration& c, vector<node*>& nodes) const
     }
 
     // Follow directions to the final node
-    if (current)
+    if (current >= 0)
       for (auto&& direction : selector.directions) {
+        const node& node = c.t->nodes[current];
         switch (direction.first) {
           case PARENT:
-            current = current->head >= 0 ? &c.t->nodes[current->head] : nullptr;
+            current = node.head ? node.head : -1;
             break;
           case CHILD:
-            current = direction.second > 0 && direction.second < int(current->children.size()) ?
-                        &c.t->nodes[current->children[direction.second]] :
-                      direction.second < 0 && -direction.second <= int(current->children.size()) ?
-                        &c.t->nodes[current->children[current->children.size() + direction.second]] :
-                        nullptr;
+            current = direction.second > 0 && direction.second < int(node.children.size()) ?
+                        node.children[direction.second] :
+                      direction.second < 0 && -direction.second <= int(node.children.size()) ?
+                        node.children[node.children.size() + direction.second] :
+                        -1;
             break;
         }
-        if (!current) break;
+        if (current <= 0) break;
       }
 
     // Add the selected node

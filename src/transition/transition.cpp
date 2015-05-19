@@ -14,16 +14,16 @@ namespace parsito {
 
 // Left arc
 bool transition_left_arc::applicable(const configuration& c) const {
-  return c.stack.size() >= 2 && c.stack[c.stack.size() - 2]->id;
+  return c.stack.size() >= 2 && c.stack[c.stack.size() - 2];
 }
 
 void transition_left_arc::perform(configuration& c) const {
   assert(applicable(c));
 
-  node* parent = c.stack.back(); c.stack.pop_back();
-  node* child = c.stack.back(); c.stack.pop_back();
+  int parent = c.stack.back(); c.stack.pop_back();
+  int child = c.stack.back(); c.stack.pop_back();
   c.stack.push_back(parent);
-  c.t->set_head(child->id, parent->id, label);
+  c.t->set_head(child, parent, label);
 }
 
 // Right arc
@@ -34,9 +34,9 @@ bool transition_right_arc::applicable(const configuration& c) const {
 void transition_right_arc::perform(configuration& c) const {
   assert(applicable(c));
 
-  node* child = c.stack.back(); c.stack.pop_back();
-  node* parent = c.stack.back();
-  c.t->set_head(child->id, parent->id, label);
+  int child = c.stack.back(); c.stack.pop_back();
+  int parent = c.stack.back();
+  c.t->set_head(child, parent, label);
 }
 
 // Shift
@@ -53,32 +53,32 @@ void transition_shift::perform(configuration& c) const {
 
 // Swap
 bool transition_swap::applicable(const configuration& c) const {
-  return c.stack.size() >= 2 && c.stack[c.stack.size() - 2]->id && c.stack[c.stack.size() - 2]->id < c.stack[c.stack.size() - 1]->id;
+  return c.stack.size() >= 2 && c.stack[c.stack.size() - 2] && c.stack[c.stack.size() - 2] < c.stack[c.stack.size() - 1];
 }
 
 void transition_swap::perform(configuration& c) const {
   assert(applicable(c));
 
-  node* top = c.stack.back(); c.stack.pop_back();
-  node* to_buffer = c.stack.back(); c.stack.pop_back();
+  int top = c.stack.back(); c.stack.pop_back();
+  int to_buffer = c.stack.back(); c.stack.pop_back();
   c.stack.push_back(top);
   c.buffer.push_back(to_buffer);
 }
 
 // Left arc 2
 bool transition_left_arc_2::applicable(const configuration& c) const {
-  return c.stack.size() >= 3 && c.stack[c.stack.size() - 3]->id;
+  return c.stack.size() >= 3 && c.stack[c.stack.size() - 3];
 }
 
 void transition_left_arc_2::perform(configuration& c) const {
   assert(applicable(c));
 
-  node* parent = c.stack.back(); c.stack.pop_back();
-  node* ignore = c.stack.back(); c.stack.pop_back();
-  node* child = c.stack.back(); c.stack.pop_back();
+  int parent = c.stack.back(); c.stack.pop_back();
+  int ignore = c.stack.back(); c.stack.pop_back();
+  int child = c.stack.back(); c.stack.pop_back();
   c.stack.push_back(ignore);
   c.stack.push_back(parent);
-  c.t->set_head(child->id, parent->id, label);
+  c.t->set_head(child, parent, label);
 }
 
 // Right arc 2
@@ -89,11 +89,11 @@ bool transition_right_arc_2::applicable(const configuration& c) const {
 void transition_right_arc_2::perform(configuration& c) const {
   assert(applicable(c));
 
-  node* child = c.stack.back(); c.stack.pop_back();
-  node* to_buffer = c.stack.back(); c.stack.pop_back();
-  node* parent = c.stack.back();
+  int child = c.stack.back(); c.stack.pop_back();
+  int to_buffer = c.stack.back(); c.stack.pop_back();
+  int parent = c.stack.back();
   c.buffer.push_back(to_buffer);
-  c.t->set_head(child->id, parent->id, label);
+  c.t->set_head(child, parent, label);
 }
 
 } // namespace parsito

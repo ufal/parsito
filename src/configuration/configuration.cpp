@@ -19,12 +19,12 @@ void configuration::init(tree* t) {
   this->t = t;
 
   stack.clear();
-  if (!t->nodes.empty()) stack.push_back(&t->nodes[0]);
+  if (!t->nodes.empty()) stack.push_back(0);
 
   buffer.clear();
   buffer.reserve(t->nodes.size());
   for (size_t i = t->nodes.size(); i > 1; i--)
-    buffer.push_back(&t->nodes[i]);
+    buffer.push_back(i);
 }
 
 bool configuration::final() {

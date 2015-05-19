@@ -21,8 +21,8 @@ class configuration {
   bool final();
 
   tree* t;
-  vector<node*> stack;
-  vector<node*> buffer;
+  vector<int> stack;
+  vector<int> buffer;
 };
 
 } // namespace parsito
