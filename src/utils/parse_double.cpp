@@ -22,9 +22,9 @@ bool parse_double(string_piece str, const char* value_name, double& value, strin
     str.str++, str.len--;
 
   // Allow minus
-  bool positive = true;
+  bool negative = false;
   if (str.len && str.str[0] == '-') {
-    positive = false;
+    negative = true;
     str.str++, str.len--;
   }
 
@@ -53,14 +53,14 @@ bool parse_double(string_piece str, const char* value_name, double& value, strin
   }
 
   // Apply initial minus
-  if (!positive) value *= -1;
+  if (negative) value *= -1;
 
   // Skip spaces
   while (str.len && (str.str[0] == ' ' || str.str[0] == '\f' || str.str[0] == '\n' || str.str[0] == '\r' || str.str[0] == '\t' || str.str[0] == '\v'))
     str.str++, str.len--;
 
   // Check for remaining characters
-  if (!str.len) return error.assign("Non-digit character found when parsing ").append(value_name).append(" double value '").append(original.str, original.len).append("'!"), false;
+  if (str.len) return error.assign("Non-digit character found when parsing ").append(value_name).append(" double value '").append(original.str, original.len).append("'!"), false;
 
   return true;
 }
