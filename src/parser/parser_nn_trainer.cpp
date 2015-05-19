@@ -175,14 +175,14 @@ void parser_nn_trainer::train(bool /*direct_connections*/, unsigned /*hidden_lay
     embeddings.back().create(dimension, update_weight, weights);
 
     // Count the cover of this embedding
-    string word;
+    string word, buffer;
     unsigned words_total = 0, words_covered = 0;
     for (auto&& tree : train)
       for (auto&& node : tree.nodes)
         if (node.id) {
           values.back().extract(node, word);
           words_total++;
-          words_covered += embeddings.back().lookup_word(word) >= 0;
+          words_covered += embeddings.back().lookup_word(word, buffer) >= 0;
         }
 
     cerr << "Initialized '" << tokens[0] << "' embedding with " << weights.size() << " words and " << 100. * words_covered / words_total << "% coverage." << endl;

@@ -23,7 +23,7 @@ class embedding {
  public:
   unsigned dimension;
 
-  int lookup_word(const string& word) const; // <0 is not_found
+  int lookup_word(const string& word, string& buffer) const; // <0 is not_found
   float* weight(int id); // nullptr for unknown id
   const float* weight(int id) const; // nullpt for unknown id
   void update_weights(int id, const float* error);

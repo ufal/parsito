@@ -9,13 +9,59 @@
 
 #include "common.h"
 #include "embedding.h"
+#include "unilib/unicode.h"
+#include "unilib/utf8.h"
 
 namespace ufal {
 namespace parsito {
 
-int embedding::lookup_word(const string& word) const {
+using namespace unilib;
+
+int embedding::lookup_word(const string& word, string& buffer) const {
   auto it = dictionary.find(word);
-  return it == dictionary.end() ? -1 : it->second;
+  if (it != dictionary.end()) return it->second;
+
+  // We now apply several heuristics to find a match
+
+  // Try locating uppercase/titlecase characters which we could lowercase
+  bool first = true;
+  unicode::category_t first_category = 0, other_categories = 0;
+  for (auto&& chr : utf8::decoder(word)) {
+    (first ? first_category : other_categories) |= unicode::category(chr);
+    first = false;
+  }
+
+  if ((first_category & unicode::Lut) && (other_categories & unicode::Lut)) {
+    // Lowercase all characters but the first
+    buffer.clear();
+    first = true;
+    for (auto&& chr : utf8::decoder(word)) {
+      utf8::append(buffer, first ? chr : unicode::lowercase(chr));
+      first = false;
+    }
+
+    it = dictionary.find(buffer);
+    if (it != dictionary.end()) return it->second;
+  }
+
+  if ((first_category & unicode::Lut) || (other_categories & unicode::Lut)) {
+    utf8::map(unicode::lowercase, word, buffer);
+
+    it = dictionary.find(buffer);
+    if (it != dictionary.end()) return it->second;
+  }
+
+  // If the word starts with digit and contain only digits and non-letter characters
+  // i.e. large number, date, time, try replacing it with first digit only.
+  if ((first_category & unicode::N) && !(other_categories & unicode::L)) {
+    buffer.clear();
+    utf8::append(buffer, utf8::first(word));
+
+    it = dictionary.find(buffer);
+    if (it != dictionary.end()) return it->second;
+  }
+
+  return -1;
 }
 
 float* embedding::weight(int id) {
