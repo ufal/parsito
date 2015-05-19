@@ -28,6 +28,8 @@ void parser_nn_trainer::train(bool /*direct_connections*/, unsigned /*hidden_lay
                               const string& transition_system_name, const string& transition_oracle_name,
                               const string& embeddings_description, const string& nodes_description, unsigned /*threads*/,
                               const vector<tree>& train, const vector<tree>& /*heldout*/, binary_encoder& enc) {
+  if (train.empty()) runtime_failure("No training data was given!");
+
   // Random generator with fixed seed for reproducibility
   mt19937 generator(42);
 
@@ -85,17 +87,6 @@ void parser_nn_trainer::train(bool /*direct_connections*/, unsigned /*hidden_lay
     int dimension = parse_int(tokens[2], "embedding dimension");
     double update_weight = parse_double(tokens[3], "embedding dimension");
 
-    // Generate counts of embedding values in training data
-    string word;
-    unordered_map<string, unsigned> counts;
-    unsigned words_total = 0, words_covered = 0;
-    for (auto&& tree : train)
-      for (auto&& node : tree.nodes)
-        if (node.id) {
-          values.back().extract(node, word);
-          counts[word]++;
-          words_total++;
-        }
 
     vector<pair<string, vector<float>>> weights;
     if (tokens.size() >= 5) {
@@ -121,14 +112,12 @@ void parser_nn_trainer::train(bool /*direct_connections*/, unsigned /*hidden_lay
         uniform_real_distribution<double> uniform(0, 1);
         projection.resize(dimension);
         for (auto&& row : projection) {
-          double sum = 0;
           row.resize(file_dimension);
-          for (auto&& weight : row) {
-            weight = uniform(generator);
-            sum += weight;
-          }
-          for (auto&& weight : row)
-            weight /= sum;
+          for (auto&& weight : row) weight = uniform(generator);
+
+          double sum = 0;
+          for (auto&& weight : row) sum += weight;
+          for (auto&& weight : row) weight /= sum;
         }
       }
 
@@ -152,10 +141,18 @@ void parser_nn_trainer::train(bool /*direct_connections*/, unsigned /*hidden_lay
           }
 
         weights.emplace_back(string(parts[0].str, parts[0].len), projected_weights);
-        if (counts.count(weights.back().first)) words_covered += counts[weights.back().first];
       }
     } else {
       // Generate embedding for max_size most frequent words
+      string word;
+      unordered_map<string, unsigned> counts;
+      for (auto&& tree : train)
+        for (auto&& node : tree.nodes)
+          if (node.id) {
+            values.back().extract(node, word);
+            counts[word]++;
+          }
+
       vector<pair<int, string>> sorted_counts;
       for (auto&& count : counts)
         sorted_counts.emplace_back(-count.second, count.first);
@@ -170,12 +167,24 @@ void parser_nn_trainer::train(bool /*direct_connections*/, unsigned /*hidden_lay
           word_weight = normal(generator);
 
         weights.emplace_back(count.second, word_weights);
-        words_covered += -count.first;
       }
     }
 
+    // Add the embedding
     embeddings.emplace_back();
     embeddings.back().create(dimension, update_weight, weights);
+
+    // Count the cover of this embedding
+    string word;
+    unsigned words_total = 0, words_covered = 0;
+    for (auto&& tree : train)
+      for (auto&& node : tree.nodes)
+        if (node.id) {
+          values.back().extract(node, word);
+          words_total++;
+          words_covered += embeddings.back().lookup_word(word) >= 0;
+        }
+
     cerr << "Initialized '" << tokens[0] << "' embedding with " << weights.size() << " words and " << 100. * words_covered / words_total << "% coverage." << endl;
   }
 
