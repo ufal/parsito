@@ -28,6 +28,7 @@ class parser_nn : public parser {
  private:
   vector<string> labels;
   unique_ptr<transition_system> system;
+  unique_ptr<transition_oracle> oracle;
 
   node_extractor nodes;
 };

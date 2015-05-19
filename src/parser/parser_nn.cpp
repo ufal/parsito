@@ -35,6 +35,13 @@ void parser_nn::load(binary_decoder& data) {
   string system_name;
   data.next_str(system_name);
   system.reset(transition_system::create(system_name, labels));
+  if (!system) throw binary_decoder_error("Cannot load transition system");
+
+  // Load transtiion oracle
+  string oracle_name;
+  data.next_str(oracle_name);
+  oracle.reset(system->oracle(oracle_name));
+  if (!oracle) throw binary_decoder_error("Cannot load transition oracle");
 
   // Load node extractor
   string node_extractor_description, node_extractor_error;
