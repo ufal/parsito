@@ -12,6 +12,7 @@
 #include "common.h"
 #include "configuration/node_extractor.h"
 #include "configuration/value_extractor.h"
+#include "embedding/embedding.h"
 #include "parser.h"
 #include "transition/transition_system.h"
 
@@ -31,6 +32,9 @@ class parser_nn : public parser {
   unique_ptr<transition_oracle> oracle;
 
   node_extractor nodes;
+
+  vector<value_extractor> values;
+  vector<embedding> embeddings;
 };
 
 } // namespace parsito

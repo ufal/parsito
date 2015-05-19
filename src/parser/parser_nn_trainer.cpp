@@ -10,6 +10,8 @@
 #include <unordered_set>
 
 #include "configuration/node_extractor.h"
+#include "configuration/value_extractor.h"
+#include "embedding/embedding.h"
 #include "parser_nn_trainer.h"
 #include "transition/transition_system.h"
 
@@ -52,6 +54,10 @@ void parser_nn_trainer::train(bool /*direct_connections*/, unsigned /*hidden_lay
   node_extractor nodes;
   if (!nodes.create(nodes_description, error)) runtime_failure(error);
 
+  // Load value_extractors and embeddings
+  vector<string> values_names;
+  vector<value_extractor> values;
+  vector<embedding> embeddings;
 
   // Encode transition system and oracle
   enc.add_2B(labels.size());
@@ -62,6 +68,13 @@ void parser_nn_trainer::train(bool /*direct_connections*/, unsigned /*hidden_lay
 
   // Encode nodes selector
   enc.add_str(nodes_description);
+
+  // Encode value extractors and embeddings
+  enc.add_2B(values.size());
+  for (auto&& value_name : values_names)
+    enc.add_str(value_name);
+  for (auto&& embedding : embeddings)
+    embedding.save(enc);
 }
 
 } // namespace parsito

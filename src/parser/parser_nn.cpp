@@ -26,6 +26,8 @@ void parser_nn::parse(tree& t, configuration& c) const {
 }
 
 void parser_nn::load(binary_decoder& data) {
+  string description, error;
+
   // Load labels
   labels.resize(data.next_2B());
   for (auto&& label : labels)
@@ -44,10 +46,21 @@ void parser_nn::load(binary_decoder& data) {
   if (!oracle) throw binary_decoder_error("Cannot load transition oracle");
 
   // Load node extractor
-  string node_extractor_description, node_extractor_error;
-  data.next_str(node_extractor_description);
-  if (!nodes.create(node_extractor_description, node_extractor_error))
-    throw binary_decoder_error("Cannot load node extractor");
+  data.next_str(description);
+  if (!nodes.create(description, error))
+    throw binary_decoder_error(error.c_str());
+
+  // Load value extractors and embeddings
+  values.resize(data.next_2B());
+  for (auto&& value : values) {
+    data.next_str(description);
+    if (!value.create(description, error))
+      throw binary_decoder_error(error.c_str());
+  }
+
+  embeddings.resize(values.size());
+  for (auto&& embedding : embeddings)
+    embedding.load(data);
 }
 
 } // namespace parsito
