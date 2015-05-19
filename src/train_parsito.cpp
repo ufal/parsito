@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
   int hidden_layer_size = options.count("hidden_layer_size") ? parse_int(options["hidden_layer_size"], "hidden layer size") : 0;
   string hidden_layer_type = options.count("hidden_layer_type") ? options["hidden_layer_type"] : "cubic";
   if (hidden_layer_size < 0) runtime_failure("The hidden layer size cannot be negative!");
-  if (!direct_connections || !hidden_layer_size) runtime_failure("The neural networks cannot have no direct connections nor hidden layer!");
+  if (!direct_connections && !hidden_layer_size) runtime_failure("The neural networks cannot have no direct connections nor hidden layer!");
 
   int threads = options.count("theads") ? parse_int(options["threads"], "number of threads") : 1;
   if (threads <= 0) runtime_failure("The number of threads must be positive!");
