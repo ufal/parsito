@@ -74,7 +74,7 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
 
     // Parse node ID and head
     int id;
-    if (!parse_int(tokens[0].str, "CoNLL-U id", id, error))
+    if (!parse_int(tokens[0], "CoNLL-U id", id, error))
       return false;
     if (id != int(t.nodes.size()))
       return error.assign("Wrong numeric id value '").append(tokens[0].str, tokens[0].len).append("'!"), false;
@@ -83,7 +83,7 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
     if (tokens[6].len == 1 && tokens[6].str[0] == '_') {
       head = -1;
     } else {
-      if (!parse_int(tokens[6].str, "CoNLL-U head", head, error))
+      if (!parse_int(tokens[6], "CoNLL-U head", head, error))
         return false;
       if (head < 0)
         return error.assign("Numeric head value '").append(tokens[0].str, tokens[0].len).append("' cannot be negative!"), false;
