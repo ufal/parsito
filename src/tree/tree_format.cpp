@@ -57,7 +57,7 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
 
     // Empty lines denote end of tree, unless at the beginning
     if (!line.len) {
-      if (t.nodes.empty()) continue;
+      if (t.empty()) continue;
       break;
     }
 
