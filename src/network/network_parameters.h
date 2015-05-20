@@ -10,18 +10,19 @@
 #pragma once
 
 #include "common.h"
-#include "network/network_parameters.h"
-#include "utils/binary_encoder.h"
-#include "tree/tree.h"
+#include "activation_function.h"
 
 namespace ufal {
 namespace parsito {
 
-class parser_nn_trainer {
- public:
-  static void train(const string& transition_system_name, const string& transition_oracle_name,
-                    const string& embeddings_description, const string& nodes_description, const network_parameters& parameters,
-                    unsigned threads, const vector<tree>& train, const vector<tree>& heldout, binary_encoder& enc);
+struct network_parameters {
+  int iterations;
+  bool direct_connections;
+  int hidden_layer;
+  activation_function::type hidden_layer_type;
+  double learning_rate;
+  double learning_rate_final;
+  double gaussian_sigma;
 };
 
 } // namespace parsito

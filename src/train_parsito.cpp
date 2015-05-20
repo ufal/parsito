@@ -10,11 +10,13 @@
 #include <fstream>
 
 #include "common.h"
+#include "network/network_parameters.h"
 #include "parser/parser_nn_trainer.h"
 #include "tree/tree_format.h"
 #include "utils/compressor.h"
 #include "utils/iostream_init.h"
 #include "utils/options.h"
+#include "utils/parse_double.h"
 #include "utils/parse_int.h"
 #include "version/version.h"
 
@@ -31,10 +33,14 @@ int main(int argc, char* argv[]) {
   options::map options;
   if (!options::parse({{"direct_connections", options::value{"0", "1"}},
                        {"embeddings", options::value::any},
+                       {"gaussian_sigma", options::value::any},
                        {"heldout", options::value::any},
-                       {"hidden_layer_size", options::value::any},
+                       {"hidden_layer", options::value::any},
                        {"hidden_layer_type", options::value{"cubic","tanh"}},
                        {"input", options::value{"conllu"}},
+                       {"iterations", options::value::any},
+                       {"learning_rate", options::value::any},
+                       {"learning_rate_final", options::value::any},
                        {"nodes", options::value::any},
                        {"threads", options::value::any},
                        {"transition_oracle", options::value{"static"}},
@@ -46,13 +52,17 @@ int main(int argc, char* argv[]) {
     runtime_failure("Usage: " << argv[0] << " nn [options]\n"
                     "Options: --direct_connections=0|1 (should_nn_contain_direct_connections)\n"
                     "         --embeddings=embedding description file\n"
+                    "         --gaussian_sigma=gaussian sigma prior\n"
                     "         --heldout=heldout data file\n"
-                    "         --hidden_layer_size=hidden layer size\n"
+                    "         --hidden_layer=hidden layer size\n"
                     "         --hidden_layer_type=cubic|tanh (hidden layer activation function)\n"
                     "         --input=conllu (input format)\n"
+                    "         --iterations=number of training iterations\n"
+                    "         --learning_rate=initial learning rate\n"
+                    "         --learning_rate_final=final learning rate\n"
                     "         --nodes=node selector file\n"
-                    "         --transition_oracle=static\n"
                     "         --threads=number of training threads\n"
+                    "         --transition_oracle=static\n"
                     "         --transition_system=projective\n"
                     "         --version\n"
                     "         --help");
@@ -63,11 +73,18 @@ int main(int argc, char* argv[]) {
   iostream_init_binary_output();
 
   // Process options
-  bool direct_connections = options.count("direct_connections") ? options["direct_connections"] == "1" : false;
-  int hidden_layer_size = options.count("hidden_layer_size") ? parse_int(options["hidden_layer_size"], "hidden layer size") : 0;
-  string hidden_layer_type = options.count("hidden_layer_type") ? options["hidden_layer_type"] : "cubic";
-  if (hidden_layer_size < 0) runtime_failure("The hidden layer size cannot be negative!");
-  if (!direct_connections && !hidden_layer_size) runtime_failure("The neural networks cannot have no direct connections nor hidden layer!");
+  network_parameters parameters;
+  if (!options.count("iterations")) runtime_failure("Number of iterations must be specified!");
+  parameters.iterations = parse_int(options["iterations"], "number of iterations");
+  parameters.direct_connections = options.count("direct_connections") ? options["direct_connections"] == "1" : false;
+  parameters.hidden_layer = options.count("hidden_layer") ? parse_int(options["hidden_layer"], "hidden layer size") : 0;
+  if (parameters.hidden_layer < 0) runtime_failure("The hidden layer size cannot be negative!");
+  if (!parameters.direct_connections && !parameters.hidden_layer) runtime_failure("The neural networks cannot have no direct connections nor hidden layer!");
+  if (!activation_function::create(options.count("hidden_layer_type") ? options["hidden_layer_type"] : "cubic", parameters.hidden_layer_type))
+    runtime_failure("Unknown hidden layer type '" << options["hidden_layer_type"] << "'!");
+  parameters.learning_rate = options.count("learning_rate") ? parse_double(options["learning_rate"], "learning rate") : 0.1;
+  parameters.learning_rate_final = options.count("learning_rate_final") ? parse_double(options["learning_rate_final"], "final learning rate") : 0;
+  parameters.gaussian_sigma = options.count("gaussian_sigma") ? parse_double(options["gaussian_sigma"], "gaussian sigma") : 0;
 
   int threads = options.count("theads") ? parse_int(options["threads"], "number of threads") : 1;
   if (threads <= 0) runtime_failure("The number of threads must be positive!");
@@ -131,9 +148,8 @@ int main(int argc, char* argv[]) {
 
   // Train the parser_nn
   cerr << "Training the parser" << endl;
-  parser_nn_trainer::train(direct_connections, hidden_layer_size, hidden_layer_type,
-                           options["transition_system"], options["transition_oracle"], embeddings,
-                           nodes, threads, train, heldout, enc);
+  parser_nn_trainer::train(options["transition_system"], options["transition_oracle"],
+                           embeddings, nodes, parameters, threads, train, heldout, enc);
 
   // Encode the parser
   cerr << "Encoding the parser: ";

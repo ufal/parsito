@@ -24,10 +24,9 @@
 namespace ufal {
 namespace parsito {
 
-void parser_nn_trainer::train(bool /*direct_connections*/, unsigned /*hidden_layer_size*/, const string& /*hidden_layer_type*/,
-                              const string& transition_system_name, const string& transition_oracle_name,
-                              const string& embeddings_description, const string& nodes_description, unsigned /*threads*/,
-                              const vector<tree>& train, const vector<tree>& /*heldout*/, binary_encoder& enc) {
+void parser_nn_trainer::train(const string& transition_system_name, const string& transition_oracle_name,
+                              const string& embeddings_description, const string& nodes_description, const network_parameters& /*parameters*/,
+                              unsigned /*threads*/, const vector<tree>& train, const vector<tree>& /*heldout*/, binary_encoder& enc) {
   if (train.empty()) runtime_failure("No training data was given!");
 
   // Random generator with fixed seed for reproducibility
