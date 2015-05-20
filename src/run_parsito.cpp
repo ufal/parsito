@@ -20,7 +20,6 @@ using namespace ufal::parsito;
 void parse(istream& in, ostream& out, const parser& p, tree_input_format& input_format, const tree_output_format& output_format) {
   string input, output, error;
   tree t;
-  configuration c;
 
   // Read blocks containing input trees
   while (input_format.read_block(in, input)) {
@@ -28,7 +27,7 @@ void parse(istream& in, ostream& out, const parser& p, tree_input_format& input_
     input_format.set_block(input);
     while (input_format.next_tree(t, error)) {
       // Parse the tree
-      p.parse(t, c);
+      p.parse(t);
 
       // Output the parsed tree
       output_format.append_tree(t, output);

@@ -15,13 +15,14 @@
 #include "embedding/embedding.h"
 #include "parser.h"
 #include "transition/transition_system.h"
+#include "utils/threadsafe_stack.h"
 
 namespace ufal {
 namespace parsito {
 
 class parser_nn : public parser {
  public:
-  virtual void parse(tree& t, configuration& c) const override;
+  virtual void parse(tree& t) const override;
 
  protected:
   virtual void load(binary_decoder& data) override;
@@ -35,6 +36,11 @@ class parser_nn : public parser {
 
   vector<value_extractor> values;
   vector<embedding> embeddings;
+
+  struct workspace {
+    configuration c;
+  };
+  mutable threadsafe_stack<workspace> workspaces;
 };
 
 } // namespace parsito

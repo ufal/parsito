@@ -12,17 +12,24 @@
 namespace ufal {
 namespace parsito {
 
-void parser_nn::parse(tree& t, configuration& c) const {
+void parser_nn::parse(tree& t) const {
   assert(system);
 
+  // Retrieve or create workspace
+  workspace* w = workspaces.pop();
+  if (!w) w = new workspace();
+
   // Create configuration
-  c.init(&t);
+  w->c.init(&t);
 
   // Compute which transitions to perform and perform them
-  while (!c.final()) {
+  while (!w->c.final()) {
     unsigned transition = 0; // TODO: compute which transition to perform
-    system->perform(c, transition);
+    system->perform(w->c, transition);
   }
+
+  // Store workspace
+  workspaces.push(w);
 }
 
 void parser_nn::load(binary_decoder& data) {
