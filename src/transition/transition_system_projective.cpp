@@ -12,28 +12,12 @@
 namespace ufal {
 namespace parsito {
 
-transition_system_projective::transition_system_projective(const vector<string>& labels) : labels(labels) {
+transition_system_projective::transition_system_projective(const vector<string>& labels) : transition_system(labels) {
   transitions.emplace_back(new transition_shift());
   for (auto&& label : labels) {
     transitions.emplace_back(new transition_left_arc(label));
     transitions.emplace_back(new transition_right_arc(label));
   }
-}
-
-unsigned transition_system_projective::transition_count() const {
-  return transitions.size();
-}
-
-bool transition_system_projective::applicable(const configuration& conf, unsigned transition) const {
-  assert(transition < transitions.size());
-
-  return transitions[transition]->applicable(conf);
-}
-
-void transition_system_projective::perform(configuration& conf, unsigned transition) const {
-  assert(transition < transitions.size());
-
-  transitions[transition]->perform(conf);
 }
 
 // Static oracle

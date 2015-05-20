@@ -20,12 +20,18 @@ class transition_system {
  public:
   virtual ~transition_system() {}
 
-  virtual unsigned transition_count() const = 0;
-  virtual bool applicable(const configuration& conf, unsigned transition) const = 0;
-  virtual void perform(configuration& conf, unsigned transition) const = 0;
+  virtual unsigned transition_count() const;
+  virtual bool applicable(const configuration& conf, unsigned transition) const;
+  virtual void perform(configuration& conf, unsigned transition) const;
   virtual transition_oracle* oracle(const string& name) const = 0;
 
   static transition_system* create(const string& name, const vector<string>& labels);
+
+ protected:
+  transition_system(const vector<string>& labels) : labels(labels) {}
+
+  const vector<string>& labels;
+  vector<unique_ptr<transition>> transitions;
 };
 
 } // namespace parsito
