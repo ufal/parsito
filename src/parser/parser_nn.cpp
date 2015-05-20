@@ -22,9 +22,34 @@ void parser_nn::parse(tree& t) const {
   // Create configuration
   w->conf.init(&t);
 
+  // Compute embeddings of all nodes
+  if (w->embeddings.size() < t.nodes.size()) w->embeddings.resize(t.nodes.size());
+  for (size_t i = 0; i < t.nodes.size(); i++) {
+    if (w->embeddings[i].size() < embeddings.size()) w->embeddings[i].resize(embeddings.size());
+    for (size_t j = 0; j < embeddings.size(); j++) {
+      values[j].extract(t.nodes[i], w->word);
+      w->embeddings[i][j] = embeddings[j].lookup_word(w->word, w->word_buffer);
+    }
+  }
+
   // Compute which transitions to perform and perform them
   while (!w->conf.final()) {
-    unsigned transition = 0; // TODO: compute which transition to perform
+    // Extract nodes from the configuration
+    nodes.extract(w->conf, w->extracted_nodes);
+    w->extracted_embeddings.resize(w->extracted_nodes.size());
+    for (size_t i = 0; i < w->extracted_nodes.size(); i++)
+      w->extracted_embeddings[i] = &w->embeddings[i];
+
+    // Classify using neural network
+    network.propagate(embeddings, w->extracted_embeddings, w->network_buffer, w->outcomes);
+
+    // Find most probable applicable transition
+    int transition = -1;
+    for (unsigned i = 0; i < w->outcomes.size(); i++)
+      if (system->applicable(w->conf, i) && (transition < 0 || w->outcomes[i] > w->outcomes[transition]))
+        transition = i;
+
+    // Perform the transition
     system->perform(w->conf, transition);
   }
 
@@ -46,12 +71,6 @@ void parser_nn::load(binary_decoder& data) {
   system.reset(transition_system::create(system_name, labels));
   if (!system) throw binary_decoder_error("Cannot load transition system");
 
-  // Load transtiion oracle
-  string oracle_name;
-  data.next_str(oracle_name);
-  oracle.reset(system->oracle(oracle_name));
-  if (!oracle) throw binary_decoder_error("Cannot load transition oracle");
-
   // Load node extractor
   data.next_str(description);
   if (!nodes.create(description, error))
@@ -68,6 +87,9 @@ void parser_nn::load(binary_decoder& data) {
   embeddings.resize(values.size());
   for (auto&& embedding : embeddings)
     embedding.load(data);
+
+  // Load the network
+  network.load(data);
 }
 
 } // namespace parsito

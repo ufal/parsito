@@ -13,6 +13,7 @@
 #include "configuration/node_extractor.h"
 #include "configuration/value_extractor.h"
 #include "embedding/embedding.h"
+#include "network/neural_network.h"
 #include "parser.h"
 #include "transition/transition_system.h"
 #include "utils/threadsafe_stack.h"
@@ -30,15 +31,24 @@ class parser_nn : public parser {
  private:
   vector<string> labels;
   unique_ptr<transition_system> system;
-  unique_ptr<transition_oracle> oracle;
 
   node_extractor nodes;
 
   vector<value_extractor> values;
   vector<embedding> embeddings;
 
+  neural_network network;
+
   struct workspace {
     configuration conf;
+
+    string word, word_buffer;
+    vector<vector<int>> embeddings;
+
+    vector<int> extracted_nodes;
+    vector<const vector<int>*> extracted_embeddings;
+
+    vector<double> outcomes, network_buffer;
   };
   mutable threadsafe_stack<workspace> workspaces;
 };
