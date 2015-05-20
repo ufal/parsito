@@ -187,12 +187,11 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     cerr << "Initialized '" << tokens[0] << "' embedding with " << weights.size() << " words and " << 100. * words_covered / words_total << "% coverage." << endl;
   }
 
-  // Encode transition system and oracle
+  // Encode transition system
   enc.add_2B(labels.size());
   for (auto&& label : labels)
     enc.add_str(label);
   enc.add_str(transition_system_name);
-  enc.add_str(transition_oracle_name);
 
   // Encode nodes selector
   enc.add_str(nodes_description);
