@@ -16,9 +16,9 @@ namespace ufal {
 namespace parsito {
 
 struct network_parameters {
-  int iterations;
+  unsigned iterations;
   bool direct_connections;
-  int hidden_layer;
+  unsigned hidden_layer;
   activation_function::type hidden_layer_type;
   double learning_rate;
   double learning_rate_final;
