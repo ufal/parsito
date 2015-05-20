@@ -25,12 +25,12 @@ class transition_system_projective_oracle_static : public transition_oracle {
  public:
   transition_system_projective_oracle_static(const vector<string>& labels) : labels(labels) {}
 
-  virtual unsigned outcome(const configuration& conf, const tree& golden, const vector<double>& predictions) const override;
+  virtual predicted_transition predict(const configuration& conf, const tree& golden, unsigned network_outcome) const override;
  private:
   const vector<string>& labels;
 };
 
-unsigned transition_system_projective_oracle_static::outcome(const configuration& conf, const tree& golden, const vector<double>& /*predictions*/) const {
+transition_oracle::predicted_transition transition_system_projective_oracle_static::predict(const configuration& conf, const tree& golden, unsigned /*network_outcome*/) const {
   // Use left if appropriate
   if (conf.stack.size() >= 2) {
     int parent = conf.stack[conf.stack.size() - 1];
@@ -38,7 +38,7 @@ unsigned transition_system_projective_oracle_static::outcome(const configuration
     if (golden.nodes[child].head == parent) {
       for (size_t i = 0; i < labels.size(); i++)
         if (golden.nodes[child].deprel == labels[i])
-          return 1 + 2*i;
+          return predicted_transition(1 + 2*i, 1 + 2*i);
     }
   }
 
@@ -49,12 +49,12 @@ unsigned transition_system_projective_oracle_static::outcome(const configuration
     if (golden.nodes[child].head == parent) {
       for (size_t i = 0; i < labels.size(); i++)
         if (golden.nodes[child].deprel == labels[i])
-          return 1 + 2*i + 1;
+          return predicted_transition(1 + 2*i + 1, 1 + 2*i + 1);
     }
   }
 
   // Otherwise, just shift
-  return 0;
+  return predicted_transition(0, 0);
 }
 
 // Oracle factory method

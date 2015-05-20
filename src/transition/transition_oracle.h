@@ -20,7 +20,13 @@ class transition_oracle {
  public:
   virtual ~transition_oracle() {}
 
-  virtual unsigned outcome(const configuration& conf, const tree& golden, const vector<double>& predictions) const = 0;
+  struct predicted_transition {
+    unsigned best;
+    unsigned to_follow;
+
+    predicted_transition(unsigned best, unsigned to_follow) : best(best), to_follow(to_follow) {}
+  };
+  virtual predicted_transition predict(const configuration& conf, const tree& golden, unsigned network_outcome) const = 0;
 };
 
 } // namespace parsito
