@@ -20,11 +20,13 @@ namespace parsito {
 class neural_network {
  public:
   void propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& words_sequences,
-                 vector<double>& buffer, vector<double>& outcomes) const;
+                 vector<double>& hidden_layer, vector<double>& outcomes) const;
 
   void load(binary_decoder& data);
 
  private:
+  friend class neural_network_trainer;
+
   void load_matrix(binary_decoder& data, vector<vector<float>>& m);
 
   // Direct connections
@@ -32,7 +34,7 @@ class neural_network {
 
   // Hidden layer
   activation_function::type hidden_layer_activation;
-  vector<vector<float>> hidden_layer[2];
+  vector<vector<float>> hidden[2];
 };
 
 } // namespace parsito
