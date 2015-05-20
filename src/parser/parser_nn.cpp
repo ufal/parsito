@@ -50,7 +50,15 @@ void parser_nn::parse(tree& t) const {
         transition = i;
 
     // Perform the transition
-    system->perform(w->conf, transition);
+    int child = system->perform(w->conf, transition);
+
+    // If a node was linked, recompute its not-found embeddings as deprel has changed
+    if (child >= 0)
+      for (size_t i = 0; i < embeddings.size(); i++)
+        if (w->embeddings[child][i] < 0) {
+          values[i].extract(t.nodes[child], w->word);
+          w->embeddings[child][i] = embeddings[i].lookup_word(w->word, w->word_buffer);
+        }
   }
 
   // Store workspace
