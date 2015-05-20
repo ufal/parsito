@@ -17,13 +17,14 @@ bool transition_left_arc::applicable(const configuration& conf) const {
   return conf.stack.size() >= 2 && conf.stack[conf.stack.size() - 2];
 }
 
-void transition_left_arc::perform(configuration& conf) const {
+int transition_left_arc::perform(configuration& conf) const {
   assert(applicable(conf));
 
   int parent = conf.stack.back(); conf.stack.pop_back();
   int child = conf.stack.back(); conf.stack.pop_back();
   conf.stack.push_back(parent);
   conf.t->set_head(child, parent, label);
+  return child;
 }
 
 // Right arc
@@ -31,12 +32,13 @@ bool transition_right_arc::applicable(const configuration& conf) const {
   return conf.stack.size() >= 2;
 }
 
-void transition_right_arc::perform(configuration& conf) const {
+int transition_right_arc::perform(configuration& conf) const {
   assert(applicable(conf));
 
   int child = conf.stack.back(); conf.stack.pop_back();
   int parent = conf.stack.back();
   conf.t->set_head(child, parent, label);
+  return child;
 }
 
 // Shift
@@ -44,11 +46,12 @@ bool transition_shift::applicable(const configuration& conf) const {
   return !conf.buffer.empty();
 }
 
-void transition_shift::perform(configuration& conf) const {
+int transition_shift::perform(configuration& conf) const {
   assert(applicable(conf));
 
   conf.stack.push_back(conf.buffer.back());
   conf.buffer.pop_back();
+  return -1;
 }
 
 // Swap
@@ -56,13 +59,14 @@ bool transition_swap::applicable(const configuration& conf) const {
   return conf.stack.size() >= 2 && conf.stack[conf.stack.size() - 2] && conf.stack[conf.stack.size() - 2] < conf.stack[conf.stack.size() - 1];
 }
 
-void transition_swap::perform(configuration& conf) const {
+int transition_swap::perform(configuration& conf) const {
   assert(applicable(conf));
 
   int top = conf.stack.back(); conf.stack.pop_back();
   int to_buffer = conf.stack.back(); conf.stack.pop_back();
   conf.stack.push_back(top);
   conf.buffer.push_back(to_buffer);
+  return -1;
 }
 
 // Left arc 2
@@ -70,7 +74,7 @@ bool transition_left_arc_2::applicable(const configuration& conf) const {
   return conf.stack.size() >= 3 && conf.stack[conf.stack.size() - 3];
 }
 
-void transition_left_arc_2::perform(configuration& conf) const {
+int transition_left_arc_2::perform(configuration& conf) const {
   assert(applicable(conf));
 
   int parent = conf.stack.back(); conf.stack.pop_back();
@@ -79,6 +83,7 @@ void transition_left_arc_2::perform(configuration& conf) const {
   conf.stack.push_back(ignore);
   conf.stack.push_back(parent);
   conf.t->set_head(child, parent, label);
+  return child;
 }
 
 // Right arc 2
@@ -86,7 +91,7 @@ bool transition_right_arc_2::applicable(const configuration& conf) const {
   return conf.stack.size() >= 3;
 }
 
-void transition_right_arc_2::perform(configuration& conf) const {
+int transition_right_arc_2::perform(configuration& conf) const {
   assert(applicable(conf));
 
   int child = conf.stack.back(); conf.stack.pop_back();
@@ -94,6 +99,7 @@ void transition_right_arc_2::perform(configuration& conf) const {
   int parent = conf.stack.back();
   conf.buffer.push_back(to_buffer);
   conf.t->set_head(child, parent, label);
+  return child;
 }
 
 } // namespace parsito

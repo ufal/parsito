@@ -23,10 +23,10 @@ bool transition_system::applicable(const configuration& conf, unsigned transitio
   return transitions[transition]->applicable(conf);
 }
 
-void transition_system::perform(configuration& conf, unsigned transition) const {
+int transition_system::perform(configuration& conf, unsigned transition) const {
   assert(transition < transitions.size());
 
-  transitions[transition]->perform(conf);
+  return transitions[transition]->perform(conf);
 }
 
 transition_system* transition_system::create(const string& name, const vector<string>& labels) {
