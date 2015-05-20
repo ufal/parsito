@@ -25,7 +25,7 @@ class binary_encoder {
   inline void add_4B(unsigned val);
   inline void add_double(double val);
   inline void add_str(string_piece str);
-  inline void add_data(const char* data, size_t length);
+  template <class T> inline void add(const T* data, unsigned elements);
 
   vector<unsigned char> data;
 };
@@ -68,9 +68,9 @@ void binary_encoder::add_str(string_piece str) {
     data.push_back(*str.str++);
 }
 
-void binary_encoder::add_data(const char* data, size_t length) {
-  while (length--)
-    this->data.push_back(*data++);
+template <class T>
+void binary_encoder::add(const T* data, unsigned elements) {
+  this->data.insert(this->data.end(), (const unsigned char*) data, (const unsigned char*) (data + elements));
 }
 
 } // namespace parsito

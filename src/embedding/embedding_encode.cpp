@@ -29,7 +29,7 @@ void embedding::save(binary_encoder& enc) const {
     enc.add_str(word);
 
   // Save the weights
-  enc.add_data((const char*) weights.data(), sizeof(float) * dimension * dictionary.size());
+  enc.add<float>(weights.data(), weights.size());
 }
 
 void embedding::create(unsigned dimension, double update_weight, const vector<pair<string, vector<float>>>& words) {
