@@ -18,7 +18,7 @@ namespace parsito {
 
 class node_extractor {
  public:
-  void extract(const configuration& c, vector<int>& nodes) const;
+  void extract(const configuration& conf, vector<int>& nodes) const;
 
   bool create(string_piece description, string& error);
 

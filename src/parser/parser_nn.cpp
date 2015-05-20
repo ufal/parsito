@@ -20,12 +20,12 @@ void parser_nn::parse(tree& t) const {
   if (!w) w = new workspace();
 
   // Create configuration
-  w->c.init(&t);
+  w->conf.init(&t);
 
   // Compute which transitions to perform and perform them
-  while (!w->c.final()) {
+  while (!w->conf.final()) {
     unsigned transition = 0; // TODO: compute which transition to perform
-    system->perform(w->c, transition);
+    system->perform(w->conf, transition);
   }
 
   // Store workspace

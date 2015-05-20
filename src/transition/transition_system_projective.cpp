@@ -24,10 +24,10 @@ unsigned transition_system_projective::transition_count() const {
   return transitions.size();
 }
 
-void transition_system_projective::perform(configuration& c, unsigned transition) const {
+void transition_system_projective::perform(configuration& conf, unsigned transition) const {
   assert(transition < transitions.size());
 
-  transitions[transition]->perform(c);
+  transitions[transition]->perform(conf);
 }
 
 // Static oracle
@@ -35,16 +35,16 @@ class transition_system_projective_oracle_static : public transition_oracle {
  public:
   transition_system_projective_oracle_static(const vector<string>& labels) : labels(labels) {}
 
-  virtual unsigned outcome(const configuration& c, const tree& t, const tree& golden, const vector<double>& predictions) const override;
+  virtual unsigned outcome(const configuration& conf, const tree& t, const tree& golden, const vector<double>& predictions) const override;
  private:
   const vector<string>& labels;
 };
 
-unsigned transition_system_projective_oracle_static::outcome(const configuration& c, const tree& /*t*/, const tree& golden, const vector<double>& /*predictions*/) const {
+unsigned transition_system_projective_oracle_static::outcome(const configuration& conf, const tree& /*t*/, const tree& golden, const vector<double>& /*predictions*/) const {
   // Use left if appropriate
-  if (c.stack.size() >= 2) {
-    int parent = c.stack[c.stack.size() - 1];
-    int child = c.stack[c.stack.size() - 2];
+  if (conf.stack.size() >= 2) {
+    int parent = conf.stack[conf.stack.size() - 1];
+    int child = conf.stack[conf.stack.size() - 2];
     if (golden.nodes[child].head == parent) {
       for (size_t i = 0; i < labels.size(); i++)
         if (golden.nodes[child].deprel == labels[i])
@@ -53,9 +53,9 @@ unsigned transition_system_projective_oracle_static::outcome(const configuration
   }
 
   // Use right if appropriate
-  if (c.stack.size() >= 2) {
-    int child = c.stack[c.stack.size() - 1];
-    int parent = c.stack[c.stack.size() - 2];
+  if (conf.stack.size() >= 2) {
+    int child = conf.stack[conf.stack.size() - 1];
+    int parent = conf.stack[conf.stack.size() - 2];
     if (golden.nodes[child].head == parent) {
       for (size_t i = 0; i < labels.size(); i++)
         if (golden.nodes[child].deprel == labels[i])

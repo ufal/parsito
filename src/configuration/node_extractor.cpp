@@ -14,26 +14,26 @@
 namespace ufal {
 namespace parsito {
 
-void node_extractor::extract(const configuration& c, vector<int>& nodes) const {
+void node_extractor::extract(const configuration& conf, vector<int>& nodes) const {
   nodes.clear();
   for (auto&& selector : selectors) {
     // Start by locating starting node
     int current = -1;
     switch (selector.start.first) {
       case STACK:
-        if (selector.start.second < int(c.stack.size()))
-          current = c.stack[c.stack.size() - 1 - selector.start.second];
+        if (selector.start.second < int(conf.stack.size()))
+          current = conf.stack[conf.stack.size() - 1 - selector.start.second];
         break;
       case BUFFER:
-        if (selector.start.second < int(c.buffer.size()))
-          current = c.buffer[c.buffer.size() - 1 - selector.start.second];
+        if (selector.start.second < int(conf.buffer.size()))
+          current = conf.buffer[conf.buffer.size() - 1 - selector.start.second];
         break;
     }
 
     // Follow directions to the final node
     if (current >= 0)
       for (auto&& direction : selector.directions) {
-        const node& node = c.t->nodes[current];
+        const node& node = conf.t->nodes[current];
         switch (direction.first) {
           case PARENT:
             current = node.head ? node.head : -1;

@@ -38,7 +38,7 @@ class parser_nn : public parser {
   vector<embedding> embeddings;
 
   struct workspace {
-    configuration c;
+    configuration conf;
   };
   mutable threadsafe_stack<workspace> workspaces;
 };

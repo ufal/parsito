@@ -21,8 +21,8 @@ class transition {
  public:
   virtual ~transition() {}
 
-  virtual bool applicable(const configuration& c) const = 0;
-  virtual void perform(configuration& c) const = 0;
+  virtual bool applicable(const configuration& conf) const = 0;
+  virtual void perform(configuration& conf) const = 0;
 };
 
 // Specific transition classes
@@ -30,8 +30,8 @@ class transition_left_arc : public transition {
  public:
   transition_left_arc(const string& label) : label(label) {}
 
-  virtual bool applicable(const configuration& c) const override;
-  virtual void perform(configuration& c) const override;
+  virtual bool applicable(const configuration& conf) const override;
+  virtual void perform(configuration& conf) const override;
  private:
   string label;
 };
@@ -40,30 +40,30 @@ class transition_right_arc : public transition {
  public:
   transition_right_arc(const string& label) : label(label) {}
 
-  virtual bool applicable(const configuration& c) const override;
-  virtual void perform(configuration& c) const override;
+  virtual bool applicable(const configuration& conf) const override;
+  virtual void perform(configuration& conf) const override;
  private:
   string label;
 };
 
 class transition_shift : public transition {
  public:
-  virtual bool applicable(const configuration& c) const override;
-  virtual void perform(configuration& c) const override;
+  virtual bool applicable(const configuration& conf) const override;
+  virtual void perform(configuration& conf) const override;
 };
 
 class transition_swap : public transition {
  public:
-  virtual bool applicable(const configuration& c) const override;
-  virtual void perform(configuration& c) const override;
+  virtual bool applicable(const configuration& conf) const override;
+  virtual void perform(configuration& conf) const override;
 };
 
 class transition_left_arc_2 : public transition {
  public:
   transition_left_arc_2(const string& label) : label(label) {}
 
-  virtual bool applicable(const configuration& c) const override;
-  virtual void perform(configuration& c) const override;
+  virtual bool applicable(const configuration& conf) const override;
+  virtual void perform(configuration& conf) const override;
  private:
   string label;
 };
@@ -72,8 +72,8 @@ class transition_right_arc_2 : public transition {
  public:
   transition_right_arc_2(const string& label) : label(label) {}
 
-  virtual bool applicable(const configuration& c) const override;
-  virtual void perform(configuration& c) const override;
+  virtual bool applicable(const configuration& conf) const override;
+  virtual void perform(configuration& conf) const override;
  private:
   string label;
 };
