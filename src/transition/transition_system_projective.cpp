@@ -35,12 +35,12 @@ class transition_system_projective_oracle_static : public transition_oracle {
  public:
   transition_system_projective_oracle_static(const vector<string>& labels) : labels(labels) {}
 
-  virtual unsigned outcome(const configuration& conf, const tree& t, const tree& golden, const vector<double>& predictions) const override;
+  virtual unsigned outcome(const configuration& conf, const tree& golden, const vector<double>& predictions) const override;
  private:
   const vector<string>& labels;
 };
 
-unsigned transition_system_projective_oracle_static::outcome(const configuration& conf, const tree& /*t*/, const tree& golden, const vector<double>& /*predictions*/) const {
+unsigned transition_system_projective_oracle_static::outcome(const configuration& conf, const tree& golden, const vector<double>& /*predictions*/) const {
   // Use left if appropriate
   if (conf.stack.size() >= 2) {
     int parent = conf.stack[conf.stack.size() - 1];
