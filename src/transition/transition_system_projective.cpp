@@ -24,6 +24,12 @@ unsigned transition_system_projective::transition_count() const {
   return transitions.size();
 }
 
+bool transition_system_projective::applicable(const configuration& conf, unsigned transition) const {
+  assert(transition < transitions.size());
+
+  return transitions[transition]->applicable(conf);
+}
+
 void transition_system_projective::perform(configuration& conf, unsigned transition) const {
   assert(transition < transitions.size());
 

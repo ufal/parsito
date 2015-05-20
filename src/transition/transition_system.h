@@ -21,6 +21,7 @@ class transition_system {
   virtual ~transition_system() {}
 
   virtual unsigned transition_count() const = 0;
+  virtual bool applicable(const configuration& conf, unsigned transition) const = 0;
   virtual void perform(configuration& conf, unsigned transition) const = 0;
   virtual transition_oracle* oracle(const string& name) const = 0;
 
