@@ -63,6 +63,7 @@ void tree::set_head(int id, int head, const string& deprel) {
 void tree::unlink_all_nodes() {
   for (auto&& node : nodes) {
     node.head = -1;
+    node.deprel.clear();
     node.children.clear();
   }
 }
