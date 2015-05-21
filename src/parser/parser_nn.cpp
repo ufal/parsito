@@ -44,13 +44,13 @@ void parser_nn::parse(tree& t) const {
     network.propagate(embeddings, w->extracted_embeddings, w->network_buffer, w->outcomes);
 
     // Find most probable applicable transition
-    int transition = -1;
+    int best = -1;
     for (unsigned i = 0; i < w->outcomes.size(); i++)
-      if (system->applicable(w->conf, i) && (transition < 0 || w->outcomes[i] > w->outcomes[transition]))
-        transition = i;
+      if (system->applicable(w->conf, i) && (best < 0 || w->outcomes[i] > w->outcomes[best]))
+        best = i;
 
-    // Perform the transition
-    int child = system->perform(w->conf, transition);
+    // Perform the best transition
+    int child = system->perform(w->conf, best);
 
     // If a node was linked, recompute its not-found embeddings as deprel has changed
     if (child >= 0)
