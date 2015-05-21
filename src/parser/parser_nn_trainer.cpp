@@ -279,6 +279,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     if (!heldout.empty()) {
       tree t;
 
+      unsigned total = 0, correct_unlabelled = 0, correct_labelled = 0;
       for (auto&& gold : heldout) {
         t = gold;
         t.unlink_all_nodes();
