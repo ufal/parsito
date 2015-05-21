@@ -278,6 +278,7 @@ endif
 
 ifneq ($(filter linux-%,$(PLATFORM)),)
   version_script = -Wl,--version-script=$(1)
+  use_threads = -pthread
 endif
 
 ifneq ($(filter %-gcc,$(PLATFORM)),)
