@@ -7,11 +7,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <atomic>
 #include <algorithm>
 #include <fstream>
 #include <random>
+#include <thread>
 #include <unordered_set>
 
+#include "network/neural_network_trainer.h"
 #include "parser_nn.h"
 #include "parser_nn_trainer.h"
 #include "utils/parse_double.h"
@@ -22,8 +25,8 @@ namespace ufal {
 namespace parsito {
 
 void parser_nn_trainer::train(const string& transition_system_name, const string& transition_oracle_name,
-                              const string& embeddings_description, const string& nodes_description, const network_parameters& /*parameters*/,
-                              unsigned /*threads*/, const vector<tree>& train, const vector<tree>& /*heldout*/, binary_encoder& enc) {
+                              const string& embeddings_description, const string& nodes_description, const network_parameters& parameters,
+                              unsigned number_of_threads, const vector<tree>& train, const vector<tree>& heldout, binary_encoder& enc) {
   if (train.empty()) runtime_failure("No training data was given!");
 
   // Random generator with fixed seed for reproducibility
@@ -136,7 +139,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     } else {
       // Generate embedding for max_size most frequent words
       string word;
-      unordered_map<string, unsigned> counts;
+      unordered_map<string, int> counts;
       for (auto&& tree : train)
         for (auto&& node : tree.nodes)
           if (node.id) {
@@ -179,6 +182,120 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     cerr << "Initialized '" << tokens[0] << "' embedding with " << weights.size() << " words and " << 100. * words_covered / words_total << "% coverage." << endl;
   }
 
+  // Train the network
+  unsigned total_dimension = 0;
+  for (auto&& embedding : parser.embeddings) total_dimension += embedding.dimension;
+  neural_network_trainer network_trainer(parser.network, total_dimension * parser.nodes.node_count(), parser.system->transition_count(), parameters, generator);
+
+  vector<int> permutation;
+  for (size_t i = 0; i < train.size(); i++)
+    permutation.push_back(permutation.size());
+
+  for (int iteration = 1; network_trainer.next_iteration(); iteration++) {
+    // Train on training data
+    shuffle(permutation.begin(), permutation.end(), generator);
+
+    atomic<unsigned> permutation_index(0);
+    atomic<unsigned> total(0), correct_unlabelled(0), correct_labelled(0);
+    auto training = [&]() {
+      tree t;
+      configuration conf;
+      string word, word_buffer;
+      vector<vector<int>> nodes_embeddings;
+      vector<int> extracted_nodes;
+      vector<const vector<int>*> extracted_embeddings;
+      neural_network_trainer::workspace workspace;
+
+      for (unsigned current; (current = permutation_index++) < permutation.size();) {
+        const tree& gold = train[permutation[current]];
+        t = gold;
+        t.unlink_all_nodes();
+        conf.init(&t);
+
+        // Compute embeddings
+        if (t.nodes.size() > nodes_embeddings.size()) nodes_embeddings.resize(t.nodes.size());
+        for (size_t i = 0; i < t.nodes.size(); i++) {
+          nodes_embeddings[i].resize(parser.embeddings.size());
+          for (size_t j = 0; j < parser.embeddings.size(); j++) {
+            parser.values[j].extract(t.nodes[i], word);
+            nodes_embeddings[i][j] = parser.embeddings[j].lookup_word(word, word_buffer);
+          }
+        }
+
+        // Train the network
+        while (!conf.final()) {
+          // Extract nodes
+          parser.nodes.extract(conf, extracted_nodes);
+          extracted_embeddings.resize(extracted_nodes.size());
+          for (size_t i = 0; i < extracted_nodes.size(); i++)
+            extracted_embeddings[i] = extracted_nodes[i] >= 0 ? &nodes_embeddings[extracted_nodes[i]] : nullptr;
+
+          // Propagate
+          network_trainer.propagate(parser.embeddings, extracted_embeddings, workspace);
+
+          // Find most probable applicable transition
+          int network_best = -1;
+          for (unsigned i = 0; i < workspace.outcomes.size(); i++)
+            if (parser.system->applicable(conf, i) && (network_best < 0 || workspace.outcomes[i] > workspace.outcomes[network_best]))
+              network_best = i;
+
+          // Apply the oracle
+          auto prediction = oracle->predict(conf, gold, network_best);
+
+          // Backpropagate the chosen outcome
+          network_trainer.backpropagate(parser.embeddings, extracted_embeddings, prediction.best, workspace);
+
+          // Follow the chosen outcome
+          int child = parser.system->perform(conf, prediction.to_follow);
+
+          // If a node was linked, recompute its not-found embeddings as deprel has changed
+          if (child >= 0)
+            for (size_t i = 0; i < parser.embeddings.size(); i++)
+              if (nodes_embeddings[child][i] < 0) {
+                parser.values[i].extract(t.nodes[child], word);
+                nodes_embeddings[child][i] = parser.embeddings[i].lookup_word(word, word_buffer);
+              }
+        }
+
+        for (size_t j = 1; j < t.nodes.size(); j++) {
+          total++;
+          correct_unlabelled += t.nodes[j].head == gold.nodes[j].head;
+          correct_labelled += t.nodes[j].head == gold.nodes[j].head && t.nodes[j].deprel == gold.nodes[j].deprel;
+        }
+      }
+    };
+
+    cerr << "Iteration " << iteration << ": ";
+    if (number_of_threads > 1) {
+      vector<thread> threads;
+      for (unsigned i = 0; i < number_of_threads; i++) threads.emplace_back(training);
+      for (; !threads.empty(); threads.pop_back()) threads.back().join();
+    } else {
+      training();
+    }
+    cerr << "training UAS " << (100. * correct_unlabelled / total) << "%, LAS " << (100. * correct_labelled / total) << "%";
+
+    // Evaluate heldout data if present
+    if (!heldout.empty()) {
+      tree t;
+
+      for (auto&& gold : heldout) {
+        t = gold;
+        t.unlink_all_nodes();
+        parser.parse(t);
+        for (size_t i = 1; i < t.nodes.size(); i++) {
+          total++;
+          correct_unlabelled += t.nodes[i].head == gold.nodes[i].head;
+          correct_labelled += t.nodes[i].head == gold.nodes[i].head && t.nodes[i].deprel == gold.nodes[i].deprel;
+        }
+      }
+
+      cerr << ", heldout UAS " << (100. * correct_unlabelled / total) << "%, LAS " << (100. * correct_labelled / total) << "%";
+    }
+
+    cerr << endl;
+  }
+
   // Encode transition system
   enc.add_2B(parser.labels.size());
   for (auto&& label : parser.labels)
@@ -194,6 +311,9 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     enc.add_str(value_name);
   for (auto&& embedding : parser.embeddings)
     embedding.save(enc);
+
+  // Encode the network
+  network_trainer.save_network(enc);
 }
 
 } // namespace parsito
