@@ -40,16 +40,16 @@ bool parse_double(string_piece str, const char* value_name, double& value, strin
 
   // If there is a decimal point, parse the rest of the
   if (str.len && str.str[0] == '.') {
-    unsigned digits = 0;
+    double divider = 1;
 
     str.str++, str.len--;
     while (str.len && str.str[0] >= '0' && str.str[0] <= '9') {
       value = 10 * value + (str.str[0] - '0');
+      divider *= 10.;
       str.str++, str.len--;
-      digits++;
     }
 
-    value = (value + 0.5) / exp10(digits);
+    value = (value + 0.5) / divider;
   }
 
   // Apply initial minus
