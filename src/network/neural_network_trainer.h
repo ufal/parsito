@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <random>
+
 #include "common.h"
 #include "network_parameters.h"
 #include "neural_network.h"
@@ -19,9 +21,8 @@ namespace parsito {
 
 class neural_network_trainer {
  public:
-  template<class URNG>
   neural_network_trainer(neural_network& network, unsigned input_size, unsigned output_size,
-                         const network_parameters& parameters, URNG& generator);
+                         const network_parameters& parameters, mt19937& generator);
 
   bool next_iteration();
 

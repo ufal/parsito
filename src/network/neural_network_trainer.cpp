@@ -14,9 +14,8 @@
 namespace ufal {
 namespace parsito {
 
-template <class URNG>
 neural_network_trainer::neural_network_trainer(neural_network& network, unsigned input_size, unsigned output_size,
-                                               const network_parameters& parameters, URNG& generator) : network(network) {
+                                               const network_parameters& parameters, mt19937& generator) : network(network) {
   normal_distribution<float> normal;
 
   // Initialize direct connections
