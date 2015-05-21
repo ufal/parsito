@@ -29,6 +29,8 @@ class parser_nn : public parser {
   virtual void load(binary_decoder& data) override;
 
  private:
+  friend class parser_nn_trainer;
+
   vector<string> labels;
   unique_ptr<transition_system> system;
 

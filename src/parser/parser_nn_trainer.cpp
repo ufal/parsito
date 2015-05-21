@@ -12,11 +12,8 @@
 #include <random>
 #include <unordered_set>
 
-#include "configuration/node_extractor.h"
-#include "configuration/value_extractor.h"
-#include "embedding/embedding.h"
+#include "parser_nn.h"
 #include "parser_nn_trainer.h"
-#include "transition/transition_system.h"
 #include "utils/parse_double.h"
 #include "utils/parse_int.h"
 #include "utils/split.h"
@@ -41,33 +38,29 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
       }
 
   // Generate labels for transition system
-  vector<string> labels;
+  parser_nn parser;
   unordered_set<string> labels_set;
 
   for (auto&& tree : train)
     for (auto&& node : tree.nodes)
       if (node.id && !labels_set.count(node.deprel)) {
-        labels.push_back(node.deprel);
         labels_set.insert(node.deprel);
+        parser.labels.push_back(node.deprel);
       }
 
   // Create transition system and transition oracle
-  unique_ptr<transition_system> system(transition_system::create(transition_system_name, labels));
-  if (!system) runtime_failure("Cannot create transition system '" << transition_system_name << "'!");
+  parser.system.reset(transition_system::create(transition_system_name, parser.labels));
+  if (!parser.system) runtime_failure("Cannot create transition system '" << transition_system_name << "'!");
 
-  unique_ptr<transition_oracle> oracle(system->oracle(transition_oracle_name));
+  unique_ptr<transition_oracle> oracle(parser.system->oracle(transition_oracle_name));
   if (!oracle) runtime_failure("Cannot create transition oracle '" << transition_oracle_name << "' for transition system '" << transition_system_name << "'!");
 
   // Create node_extractor
   string error;
-  node_extractor nodes;
-  if (!nodes.create(nodes_description, error)) runtime_failure(error);
+  if (!parser.nodes.create(nodes_description, error)) runtime_failure(error);
 
   // Load value_extractors and embeddings
   vector<string> value_names;
-  vector<value_extractor> values;
-  vector<embedding> embeddings;
-
   vector<string_piece> lines, tokens;
   split(embeddings_description, '\n', lines);
   for (auto&& line : lines) {
@@ -79,13 +72,12 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
       runtime_failure("Expected 4 or 5 columns on embedding description line '" << line << "'!");
 
     value_names.emplace_back(string(tokens[0].str, tokens[0].len));
-    values.emplace_back();
-    if (!values.back().create(tokens[0], error)) runtime_failure(error);
+    parser.values.emplace_back();
+    if (!parser.values.back().create(tokens[0], error)) runtime_failure(error);
 
     int max_size = parse_int(tokens[1], "maximum embedding size");
     int dimension = parse_int(tokens[2], "embedding dimension");
     double update_weight = parse_double(tokens[3], "embedding dimension");
-
 
     vector<pair<string, vector<float>>> weights;
     if (tokens.size() >= 5) {
@@ -148,7 +140,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
       for (auto&& tree : train)
         for (auto&& node : tree.nodes)
           if (node.id) {
-            values.back().extract(node, word);
+            parser.values.back().extract(node, word);
             counts[word]++;
           }
 
@@ -170,8 +162,8 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     }
 
     // Add the embedding
-    embeddings.emplace_back();
-    embeddings.back().create(dimension, update_weight, weights);
+    parser.embeddings.emplace_back();
+    parser.embeddings.back().create(dimension, update_weight, weights);
 
     // Count the cover of this embedding
     string word, buffer;
@@ -179,17 +171,17 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     for (auto&& tree : train)
       for (auto&& node : tree.nodes)
         if (node.id) {
-          values.back().extract(node, word);
+          parser.values.back().extract(node, word);
           words_total++;
-          words_covered += embeddings.back().lookup_word(word, buffer) >= 0;
+          words_covered += parser.embeddings.back().lookup_word(word, buffer) >= 0;
         }
 
     cerr << "Initialized '" << tokens[0] << "' embedding with " << weights.size() << " words and " << 100. * words_covered / words_total << "% coverage." << endl;
   }
 
   // Encode transition system
-  enc.add_2B(labels.size());
-  for (auto&& label : labels)
+  enc.add_2B(parser.labels.size());
+  for (auto&& label : parser.labels)
     enc.add_str(label);
   enc.add_str(transition_system_name);
 
@@ -197,10 +189,10 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
   enc.add_str(nodes_description);
 
   // Encode value extractors and embeddings
-  enc.add_2B(values.size());
+  enc.add_2B(value_names.size());
   for (auto&& value_name : value_names)
     enc.add_str(value_name);
-  for (auto&& embedding : embeddings)
+  for (auto&& embedding : parser.embeddings)
     embedding.save(enc);
 }
 
