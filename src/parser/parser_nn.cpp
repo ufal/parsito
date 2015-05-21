@@ -38,7 +38,7 @@ void parser_nn::parse(tree& t) const {
     nodes.extract(w->conf, w->extracted_nodes);
     w->extracted_embeddings.resize(w->extracted_nodes.size());
     for (size_t i = 0; i < w->extracted_nodes.size(); i++)
-      w->extracted_embeddings[i] = &w->embeddings[i];
+      w->extracted_embeddings[i] = w->extracted_nodes[i] >= 0 ? &w->embeddings[w->extracted_nodes[i]] : nullptr;
 
     // Classify using neural network
     network.propagate(embeddings, w->extracted_embeddings, w->network_buffer, w->outcomes);
