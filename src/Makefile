@@ -27,6 +27,7 @@ $(call lib,libparsito): $(call obj,$(PARSITO_O))
 
 # executables
 $(call exe,run_parsito): $(call obj,run_parsito utils/iostream_init utils/options $(PARSITO_O))
+$(call exe,train_parsito): LD_FLAGS += $(call use_threads)
 $(call exe,train_parsito): $(call obj,train_parsito embedding/embedding_encode network/neural_network_trainer parser/parser_nn_trainer utils/iostream_init utils/options utils/parse_double $(PARSITO_O) $(LZMA_ENC_O))
 $(call exe,$(EXECUTABLES)):
 	$(call link_exe,$@,$^,$(call win_subsystem,console))
