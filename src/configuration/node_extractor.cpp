@@ -14,6 +14,10 @@
 namespace ufal {
 namespace parsito {
 
+unsigned node_extractor::node_count() const {
+  return selectors.size();
+}
+
 void node_extractor::extract(const configuration& conf, vector<int>& nodes) const {
   nodes.clear();
   for (auto&& selector : selectors) {
