@@ -54,7 +54,7 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
     unsigned direct_index = 0;
     for (auto&& words : words_sequences)
       for (unsigned i = 0; i < embeddings.size(); i++)
-        if ((*words)[i] >= 0) {
+        if (words && (*words)[i] >= 0) {
           const float* embedding = embeddings[i].weight((*words)[i]);
           for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, embedding++, direct_index++)
             for (unsigned k = 0; k < outcomes_size; k++)
