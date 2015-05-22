@@ -25,20 +25,22 @@ class transition_system_projective_oracle_static : public transition_oracle {
  public:
   transition_system_projective_oracle_static(const vector<string>& labels) : labels(labels) {}
 
-  virtual predicted_transition predict(const configuration& conf, const tree& golden, unsigned network_outcome) const override;
+  virtual predicted_transition predict(const configuration& conf, const tree& gold, unsigned network_outcome) const override;
  private:
   const vector<string>& labels;
 };
 
-transition_oracle::predicted_transition transition_system_projective_oracle_static::predict(const configuration& conf, const tree& golden, unsigned /*network_outcome*/) const {
+transition_oracle::predicted_transition transition_system_projective_oracle_static::predict(const configuration& conf, const tree& gold, unsigned /*network_outcome*/) const {
   // Use left if appropriate
   if (conf.stack.size() >= 2) {
     int parent = conf.stack[conf.stack.size() - 1];
     int child = conf.stack[conf.stack.size() - 2];
-    if (golden.nodes[child].head == parent) {
+    if (gold.nodes[child].head == parent) {
       for (size_t i = 0; i < labels.size(); i++)
-        if (golden.nodes[child].deprel == labels[i])
+        if (gold.nodes[child].deprel == labels[i])
           return predicted_transition(1 + 2*i, 1 + 2*i);
+
+      assert(!"label was not found");
     }
   }
 
@@ -46,11 +48,25 @@ transition_oracle::predicted_transition transition_system_projective_oracle_stat
   if (conf.stack.size() >= 2) {
     int child = conf.stack[conf.stack.size() - 1];
     int parent = conf.stack[conf.stack.size() - 2];
-    if (golden.nodes[child].head == parent) {
+    if (gold.nodes[child].head == parent &&
+        (conf.buffer.empty() || gold.nodes[child].children.empty() || gold.nodes[child].children.back() < conf.buffer.back())) {
       for (size_t i = 0; i < labels.size(); i++)
-        if (golden.nodes[child].deprel == labels[i])
+        if (gold.nodes[child].deprel == labels[i])
           return predicted_transition(1 + 2*i + 1, 1 + 2*i + 1);
+
+      assert(!"label was not found");
     }
+  }
+
+  if (conf.buffer.empty()) {
+    // Non-projective tree, use right as heuristics
+    assert(conf.stack.size() >= 2);
+
+    for (size_t i = 0; i < labels.size(); i++)
+      if (gold.nodes[conf.stack.back()].deprel == labels[i])
+        return predicted_transition(1 + 2*i + 1, 1 + 2*i + 1);
+
+    assert(!"label was not found");
   }
 
   // Otherwise, just shift
