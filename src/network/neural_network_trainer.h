@@ -33,8 +33,8 @@ class neural_network_trainer {
     vector<double> error_hidden;
     vector<double> error_input;
   };
-  void propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& words_sequences, workspace& w) const;
-  void backpropagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& words_sequences, unsigned required_outcome, workspace& w);
+  void propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, workspace& w) const;
+  void backpropagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w);
 
   void save_network(binary_encoder& enc) const;
 

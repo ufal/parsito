@@ -64,11 +64,11 @@ bool neural_network_trainer::next_iteration() {
   return true;
 }
 
-void neural_network_trainer::propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& words_sequences, workspace& w) const {
-  network.propagate(embeddings, words_sequences, w.hidden_layer, w.outcomes);
+void neural_network_trainer::propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, workspace& w) const {
+  network.propagate(embeddings, embedding_ids_sequences, w.hidden_layer, w.outcomes);
 }
 
-void neural_network_trainer::backpropagate(const vector<embedding>& /*embeddings*/, const vector<const vector<int>*>& /*words_sequences*/, unsigned /*required_outcome*/, workspace& /*w*/) {
+void neural_network_trainer::backpropagate(const vector<embedding>& /*embeddings*/, const vector<const vector<int>*>& /*embedding_ids_sequences*/, unsigned /*required_outcome*/, workspace& /*w*/) {
   // TODO
 }
 

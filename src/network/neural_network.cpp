@@ -32,7 +32,7 @@ void neural_network::load(binary_decoder& data) {
   load_matrix(data, hidden[1]);
 }
 
-void neural_network::propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& words_sequences,
+void neural_network::propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences,
                                vector<double>& hidden_layer, vector<double>& outcomes) const {
   if (!hidden[0].empty()) {
     assert(!hidden[1].empty());
@@ -43,7 +43,7 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
     }
   }
   assert(!direct.empty() || !hidden[0].empty());
-  for (auto&& words : words_sequences) assert(embeddings.size() == words->size());
+  for (auto&& embedding_ids : embedding_ids_sequences) if (embedding_ids) assert(embeddings.size() == embedding_ids->size());
 
   unsigned outcomes_size = !direct.empty() ? direct.front().size() : hidden[1].front().size();
 
@@ -52,10 +52,10 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
   // Direct connections if present
   if (!direct.empty()) {
     unsigned direct_index = 0;
-    for (auto&& words : words_sequences)
+    for (auto&& embedding_ids : embedding_ids_sequences)
       for (unsigned i = 0; i < embeddings.size(); i++)
-        if (words && (*words)[i] >= 0) {
-          const float* embedding = embeddings[i].weight((*words)[i]);
+        if (embedding_ids && (*embedding_ids)[i] >= 0) {
+          const float* embedding = embeddings[i].weight((*embedding_ids)[i]);
           for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, embedding++, direct_index++)
             for (unsigned k = 0; k < outcomes_size; k++)
               outcomes[k] += *embedding * direct[direct_index][k];
@@ -70,10 +70,10 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
     hidden_layer.assign(hidden_layer_size, 0);
 
     unsigned hidden_index = 0;
-    for (auto&& words : words_sequences)
+    for (auto&& embedding_ids : embedding_ids_sequences)
       for (unsigned i = 0; i < embeddings.size(); i++)
-        if ((*words)[i] >= 0) {
-          const float* embedding = embeddings[i].weight((*words)[i]);
+        if (embedding_ids && (*embedding_ids)[i] >= 0) {
+          const float* embedding = embeddings[i].weight((*embedding_ids)[i]);
           for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, embedding++, hidden_index++)
             for (unsigned k = 0; k < hidden_layer_size; k++)
               hidden_layer[k] += *embedding * hidden[0][hidden_index][k];
