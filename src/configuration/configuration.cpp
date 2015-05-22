@@ -24,7 +24,7 @@ void configuration::init(tree* t) {
   buffer.clear();
   buffer.reserve(t->nodes.size());
   for (size_t i = t->nodes.size(); i > 1; i--)
-    buffer.push_back(i);
+    buffer.push_back(i - 1);
 }
 
 bool configuration::final() {
