@@ -10,6 +10,7 @@
 #include <atomic>
 #include <algorithm>
 #include <fstream>
+#include <iomanip>
 #include <random>
 #include <thread>
 #include <unordered_set>
@@ -270,7 +271,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     } else {
       training();
     }
-    cerr << "training logprob " << atomic_logprob;
+    cerr << "training logprob " << scientific << setprecision(4) << atomic_logprob;
 
     // Evaluate heldout data if present
     if (!heldout.empty()) {
@@ -288,7 +289,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
         }
       }
 
-      cerr << ", heldout UAS " << (100. * correct_unlabelled / total) << "%, LAS " << (100. * correct_labelled / total) << "%";
+      cerr << ", heldout UAS " << fixed << setprecision(2) << (100. * correct_unlabelled / total) << "%, LAS " << (100. * correct_labelled / total) << "%";
     }
 
     cerr << endl;
