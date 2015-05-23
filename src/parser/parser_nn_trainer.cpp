@@ -195,8 +195,8 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     // Train on training data
     shuffle(permutation.begin(), permutation.end(), generator);
 
-    atomic<unsigned> permutation_index(0);
-    atomic<unsigned> total(0), correct_unlabelled(0), correct_labelled(0);
+    atomic<unsigned> atomic_index(0);
+    atomic<double> atomic_logprob(0);
     auto training = [&]() {
       tree t;
       configuration conf;
@@ -205,9 +205,10 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
       vector<int> extracted_nodes;
       vector<const vector<int>*> extracted_embeddings;
       neural_network_trainer::workspace workspace;
+      double logprob = 0;
 
-      for (unsigned current; (current = permutation_index++) < permutation.size();) {
-        const tree& gold = train[permutation[current]];
+      for (unsigned current_index; (current_index = atomic_index++) < permutation.size();) {
+        const tree& gold = train[permutation[current_index]];
         t = gold;
         t.unlink_all_nodes();
         conf.init(&t);
@@ -241,6 +242,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
 
           // Apply the oracle
           auto prediction = oracle->predict(conf, gold, network_best);
+          logprob += workspace.outcomes[prediction.best];
 
           // Backpropagate the chosen outcome
           network_trainer.backpropagate(parser.embeddings, extracted_embeddings, prediction.best, workspace);
@@ -256,13 +258,8 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
                 nodes_embeddings[child][i] = parser.embeddings[i].lookup_word(word, word_buffer);
               }
         }
-
-        for (size_t j = 1; j < t.nodes.size(); j++) {
-          total++;
-          correct_unlabelled += t.nodes[j].head == gold.nodes[j].head;
-          correct_labelled += t.nodes[j].head == gold.nodes[j].head && t.nodes[j].deprel == gold.nodes[j].deprel;
-        }
       }
+      for (double old_atomic_logprob = atomic_logprob; atomic_logprob.compare_exchange_weak(old_atomic_logprob, old_atomic_logprob + logprob); ) {}
     };
 
     cerr << "Iteration " << iteration << ": ";
@@ -273,7 +270,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     } else {
       training();
     }
-    cerr << "training UAS " << (100. * correct_unlabelled / total) << "%, LAS " << (100. * correct_labelled / total) << "%";
+    cerr << "training logprob " << atomic_logprob;
 
     // Evaluate heldout data if present
     if (!heldout.empty()) {
