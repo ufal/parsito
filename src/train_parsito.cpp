@@ -120,12 +120,17 @@ int main(int argc, char* argv[]) {
   string block, error;
   tree t;
   vector<tree> train;
+  unsigned train_words = 0;
+  cerr << "Loading training data: ";
   while (input_format->read_block(cin, block)) {
     input_format->set_block(block);
-    while (input_format->next_tree(t, error))
+    while (input_format->next_tree(t, error)) {
       train.push_back(t);
+      train_words += t.nodes.size() - 1;
+    }
     if (!error.empty()) runtime_failure(error);
   }
+  cerr << train.size() << " sentences with " << train_words << " words." << endl;
 
   // Load heldout data if present
   vector<tree> heldout;
@@ -133,12 +138,17 @@ int main(int argc, char* argv[]) {
     ifstream in(options["heldout"]);
     if (!in.is_open()) runtime_failure("Cannot open heldout file '" << options["heldout"] << "'!");
 
+    unsigned heldout_words = 0;
+    cerr << "Loading heldout data: ";
     while (input_format->read_block(in, block)) {
       input_format->set_block(block);
-      while (input_format->next_tree(t, error))
+      while (input_format->next_tree(t, error)) {
         heldout.push_back(t);
+        heldout_words += t.nodes.size() - 1;
+      }
       if (!error.empty()) runtime_failure(error);
     }
+    cerr << heldout.size() << " sentences with " << train_words << " words." << endl;
   }
 
   // Prepare the binary encoder
