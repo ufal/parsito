@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
   parameters.l1_regularization = options.count("l1_regularization") ? parse_double(options["l1_regularization"], "l1 regularization") : 0;
   parameters.l2_regularization = options.count("l2_regularization") ? parse_double(options["l2_regularization"], "l2 regularization") : 0;
 
-  int threads = options.count("theads") ? parse_int(options["threads"], "number of threads") : 1;
+  int threads = options.count("threads") ? parse_int(options["threads"], "number of threads") : 1;
   if (threads <= 0) runtime_failure("The number of threads must be positive!");
 
   if (!options.count("transition_system")) runtime_failure("The transition system must be specified!");
