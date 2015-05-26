@@ -16,7 +16,7 @@ namespace parsito {
 
 neural_network_trainer::neural_network_trainer(neural_network& network, unsigned input_size, unsigned output_size,
                                                const network_parameters& parameters, mt19937& generator) : network(network) {
-  normal_distribution<float> normal;
+  normal_distribution<float> normal(0, parameters.initialization_range);
 
   // Initialize direct connections
   if (parameters.direct_connections) {

@@ -36,6 +36,7 @@ int main(int argc, char* argv[]) {
                        {"heldout", options::value::any},
                        {"hidden_layer", options::value::any},
                        {"hidden_layer_type", options::value{"cubic","tanh"}},
+                       {"initialization_range", options::value::any},
                        {"input", options::value{"conllu"}},
                        {"iterations", options::value::any},
                        {"learning_rate", options::value::any},
@@ -56,6 +57,7 @@ int main(int argc, char* argv[]) {
                     "         --heldout=heldout data file\n"
                     "         --hidden_layer=hidden layer size\n"
                     "         --hidden_layer_type=cubic|tanh (hidden layer activation function)\n"
+                    "         --initialization_range=initialization range\n"
                     "         --input=conllu (input format)\n"
                     "         --iterations=number of training iterations\n"
                     "         --learning_rate=initial learning rate\n"
@@ -85,6 +87,7 @@ int main(int argc, char* argv[]) {
     runtime_failure("Unknown hidden layer type '" << options["hidden_layer_type"] << "'!");
   parameters.learning_rate = options.count("learning_rate") ? parse_double(options["learning_rate"], "learning rate") : 0.1;
   parameters.learning_rate_final = options.count("learning_rate_final") ? parse_double(options["learning_rate_final"], "final learning rate") : 0;
+  parameters.initialization_range = options.count("initialization_range") ? parse_double(options["initialization_range"], "initialiation range") : 0.1;
   parameters.l1_regularization = options.count("l1_regularization") ? parse_double(options["l1_regularization"], "l1 regularization") : 0;
   parameters.l2_regularization = options.count("l2_regularization") ? parse_double(options["l2_regularization"], "l2 regularization") : 0;
 
