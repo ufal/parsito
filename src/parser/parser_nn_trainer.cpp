@@ -247,7 +247,10 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
 
           // Apply the oracle
           auto prediction = oracle->predict(conf, gold, network_best);
-          logprob += workspace.outcomes[prediction.best];
+
+          // Update logprob
+          if (workspace.outcomes[prediction.best])
+            logprob += log(workspace.outcomes[prediction.best]);
 
           // Backpropagate the chosen outcome
           network_trainer.backpropagate(parser.embeddings, extracted_embeddings, prediction.best, workspace);
