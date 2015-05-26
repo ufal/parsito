@@ -184,9 +184,13 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
   }
 
   // Train the network
-  unsigned total_dimension = 0;
+  unsigned total_dimension = 0, total_nodes = 0;
   for (auto&& embedding : parser.embeddings) total_dimension += embedding.dimension;
-  neural_network_trainer network_trainer(parser.network, total_dimension * parser.nodes.node_count(), parser.system->transition_count(), parameters, generator);
+  for (auto&& tree : train) total_nodes += tree.nodes.size() - 1;
+  auto scaled_parameters = parameters;
+  scaled_parameters.l1_regularization /= train.size();
+  scaled_parameters.l2_regularization /= total_nodes;
+  neural_network_trainer network_trainer(parser.network, total_dimension * parser.nodes.node_count(), parser.system->transition_count(), scaled_parameters, generator);
 
   vector<int> permutation;
   for (size_t i = 0; i < train.size(); i++)
@@ -259,6 +263,9 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
                 nodes_embeddings[child][i] = parser.embeddings[i].lookup_word(word, word_buffer);
               }
         }
+
+        // L1 regularize after processing the whole sentence
+        network_trainer.l1_regularize();
       }
       for (double old_atomic_logprob = atomic_logprob; atomic_logprob.compare_exchange_weak(old_atomic_logprob, old_atomic_logprob + logprob); ) {}
     };

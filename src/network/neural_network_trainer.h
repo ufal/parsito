@@ -35,6 +35,7 @@ class neural_network_trainer {
   };
   void propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, workspace& w) const;
   void backpropagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w);
+  void l1_regularize();
 
   void save_network(binary_encoder& enc) const;
 
@@ -44,7 +45,7 @@ class neural_network_trainer {
   neural_network& network;
   unsigned iteration, iterations;
   double learning_rate, learning_rate_initial, learning_rate_final;
-  double gaussian_sigma;
+  double l1_regularization, l2_regularization;
 };
 
 } // namespace parsito

@@ -33,7 +33,6 @@ int main(int argc, char* argv[]) {
   options::map options;
   if (!options::parse({{"direct_connections", options::value{"0", "1"}},
                        {"embeddings", options::value::any},
-                       {"gaussian_sigma", options::value::any},
                        {"heldout", options::value::any},
                        {"hidden_layer", options::value::any},
                        {"hidden_layer_type", options::value{"cubic","tanh"}},
@@ -41,6 +40,8 @@ int main(int argc, char* argv[]) {
                        {"iterations", options::value::any},
                        {"learning_rate", options::value::any},
                        {"learning_rate_final", options::value::any},
+                       {"l1_regularization", options::value::any},
+                       {"l2_regularization", options::value::any},
                        {"nodes", options::value::any},
                        {"threads", options::value::any},
                        {"transition_oracle", options::value{"static"}},
@@ -52,7 +53,6 @@ int main(int argc, char* argv[]) {
     runtime_failure("Usage: " << argv[0] << " nn [options]\n"
                     "Options: --direct_connections=0|1 (should_nn_contain_direct_connections)\n"
                     "         --embeddings=embedding description file\n"
-                    "         --gaussian_sigma=gaussian sigma prior\n"
                     "         --heldout=heldout data file\n"
                     "         --hidden_layer=hidden layer size\n"
                     "         --hidden_layer_type=cubic|tanh (hidden layer activation function)\n"
@@ -60,6 +60,8 @@ int main(int argc, char* argv[]) {
                     "         --iterations=number of training iterations\n"
                     "         --learning_rate=initial learning rate\n"
                     "         --learning_rate_final=final learning rate\n"
+                    "         --l1_regularization=l1 regularization factor\n"
+                    "         --l2_regularization=l2 regularization factor\n"
                     "         --nodes=node selector file\n"
                     "         --threads=number of training threads\n"
                     "         --transition_oracle=static\n"
@@ -83,7 +85,8 @@ int main(int argc, char* argv[]) {
     runtime_failure("Unknown hidden layer type '" << options["hidden_layer_type"] << "'!");
   parameters.learning_rate = options.count("learning_rate") ? parse_double(options["learning_rate"], "learning rate") : 0.1;
   parameters.learning_rate_final = options.count("learning_rate_final") ? parse_double(options["learning_rate_final"], "final learning rate") : 0;
-  parameters.gaussian_sigma = options.count("gaussian_sigma") ? parse_double(options["gaussian_sigma"], "gaussian sigma") : 0;
+  parameters.l1_regularization = options.count("l1_regularization") ? parse_double(options["l1_regularization"], "l1 regularization") : 0;
+  parameters.l2_regularization = options.count("l2_regularization") ? parse_double(options["l2_regularization"], "l2 regularization") : 0;
 
   int threads = options.count("theads") ? parse_int(options["threads"], "number of threads") : 1;
   if (threads <= 0) runtime_failure("The number of threads must be positive!");

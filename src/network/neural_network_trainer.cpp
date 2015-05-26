@@ -51,7 +51,8 @@ neural_network_trainer::neural_network_trainer(neural_network& network, unsigned
   iterations = parameters.iterations;
   learning_rate_initial = parameters.learning_rate;
   learning_rate_final = parameters.learning_rate_final;
-  gaussian_sigma = parameters.gaussian_sigma;
+  l1_regularization = parameters.l1_regularization;
+  l2_regularization = parameters.l2_regularization;
 }
 
 bool neural_network_trainer::next_iteration() {
@@ -68,8 +69,45 @@ void neural_network_trainer::propagate(const vector<embedding>& embeddings, cons
   network.propagate(embeddings, embedding_ids_sequences, w.hidden_layer, w.outcomes);
 }
 
-void neural_network_trainer::backpropagate(const vector<embedding>& /*embeddings*/, const vector<const vector<int>*>& /*embedding_ids_sequences*/, unsigned /*required_outcome*/, workspace& /*w*/) {
-  // TODO
+void neural_network_trainer::backpropagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w) {
+  size_t outcomes_size = w.outcomes.size();
+
+  // Compute error vector
+  w.error_outcomes.resize(outcomes_size);
+  for (unsigned i = 0; i < outcomes_size; i++)
+    w.error_outcomes[i] = (i == required_outcome) - w.outcomes[i];
+
+  // Update direct connections
+  if (!network.direct.empty()) {
+    unsigned direct_index = 0;
+    for (auto&& embedding_ids : embedding_ids_sequences)
+      for (unsigned i = 0; i < embeddings.size(); i++)
+        if (embedding_ids && (*embedding_ids)[i] >= 0) {
+          const float* embedding = embeddings[i].weight((*embedding_ids)[i]);
+          for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, embedding++, direct_index++)
+            for (unsigned k = 0; k < outcomes_size; k++)
+              network.direct[direct_index][k] += learning_rate * *embedding * w.error_outcomes[k] - l2_regularization * network.direct[direct_index][k];
+        } else {
+          direct_index += embeddings[i].dimension;
+        }
+  }
+
+  // TODO: Update hidden layer connections
+}
+
+void neural_network_trainer::l1_regularize() {
+  if (!l1_regularization) return;
+
+  // Direct connections
+  if (!network.direct.empty()) {
+    for (auto&& row : network.direct)
+      for (auto&& weight : row)
+        if (weight < l1_regularization) weight += l1_regularization;
+        else if (weight > l1_regularization) weight -= l1_regularization;
+        else weight = 0;
+  }
+
+  // TODO: Hidden layer connections
 }
 
 void neural_network_trainer::save_matrix(const vector<vector<float>>& m, binary_encoder& enc) const {

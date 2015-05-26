@@ -22,7 +22,8 @@ struct network_parameters {
   activation_function::type hidden_layer_type;
   double learning_rate;
   double learning_rate_final;
-  double gaussian_sigma;
+  double l1_regularization;
+  double l2_regularization;
 };
 
 } // namespace parsito
