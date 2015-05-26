@@ -99,9 +99,13 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
   }
 
   // Softmax
+  double max = outcomes[0];
+  for (unsigned i = 1; i < outcomes_size; i++) if (outcomes[i] > max) max = outcomes[i];
+
   double sum = 0;
-  for (unsigned i = 0; i < outcomes_size; i++) sum += (outcomes[i] = exp(outcomes[i]));
+  for (unsigned i = 0; i < outcomes_size; i++) sum += (outcomes[i] = exp(outcomes[i] - max));
   sum = 1 / sum;
+
   for (unsigned i = 0; i < outcomes_size; i++) outcomes[i] *= sum;
 }
 
