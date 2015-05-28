@@ -35,7 +35,7 @@ class neural_network_trainer {
   };
   void propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, workspace& w) const;
   void backpropagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w);
-  void l1_regularize();
+  void finalize_sentence();
 
   void save_network(binary_encoder& enc) const;
 

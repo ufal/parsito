@@ -95,19 +95,20 @@ void neural_network_trainer::backpropagate(const vector<embedding>& embeddings, 
   // TODO: Update hidden layer connections
 }
 
-void neural_network_trainer::l1_regularize() {
-  if (!l1_regularization) return;
+void neural_network_trainer::finalize_sentence() {
+  // Perform L1 regularization
+  if (l1_regularization) {
+    // Direct connections
+    if (!network.direct.empty()) {
+      for (auto&& row : network.direct)
+        for (auto&& weight : row)
+          if (weight < l1_regularization) weight += l1_regularization;
+          else if (weight > l1_regularization) weight -= l1_regularization;
+          else weight = 0;
+    }
 
-  // Direct connections
-  if (!network.direct.empty()) {
-    for (auto&& row : network.direct)
-      for (auto&& weight : row)
-        if (weight < l1_regularization) weight += l1_regularization;
-        else if (weight > l1_regularization) weight -= l1_regularization;
-        else weight = 0;
+    // TODO: Hidden layer connections
   }
-
-  // TODO: Hidden layer connections
 }
 
 void neural_network_trainer::save_matrix(const vector<vector<float>>& m, binary_encoder& enc) const {
