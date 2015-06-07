@@ -16,7 +16,7 @@ namespace parsito {
 
 neural_network_trainer::neural_network_trainer(neural_network& network, unsigned input_size, unsigned output_size,
                                                const network_parameters& parameters, mt19937& generator) : network(network) {
-  normal_distribution<float> normal(0, parameters.initialization_range);
+  uniform_real_distribution<float> uniform(-parameters.initialization_range, parameters.initialization_range);
 
   // Initialize direct connections
   if (parameters.direct_connections) {
@@ -24,7 +24,7 @@ neural_network_trainer::neural_network_trainer(neural_network& network, unsigned
     for (auto&& row : network.direct) {
       row.resize(output_size);
       for (auto&& weight : row)
-        weight = normal(generator);
+        weight = uniform(generator);
     }
   }
 
@@ -35,14 +35,14 @@ neural_network_trainer::neural_network_trainer(neural_network& network, unsigned
     for (auto&& row : network.hidden[0]) {
       row.resize(parameters.hidden_layer);
       for (auto&& weight : row)
-        weight = normal(generator);
+        weight = uniform(generator);
     }
 
     network.hidden[1].resize(parameters.hidden_layer);
     for (auto&& row : network.hidden[1]) {
       row.resize(output_size);
       for (auto&& weight : row)
-        weight = normal(generator);
+        weight = uniform(generator);
     }
   }
 

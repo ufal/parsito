@@ -155,11 +155,11 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
       sort(sorted_counts.begin(), sorted_counts.end());
 
       vector<float> word_weights(dimension);
-      normal_distribution<float> normal(0, 1);
+      uniform_real_distribution<float> uniform(-1, 1);
       for (auto&& count : sorted_counts) {
         if ((max_size > 0 && int(weights.size()) >= max_size)) break;
         for (auto&& word_weight : word_weights)
-          word_weight = normal(generator);
+          word_weight = uniform(generator);
 
         weights.emplace_back(count.second, word_weights);
       }
