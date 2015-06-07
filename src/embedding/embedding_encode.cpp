@@ -16,7 +16,6 @@ namespace parsito {
 void embedding::save(binary_encoder& enc) const {
   // Save dimension and update_weight
   enc.add_4B(dimension);
-  enc.add_double(update_weight);
 
   // Save the dictionary
   vector<string_piece> words(dictionary.size());
@@ -32,11 +31,9 @@ void embedding::save(binary_encoder& enc) const {
   enc.add<float>(weights.data(), weights.size());
 }
 
-void embedding::create(unsigned dimension, double update_weight, const vector<pair<string, vector<float>>>& words) {
-  assert(update_weight >= 0);
-
+void embedding::create(unsigned dimension, unsigned updatable_index, const vector<pair<string, vector<float>>>& words) {
   this->dimension = dimension;
-  this->update_weight = update_weight;
+  this->updatable_index = updatable_index;
 
   dictionary.clear();
   weights.clear();

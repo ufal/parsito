@@ -81,7 +81,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
 
     int max_size = parse_int(tokens[1], "maximum embedding size");
     int dimension = parse_int(tokens[2], "embedding dimension");
-    double update_weight = parse_double(tokens[3], "embedding dimension");
+    unsigned updatable_index = 0;
 
     vector<pair<string, vector<float>>> weights;
     if (tokens.size() >= 5) {
@@ -137,6 +137,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
 
         weights.emplace_back(string(parts[0].str, parts[0].len), projected_weights);
       }
+      updatable_index = weights.size();
     } else {
       // Generate embedding for max_size most frequent words
       string word;
@@ -167,7 +168,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
 
     // Add the embedding
     parser.embeddings.emplace_back();
-    parser.embeddings.back().create(dimension, update_weight, weights);
+    parser.embeddings.back().create(dimension, updatable_index, weights);
 
     // Count the cover of this embedding
     string word, buffer;

@@ -26,13 +26,15 @@ class embedding {
   int lookup_word(const string& word, string& buffer) const; // <0 is not_found
   float* weight(int id); // nullptr for unknown id
   const float* weight(int id) const; // nullpt for unknown id
+
+  bool can_update_weights(int id) const;
   void update_weights(int id, const float* error);
 
   void load(binary_decoder& data);
   void save(binary_encoder& enc) const;
-  void create(unsigned dimension, double update_weight, const vector<pair<string, vector<float>>>& words);
+  void create(unsigned dimension, unsigned updatable_index, const vector<pair<string, vector<float>>>& words);
  private:
-  double update_weight;
+  unsigned updatable_index;
 
   unordered_map<string, int> dictionary;
   vector<float> weights;

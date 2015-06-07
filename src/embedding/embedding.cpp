@@ -7,6 +7,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <limits>
+
 #include "common.h"
 #include "embedding.h"
 #include "unilib/unicode.h"
@@ -74,18 +76,21 @@ const float* embedding::weight(int id) const {
   return weights.data() + id * dimension;
 }
 
-void embedding::update_weights(int /*id*/, const float* /*error*/) {
-  if (!update_weight) return;
+bool embedding::can_update_weights(int id) const {
+  return id >= int(updatable_index);
+}
 
-//TODO
+void embedding::update_weights(int id, const float* /*error*/) {
+  if (id < int(updatable_index)) return;
+
+  // TODO
 }
 
 void embedding::load(binary_decoder& data) {
   // Load dimemsion
   dimension = data.next_4B();
 
-  // Load update weight
-  update_weight = *data.next<double>(1);
+  updatable_index = numeric_limits<decltype(updatable_index)>::max();
 
   // Load dictionary
   dictionary.clear();
