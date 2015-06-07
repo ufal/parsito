@@ -92,7 +92,48 @@ void neural_network_trainer::backpropagate(const vector<embedding>& embeddings, 
         }
   }
 
-  // TODO: Update hidden layer connections
+  // Update hidden layer connections
+  if (!network.hidden[0].empty()) {
+    unsigned hidden_layer_size = network.hidden[1].size();
+
+    // Backpropagate error_outcomes to error_hidden
+    w.error_hidden.assign(hidden_layer_size, 0);
+    for (unsigned i = 0; i < hidden_layer_size; i++)
+      for (unsigned j = 0; j < outcomes_size; j++)
+        w.error_hidden[i] += network.hidden[1][i][j] * w.error_outcomes[j];
+
+    // Perform activation function derivation
+    switch (network.hidden_layer_activation) {
+      case activation_function::TANH:
+        for (unsigned i = 0; i < hidden_layer_size; i++)
+          w.error_hidden[i] *= 1 - w.hidden_layer[i] * w.hidden_layer[i];
+        break;
+      case activation_function::CUBIC:
+        for (unsigned i = 0; i < hidden_layer_size; i++) {
+          double hidden_layer = cbrt(w.hidden_layer[i]);
+          w.error_hidden[i] *= 3 * hidden_layer * hidden_layer;
+        }
+        break;
+    }
+
+    // Update hidden[1]
+    for (unsigned i = 0; i < hidden_layer_size; i++)
+      for (unsigned j = 0; j < outcomes_size; j++)
+        network.hidden[1][i][j] += learning_rate * w.hidden_layer[i] * w.error_outcomes[j] - l2_regularization * network.hidden[1][i][j];
+
+    // Update hidden[0]
+    unsigned hidden_index = 0;
+    for (auto&& embedding_ids : embedding_ids_sequences)
+      for (unsigned i = 0; i < embeddings.size(); i++)
+        if (embedding_ids && (*embedding_ids)[i] >= 0) {
+          const float* embedding = embeddings[i].weight((*embedding_ids)[i]);
+          for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, embedding++, hidden_index++)
+            for (unsigned j = 0; j < hidden_layer_size; j++)
+              network.hidden[0][hidden_index][j] += learning_rate * *embedding * w.error_hidden[j] - l2_regularization * network.hidden[0][hidden_index][j];
+        } else {
+          hidden_index += embeddings[i].dimension;
+        }
+  }
 }
 
 void neural_network_trainer::finalize_sentence() {
@@ -106,7 +147,14 @@ void neural_network_trainer::finalize_sentence() {
           else if (weight > l1_regularization) weight -= l1_regularization;
           else weight = 0;
 
-    // TODO: Hidden layer connections
+    // Hidden layer connections
+    if (!network.hidden[0].empty())
+      for (auto&& hidden : network.hidden)
+        for (auto&& row : hidden)
+          for (auto&& weight : row)
+            if (weight < l1_regularization) weight += l1_regularization;
+            else if (weight > l1_regularization) weight -= l1_regularization;
+            else weight = 0;
   }
 }
 
