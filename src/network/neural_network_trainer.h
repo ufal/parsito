@@ -31,10 +31,11 @@ class neural_network_trainer {
     vector<double> hidden_layer;
     vector<double> error_outcomes;
     vector<double> error_hidden;
-    vector<double> error_input;
+    vector<vector<vector<float>>> error_embedding;
+    vector<vector<unsigned>> error_embedding_nonempty;
   };
   void propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, workspace& w) const;
-  void backpropagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w);
+  void backpropagate(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w);
   void finalize_sentence();
 
   void save_network(binary_encoder& enc) const;

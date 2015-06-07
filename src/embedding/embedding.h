@@ -28,7 +28,6 @@ class embedding {
   const float* weight(int id) const; // nullpt for unknown id
 
   bool can_update_weights(int id) const;
-  void update_weights(int id, const float* error);
 
   void load(binary_decoder& data);
   void save(binary_encoder& enc) const;

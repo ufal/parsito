@@ -76,16 +76,6 @@ const float* embedding::weight(int id) const {
   return weights.data() + id * dimension;
 }
 
-bool embedding::can_update_weights(int id) const {
-  return id >= int(updatable_index);
-}
-
-void embedding::update_weights(int id, const float* /*error*/) {
-  if (id < int(updatable_index)) return;
-
-  // TODO
-}
-
 void embedding::load(binary_decoder& data) {
   // Load dimemsion
   dimension = data.next_4B();

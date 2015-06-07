@@ -69,7 +69,7 @@ void neural_network_trainer::propagate(const vector<embedding>& embeddings, cons
   network.propagate(embeddings, embedding_ids_sequences, w.hidden_layer, w.outcomes);
 }
 
-void neural_network_trainer::backpropagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w) {
+void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w) {
   size_t outcomes_size = w.outcomes.size();
 
   // Compute error vector
@@ -77,16 +77,36 @@ void neural_network_trainer::backpropagate(const vector<embedding>& embeddings, 
   for (unsigned i = 0; i < outcomes_size; i++)
     w.error_outcomes[i] = (i == required_outcome) - w.outcomes[i];
 
-  // Update direct connections
+  // Initialize error_embedding structures
+  w.error_embedding.resize(embeddings.size());
+  w.error_embedding_nonempty.resize(embeddings.size());
+
+  // Update direct connections and backpropagate to error_embedding
   if (!network.direct.empty()) {
     unsigned direct_index = 0;
     for (auto&& embedding_ids : embedding_ids_sequences)
       for (unsigned i = 0; i < embeddings.size(); i++)
         if (embedding_ids && (*embedding_ids)[i] >= 0) {
-          const float* embedding = embeddings[i].weight((*embedding_ids)[i]);
-          for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, embedding++, direct_index++)
+          int embedding_id = (*embedding_ids)[i];
+
+          float* error_embedding = nullptr; // Accumulate embedding error if required
+          if (embeddings[i].can_update_weights(embedding_id)) {
+            if (w.error_embedding[i].size() <= unsigned(embedding_id)) w.error_embedding[i].resize(embedding_id + 1);
+            if (w.error_embedding[i][embedding_id].empty()) {
+              w.error_embedding[i][embedding_id].assign(embeddings[i].dimension, 0);
+              w.error_embedding_nonempty[i].emplace_back(embedding_id);
+            }
+            error_embedding = w.error_embedding[i][embedding_id].data();
+          }
+
+          const float* embedding = embeddings[i].weight(embedding_id);
+          for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, direct_index++, embedding++, error_embedding += !!error_embedding) {
+            if (error_embedding)
+              for (unsigned j = 0; j < outcomes_size; j++)
+                *error_embedding += network.direct[direct_index][j] * w.error_outcomes[j];
             for (unsigned j = 0; j < outcomes_size; j++)
               network.direct[direct_index][j] += learning_rate * *embedding * w.error_outcomes[j] - l2_regularization * network.direct[direct_index][j];
+          }
         } else {
           direct_index += embeddings[i].dimension;
         }
@@ -94,7 +114,7 @@ void neural_network_trainer::backpropagate(const vector<embedding>& embeddings, 
       network.direct[direct_index][i] += learning_rate * w.error_outcomes[i] - l2_regularization * network.direct[direct_index][i];
   }
 
-  // Update hidden layer connections
+  // Update hidden layer connections and backpropagate to error_embedding
   if (!network.hidden[0].empty()) {
     unsigned hidden_layer_size = network.hidden[0].front().size();
 
@@ -125,20 +145,48 @@ void neural_network_trainer::backpropagate(const vector<embedding>& embeddings, 
     for (unsigned i = 0; i < outcomes_size; i++) // Bias
       network.hidden[1][hidden_layer_size][i] += learning_rate * w.error_outcomes[i] - l2_regularization * network.hidden[1][hidden_layer_size][i];
 
-    // Update hidden[0]
+    // Update hidden[0] and backpropagate to error_embedding
     unsigned hidden_index = 0;
     for (auto&& embedding_ids : embedding_ids_sequences)
       for (unsigned i = 0; i < embeddings.size(); i++)
         if (embedding_ids && (*embedding_ids)[i] >= 0) {
-          const float* embedding = embeddings[i].weight((*embedding_ids)[i]);
-          for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, embedding++, hidden_index++)
+          int embedding_id = (*embedding_ids)[i];
+
+          float* error_embedding = nullptr; // Accumulate embedding error if required
+          if (embeddings[i].can_update_weights(embedding_id)) {
+            if (w.error_embedding[i].size() <= unsigned(embedding_id)) w.error_embedding[i].resize(embedding_id + 1);
+            if (w.error_embedding[i][embedding_id].empty()) {
+              w.error_embedding[i][embedding_id].assign(embeddings[i].dimension, 0);
+              w.error_embedding_nonempty[i].emplace_back(embedding_id);
+            }
+            error_embedding = w.error_embedding[i][embedding_id].data();
+          }
+
+          const float* embedding = embeddings[i].weight(embedding_id);
+          for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, hidden_index++, embedding++, error_embedding += !!error_embedding) {
+            if (error_embedding)
+              for (unsigned j = 0; j < hidden_layer_size; j++)
+                *error_embedding += network.hidden[0][hidden_index][j] * w.error_hidden[j];
             for (unsigned j = 0; j < hidden_layer_size; j++)
               network.hidden[0][hidden_index][j] += learning_rate * *embedding * w.error_hidden[j] - l2_regularization * network.hidden[0][hidden_index][j];
+          }
         } else {
           hidden_index += embeddings[i].dimension;
         }
     for (unsigned i = 0; i < hidden_layer_size; i++) // Bias
       network.hidden[0][hidden_index][i] += learning_rate * w.error_hidden[i] - l2_regularization * network.hidden[0][hidden_index][i];
+  }
+
+  // Update embedding weights using error_embedding
+  for (unsigned i = 0; i < embeddings.size(); i++) {
+    for (auto&& id : w.error_embedding_nonempty[i]) {
+      float* embedding = embeddings[i].weight(id);
+      const float* error_embedding = w.error_embedding[i][id].data();
+      for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, embedding++, error_embedding++)
+        *embedding += learning_rate * *error_embedding - l2_regularization * *embedding;
+      w.error_embedding[i][id].clear();
+    }
+    w.error_embedding_nonempty[i].clear();
   }
 }
 

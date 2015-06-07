@@ -31,6 +31,10 @@ void embedding::save(binary_encoder& enc) const {
   enc.add<float>(weights.data(), weights.size());
 }
 
+bool embedding::can_update_weights(int id) const {
+  return id >= int(updatable_index);
+}
+
 void embedding::create(unsigned dimension, unsigned updatable_index, const vector<pair<string, vector<float>>>& words) {
   this->dimension = dimension;
   this->updatable_index = updatable_index;
