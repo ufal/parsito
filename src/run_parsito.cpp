@@ -67,11 +67,15 @@ int main(int argc, char* argv[]) {
   if (!output_format)
     runtime_failure("Unknown output format '" << output << "'!");
 
+  cerr << "Loading parser: ";
   unique_ptr<parser> p(parser::load(argv[1]));
   if (!p)
     runtime_failure("Cannot load parser from file '" << argv[1] << "'!");
+  cerr << "done" << endl;
 
+  clock_t now = clock();
   process_args(2, argc, argv, parse, *p, *input_format, *output_format);
+  cerr << "Parsing done, in " << fixed << setprecision(3) << (clock() - now) / double(CLOCKS_PER_SEC) << " seconds." << endl;
 
   return 0;
 }
