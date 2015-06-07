@@ -36,7 +36,7 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
                                vector<double>& hidden_layer, vector<double>& outcomes) const {
   if (!hidden[0].empty()) {
     assert(!hidden[1].empty());
-    assert(hidden[0].front().size() == hidden[1].size());
+    assert(hidden[0].front().size() == hidden[1].size() - 1);
     if (!direct.empty()) {
       assert(direct.size() == hidden[0].size());
       assert(direct.front().size() == hidden[1].front().size());
@@ -57,11 +57,13 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
         if (embedding_ids && (*embedding_ids)[i] >= 0) {
           const float* embedding = embeddings[i].weight((*embedding_ids)[i]);
           for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, embedding++, direct_index++)
-            for (unsigned k = 0; k < outcomes_size; k++)
-              outcomes[k] += *embedding * direct[direct_index][k];
+            for (unsigned j = 0; j < outcomes_size; j++)
+              outcomes[j] += *embedding * direct[direct_index][j];
         } else {
           direct_index += embeddings[i].dimension;
         }
+    for (unsigned i = 0; i < outcomes_size; i++) // Bias
+      outcomes[i] += direct[direct_index][i];
   }
 
   // Hidden layer if present
@@ -80,6 +82,8 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
         } else {
           hidden_index += embeddings[i].dimension;
         }
+    for (unsigned i = 0; i < hidden_layer_size; i++) // Bias
+      hidden_layer[i] += hidden[0][hidden_index][i];
 
     // Activation function
     switch (hidden_layer_activation) {
@@ -96,6 +100,8 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
     for (unsigned i = 0; i < hidden_layer_size; i++)
       for (unsigned j = 0; j < outcomes_size; j++)
         outcomes[j] += hidden_layer[i] * hidden[1][i][j];
+    for (unsigned i = 0; i < outcomes_size; i++) // Bias
+      outcomes[i] += hidden[1][hidden_layer_size][i];
   }
 
   // Softmax
