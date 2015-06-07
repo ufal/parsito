@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
     runtime_failure("Unknown parser_model_identifier '" << argv[1] << "'.!");
 
   options::map options;
-  if (!options::parse({{"direct_connections", options::value{"0", "1"}},
+  if (!options::parse({{"direct_connections", options::value::none},
                        {"embeddings", options::value::any},
                        {"heldout", options::value::any},
                        {"hidden_layer", options::value::any},
@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
       options.count("help") ||
       (argc < 2 && !options.count("version")))
     runtime_failure("Usage: " << argv[0] << " nn [options]\n"
-                    "Options: --direct_connections=0|1 (should_nn_contain_direct_connections)\n"
+                    "Options: --direct_connections (should nn contain direct connections)\n"
                     "         --embeddings=embedding description file\n"
                     "         --heldout=heldout data file\n"
                     "         --hidden_layer=hidden layer size\n"
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
   network_parameters parameters;
   if (!options.count("iterations")) runtime_failure("Number of iterations must be specified!");
   parameters.iterations = parse_int(options["iterations"], "number of iterations");
-  parameters.direct_connections = options.count("direct_connections") ? options["direct_connections"] == "1" : false;
+  parameters.direct_connections = options.count("direct_connections");
   parameters.hidden_layer = options.count("hidden_layer") ? parse_int(options["hidden_layer"], "hidden layer size") : 0;
   if (!parameters.direct_connections && !parameters.hidden_layer) runtime_failure("The neural networks cannot have no direct connections nor hidden layer!");
   if (!activation_function::create(options.count("hidden_layer_type") ? options["hidden_layer_type"] : "cubic", parameters.hidden_layer_type))
