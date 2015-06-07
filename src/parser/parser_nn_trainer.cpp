@@ -7,8 +7,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include <atomic>
 #include <algorithm>
+#include <atomic>
 #include <fstream>
 #include <random>
 #include <thread>
@@ -71,21 +71,26 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     if (!line.len || line.str[0] == '#') continue;
 
     split(line, ' ', tokens);
-    if (!(tokens.size() >= 4 && tokens.size() <= 5))
-      runtime_failure("Expected 4 or 5 columns on embedding description line '" << line << "'!");
+    if (!(tokens.size() == 3 || tokens.size() == 5 || tokens.size() == 6))
+      runtime_failure("Expected 3, 5 or 6 columns on embedding description line '" << line << "'!");
 
     value_names.emplace_back(string(tokens[0].str, tokens[0].len));
     parser.values.emplace_back();
     if (!parser.values.back().create(tokens[0], error)) runtime_failure(error);
 
-    int max_size = parse_int(tokens[1], "maximum embedding size");
-    int dimension = parse_int(tokens[2], "embedding dimension");
+    int dimension = parse_int(tokens[1], "embedding dimension");
+    int min_count = parse_int(tokens[2], "minimum frequency count");
     unsigned updatable_index = 0;
-
+    unsigned embeddings_from_file = 0;
+    string embeddings_from_file_comment;
     vector<pair<string, vector<float>>> weights;
+    unordered_set<string> weights_set;
+
+    // Load embedding if it was given
     if (tokens.size() >= 5) {
-      // Load embedding if it was given
-      ifstream in(string(tokens[4].str, tokens[4].len));
+      int max_embeddings = parse_int(tokens[4], "maximum embeddings count");
+      int update_weights = tokens.size() >= 6 ? parse_int(tokens[5], "update weights") : 1;
+      ifstream in(string(tokens[3].str, tokens[3].len));
       if (!in.is_open()) runtime_failure("Cannot load '" << tokens[0] << "' embedding from file '" << tokens[4] << "'!");
 
       // Load first line containing dictionary size and dimensions
@@ -101,7 +106,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
       // Generate random projection when smaller dimension is required
       vector<vector<float>> projection;
       if (file_dimension > dimension) {
-        cerr << "Reducing dimension of '" << tokens[0] << "' embedding from " << file_dimension << " to " << dimension << "." << endl;
+        embeddings_from_file_comment = "[dim" + to_string(file_dimension) + "->" + to_string(dimension) + "]";
 
         uniform_real_distribution<double> uniform(0, 1);
         projection.resize(dimension);
@@ -118,7 +123,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
       // Load input embedding
       vector<double> input_weights(file_dimension);
       vector<float> projected_weights(dimension);
-      while (getline(in, line) && (max_size <= 0 || int(weights.size()) < max_size)) {
+      while (getline(in, line) && int(weights.size()) < max_embeddings) {
         split(line, ' ', parts);
         if (!parts.empty() && !parts.back().len) parts.pop_back(); // Ignore space at the end of line
         if (int(parts.size()) != file_dimension + 1) runtime_failure("Wrong number of values on line '" << line << "' of embedding file '" << tokens[4]);
@@ -134,35 +139,36 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
               projected_weights[i] += projection[i][j] * input_weights[j];
           }
 
-        weights.emplace_back(string(parts[0].str, parts[0].len), projected_weights);
+        if (!weights_set.count(parts[0].str)) {
+          weights.emplace_back(string(parts[0].str, parts[0].len), projected_weights);
+          weights_set.insert(parts[0].str);
+        }
       }
-      updatable_index = weights.size();
-    } else {
-      // Generate embedding for max_size most frequent words
+      embeddings_from_file = weights.size();
+      updatable_index = update_weights ? 0 : embeddings_from_file;
+    }
+
+    // Add embedding for non-present word with min_count
+    {
       string word;
       unordered_map<string, int> counts;
       for (auto&& tree : train)
         for (auto&& node : tree.nodes)
           if (node.id) {
             parser.values.back().extract(node, word);
-            counts[word]++;
+            if (!weights_set.count(word))
+              counts[word]++;
           }
-
-      vector<pair<int, string>> sorted_counts;
-      for (auto&& count : counts)
-        sorted_counts.emplace_back(-count.second, count.first);
-
-      sort(sorted_counts.begin(), sorted_counts.end());
 
       vector<float> word_weights(dimension);
       uniform_real_distribution<float> uniform(-1, 1);
-      for (auto&& count : sorted_counts) {
-        if ((max_size > 0 && int(weights.size()) >= max_size)) break;
-        for (auto&& word_weight : word_weights)
-          word_weight = uniform(generator);
+      for (auto&& word_count : counts)
+        if (word_count.second >= min_count) {
+          for (auto&& word_weight : word_weights)
+            word_weight = uniform(generator);
 
-        weights.emplace_back(count.second, word_weights);
-      }
+          weights.emplace_back(word_count.first, word_weights);
+        }
     }
 
     // Add the embedding
@@ -171,16 +177,20 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
 
     // Count the cover of this embedding
     string word, buffer;
-    unsigned words_total = 0, words_covered = 0;
+    unsigned words_total = 0, words_covered = 0, words_covered_from_file = 0;
     for (auto&& tree : train)
       for (auto&& node : tree.nodes)
         if (node.id) {
           parser.values.back().extract(node, word);
           words_total++;
-          words_covered += parser.embeddings.back().lookup_word(word, buffer) >= 0;
+          int word_id = parser.embeddings.back().lookup_word(word, buffer);
+          words_covered += word_id >= 0;
+          words_covered_from_file += word_id >= 0 && unsigned(word_id) < embeddings_from_file;
         }
 
-    cerr << "Initialized '" << tokens[0] << "' embedding with " << weights.size() << " words and " << 100. * words_covered / words_total << "% coverage." << endl;
+    cerr << "Initialized '" << tokens[0] << "' embedding with " << embeddings_from_file << embeddings_from_file_comment
+         << "," << weights.size() << " words and " << fixed << setprecision(1) << 100. * words_covered_from_file / words_total
+         << "%," << 100. * words_covered / words_total << "% coverage." << endl;
   }
 
   // Train the network
