@@ -85,8 +85,8 @@ void neural_network_trainer::backpropagate(const vector<embedding>& embeddings, 
         if (embedding_ids && (*embedding_ids)[i] >= 0) {
           const float* embedding = embeddings[i].weight((*embedding_ids)[i]);
           for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, embedding++, direct_index++)
-            for (unsigned k = 0; k < outcomes_size; k++)
-              network.direct[direct_index][k] += learning_rate * *embedding * w.error_outcomes[k] - l2_regularization * network.direct[direct_index][k];
+            for (unsigned j = 0; j < outcomes_size; j++)
+              network.direct[direct_index][j] += learning_rate * *embedding * w.error_outcomes[j] - l2_regularization * network.direct[direct_index][j];
         } else {
           direct_index += embeddings[i].dimension;
         }
@@ -99,13 +99,12 @@ void neural_network_trainer::finalize_sentence() {
   // Perform L1 regularization
   if (l1_regularization) {
     // Direct connections
-    if (!network.direct.empty()) {
+    if (!network.direct.empty())
       for (auto&& row : network.direct)
         for (auto&& weight : row)
           if (weight < l1_regularization) weight += l1_regularization;
           else if (weight > l1_regularization) weight -= l1_regularization;
           else weight = 0;
-    }
 
     // TODO: Hidden layer connections
   }

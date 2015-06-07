@@ -75,8 +75,8 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
         if (embedding_ids && (*embedding_ids)[i] >= 0) {
           const float* embedding = embeddings[i].weight((*embedding_ids)[i]);
           for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, embedding++, hidden_index++)
-            for (unsigned k = 0; k < hidden_layer_size; k++)
-              hidden_layer[k] += *embedding * hidden[0][hidden_index][k];
+            for (unsigned j = 0; j < hidden_layer_size; j++)
+              hidden_layer[j] += *embedding * hidden[0][hidden_index][j];
         } else {
           hidden_index += embeddings[i].dimension;
         }

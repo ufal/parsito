@@ -266,8 +266,6 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
                 nodes_embeddings[child][i] = parser.embeddings[i].lookup_word(word, word_buffer);
               }
         }
-
-        // FinishL1 regularize after processing the whole sentence
         network_trainer.finalize_sentence();
       }
       for (double old_atomic_logprob = atomic_logprob; atomic_logprob.compare_exchange_weak(old_atomic_logprob, old_atomic_logprob + logprob); ) {}
