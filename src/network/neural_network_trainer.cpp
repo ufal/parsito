@@ -51,6 +51,7 @@ neural_network_trainer::neural_network_trainer(neural_network& network, unsigned
   iterations = parameters.iterations;
   learning_rate_initial = parameters.learning_rate;
   learning_rate_final = parameters.learning_rate_final;
+  batch_size = parameters.batch_size;
   l1_regularization = parameters.l1_regularization;
   l2_regularization = parameters.l2_regularization;
 }
@@ -72,14 +73,16 @@ void neural_network_trainer::propagate(const vector<embedding>& embeddings, cons
 void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w) {
   size_t outcomes_size = w.outcomes.size();
 
+  if (network.direct.size() > w.increments_direct.size()) w.increments_direct.resize(network.direct.size());
+  if (network.hidden[0].size() > w.increments_hidden[0].size()) w.increments_hidden[0].resize(network.hidden[0].size());
+  if (network.hidden[1].size() > w.increments_hidden[1].size()) w.increments_hidden[1].resize(network.hidden[1].size());
+  if (embeddings.size() > w.error_embedding.size()) w.error_embedding.resize(embeddings.size());
+  if (embeddings.size() > w.error_embedding_nonempty.size()) w.error_embedding_nonempty.resize(embeddings.size());
+
   // Compute error vector
   w.error_outcomes.resize(outcomes_size);
   for (unsigned i = 0; i < outcomes_size; i++)
     w.error_outcomes[i] = (i == required_outcome) - w.outcomes[i];
-
-  // Initialize error_embedding structures
-  w.error_embedding.resize(embeddings.size());
-  w.error_embedding_nonempty.resize(embeddings.size());
 
   // Update direct connections and backpropagate to error_embedding
   if (!network.direct.empty()) {
@@ -104,14 +107,17 @@ void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const 
             if (error_embedding)
               for (unsigned j = 0; j < outcomes_size; j++)
                 *error_embedding += network.direct[direct_index][j] * w.error_outcomes[j];
+            if (w.increments_direct[direct_index].empty()) w.increments_direct[direct_index].resize(outcomes_size);
             for (unsigned j = 0; j < outcomes_size; j++)
-              network.direct[direct_index][j] += learning_rate * *embedding * w.error_outcomes[j] - l2_regularization * network.direct[direct_index][j];
+              w.increments_direct[direct_index][j] += *embedding * w.error_outcomes[j];
           }
         } else {
           direct_index += embeddings[i].dimension;
         }
-    for (unsigned i = 0; i < outcomes_size; i++) // Bias
-      network.direct[direct_index][i] += learning_rate * w.error_outcomes[i] - l2_regularization * network.direct[direct_index][i];
+    // Bias
+    if (w.increments_direct[direct_index].empty()) w.increments_direct[direct_index].resize(outcomes_size);
+    for (unsigned i = 0; i < outcomes_size; i++)
+      w.increments_direct[direct_index][i] += w.error_outcomes[i];
   }
 
   // Update hidden layer connections and backpropagate to error_embedding
@@ -139,11 +145,15 @@ void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const 
     }
 
     // Update hidden[1]
-    for (unsigned i = 0; i < hidden_layer_size; i++)
+    for (unsigned i = 0; i < hidden_layer_size; i++) {
+      if (w.increments_hidden[1][i].empty()) w.increments_hidden[1][i].resize(outcomes_size);
       for (unsigned j = 0; j < outcomes_size; j++)
-        network.hidden[1][i][j] += learning_rate * w.hidden_layer[i] * w.error_outcomes[j] - l2_regularization * network.hidden[1][i][j];
-    for (unsigned i = 0; i < outcomes_size; i++) // Bias
-      network.hidden[1][hidden_layer_size][i] += learning_rate * w.error_outcomes[i] - l2_regularization * network.hidden[1][hidden_layer_size][i];
+        w.increments_hidden[1][i][j] += w.hidden_layer[i] * w.error_outcomes[j];
+    }
+    // Bias
+    if (w.increments_hidden[1][hidden_layer_size].empty()) w.increments_hidden[1][hidden_layer_size].resize(outcomes_size);
+    for (unsigned i = 0; i < outcomes_size; i++)
+      w.increments_hidden[1][hidden_layer_size][i] += w.error_outcomes[i];
 
     // Update hidden[0] and backpropagate to error_embedding
     unsigned hidden_index = 0;
@@ -167,15 +177,42 @@ void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const 
             if (error_embedding)
               for (unsigned j = 0; j < hidden_layer_size; j++)
                 *error_embedding += network.hidden[0][hidden_index][j] * w.error_hidden[j];
+            if (w.increments_hidden[0][hidden_index].empty()) w.increments_hidden[0][hidden_index].resize(hidden_layer_size);
             for (unsigned j = 0; j < hidden_layer_size; j++)
-              network.hidden[0][hidden_index][j] += learning_rate * *embedding * w.error_hidden[j] - l2_regularization * network.hidden[0][hidden_index][j];
+              w.increments_hidden[0][hidden_index][j] += *embedding * w.error_hidden[j];
           }
         } else {
           hidden_index += embeddings[i].dimension;
         }
-    for (unsigned i = 0; i < hidden_layer_size; i++) // Bias
-      network.hidden[0][hidden_index][i] += learning_rate * w.error_hidden[i] - l2_regularization * network.hidden[0][hidden_index][i];
+    // Bias
+    if (w.increments_hidden[0][hidden_index].empty()) w.increments_hidden[0][hidden_index].resize(hidden_layer_size);
+    for (unsigned i = 0; i < hidden_layer_size; i++)
+      w.increments_hidden[0][hidden_index][i] += w.error_hidden[i];
   }
+
+  if (++w.batch < batch_size) return;
+  w.batch = 0;
+
+  // Update direct weights
+  if (!network.direct.empty()) {
+    for (unsigned i = 0; i < w.increments_direct.size(); i++)
+      if (!w.increments_direct[i].empty()) {
+        for (unsigned j = 0; j < outcomes_size; j++)
+          network.direct[i][j] += learning_rate * w.increments_direct[i][j] - l2_regularization * network.direct[i][j];
+        w.increments_direct[i].clear();
+      }
+  }
+
+  // Update hidden weights
+  if (!network.hidden[0].empty())
+    for (int i = 0; i < 2; i++) {
+      for (unsigned j = 0; j < w.increments_hidden[i].size(); j++)
+        if (!w.increments_hidden[i][j].empty()) {
+          for (unsigned k = 0, size = w.increments_hidden[i][j].size(); k < size; k++)
+            network.hidden[i][j][k] += learning_rate * w.increments_hidden[i][j][k] - l2_regularization * network.hidden[i][j][k];
+          w.increments_hidden[i][j].clear();
+        }
+    }
 
   // Update embedding weights using error_embedding
   for (unsigned i = 0; i < embeddings.size(); i++) {

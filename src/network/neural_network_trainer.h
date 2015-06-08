@@ -27,10 +27,13 @@ class neural_network_trainer {
   bool next_iteration();
 
   struct workspace {
+    unsigned batch = 0;
     vector<double> outcomes;
     vector<double> hidden_layer;
     vector<double> error_outcomes;
     vector<double> error_hidden;
+    vector<vector<float>> increments_direct;
+    vector<vector<float>> increments_hidden[2];
     vector<vector<vector<float>>> error_embedding;
     vector<vector<unsigned>> error_embedding_nonempty;
   };
@@ -46,6 +49,7 @@ class neural_network_trainer {
   neural_network& network;
   unsigned iteration, iterations;
   double learning_rate, learning_rate_initial, learning_rate_final;
+  unsigned batch_size;
   double l1_regularization, l2_regularization;
 };
 

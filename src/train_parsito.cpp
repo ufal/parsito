@@ -31,7 +31,8 @@ int main(int argc, char* argv[]) {
     runtime_failure("Unknown parser_model_identifier '" << argv[1] << "'.!");
 
   options::map options;
-  if (!options::parse({{"direct_connections", options::value::none},
+  if (!options::parse({{"batch_size", options::value::any},
+                       {"direct_connections", options::value::none},
                        {"embeddings", options::value::any},
                        {"heldout", options::value::any},
                        {"hidden_layer", options::value::any},
@@ -87,6 +88,7 @@ int main(int argc, char* argv[]) {
     runtime_failure("Unknown hidden layer type '" << options["hidden_layer_type"] << "'!");
   parameters.learning_rate = options.count("learning_rate") ? parse_double(options["learning_rate"], "learning rate") : 0.1;
   parameters.learning_rate_final = options.count("learning_rate_final") ? parse_double(options["learning_rate_final"], "final learning rate") : 0;
+  parameters.batch_size = options.count("batch_size") ? parse_int(options["batch_size"], "batch size") : 1;
   parameters.initialization_range = options.count("initialization_range") ? parse_double(options["initialization_range"], "initialiation range") : 0.1;
   parameters.l1_regularization = options.count("l1_regularization") ? parse_double(options["l1_regularization"], "l1 regularization") : 0;
   parameters.l2_regularization = options.count("l2_regularization") ? parse_double(options["l2_regularization"], "l2 regularization") : 0;

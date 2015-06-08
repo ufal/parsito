@@ -22,6 +22,7 @@ struct network_parameters {
   activation_function::type hidden_layer_type;
   double learning_rate;
   double learning_rate_final;
+  unsigned batch_size;
   double initialization_range;
   double l1_regularization;
   double l2_regularization;
