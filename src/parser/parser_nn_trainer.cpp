@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <atomic>
 #include <fstream>
+#include <limits>
 #include <random>
 #include <thread>
 #include <unordered_set>
@@ -71,8 +72,8 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     if (!line.len || line.str[0] == '#') continue;
 
     split(line, ' ', tokens);
-    if (!(tokens.size() == 3 || tokens.size() == 5 || tokens.size() == 6))
-      runtime_failure("Expected 3, 5 or 6 columns on embedding description line '" << line << "'!");
+    if (!(tokens.size() >= 3 && tokens.size() <= 6))
+      runtime_failure("Expected 3 to 6 columns on embedding description line '" << line << "'!");
 
     value_names.emplace_back(string(tokens[0].str, tokens[0].len));
     parser.values.emplace_back();
@@ -86,10 +87,20 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     vector<pair<string, vector<float>>> weights;
     unordered_set<string> weights_set;
 
+    // Compute words and counts present in the training data
+    string word;
+    unordered_map<string, int> word_counts;
+    for (auto&& tree : train)
+      for (auto&& node : tree.nodes)
+        if (node.id) {
+          parser.values.back().extract(node, word);
+          word_counts[word]++;
+        }
+
     // Load embedding if it was given
-    if (tokens.size() >= 5) {
-      int max_embeddings = parse_int(tokens[4], "maximum embeddings count");
-      int update_weights = tokens.size() >= 6 ? parse_int(tokens[5], "update weights") : 1;
+    if (tokens.size() >= 4) {
+      int update_weights = tokens.size() >= 5 ? parse_int(tokens[4], "update weights") : 1;
+      int max_embeddings = tokens.size() >= 6 ? parse_int(tokens[5], "maximum embeddings count") : numeric_limits<int>::max();
       ifstream in(string(tokens[3].str, tokens[3].len));
       if (!in.is_open()) runtime_failure("Cannot load '" << tokens[0] << "' embedding from file '" << tokens[4] << "'!");
 
@@ -130,6 +141,12 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
         for (int i = 0; i < file_dimension; i++)
           input_weights[i] = parse_double(parts[1 + i], "embedding weight");
 
+        string word(parts[0].str, parts[0].len);
+
+        // For update_weights == 2, ignore embeddings for unknown words
+        if (update_weights == 2 && !word_counts.count(word))
+          continue;
+
         for (int i = 0; i < dimension; i++)
           if (file_dimension == dimension) {
             projected_weights[i] = input_weights[i];
@@ -139,9 +156,9 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
               projected_weights[i] += projection[i][j] * input_weights[j];
           }
 
-        if (!weights_set.count(parts[0].str)) {
-          weights.emplace_back(string(parts[0].str, parts[0].len), projected_weights);
-          weights_set.insert(parts[0].str);
+        if (!weights_set.count(word)) {
+          weights.emplace_back(word, projected_weights);
+          weights_set.insert(word);
         }
       }
       embeddings_from_file = weights.size();
@@ -150,20 +167,10 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
 
     // Add embedding for non-present word with min_count
     {
-      string word;
-      unordered_map<string, int> counts;
-      for (auto&& tree : train)
-        for (auto&& node : tree.nodes)
-          if (node.id) {
-            parser.values.back().extract(node, word);
-            if (!weights_set.count(word))
-              counts[word]++;
-          }
-
       vector<float> word_weights(dimension);
       uniform_real_distribution<float> uniform(-1, 1);
-      for (auto&& word_count : counts)
-        if (word_count.second >= min_count) {
+      for (auto&& word_count : word_counts)
+        if (word_count.second >= min_count && !weights_set.count(word_count.first)) {
           for (auto&& word_weight : word_weights)
             word_weight = uniform(generator);
 
@@ -176,7 +183,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     parser.embeddings.back().create(dimension, updatable_index, weights);
 
     // Count the cover of this embedding
-    string word, buffer;
+    string buffer;
     unsigned words_total = 0, words_covered = 0, words_covered_from_file = 0;
     for (auto&& tree : train)
       for (auto&& node : tree.nodes)
