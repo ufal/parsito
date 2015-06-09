@@ -53,7 +53,8 @@ int main(int argc, char* argv[]) {
       options.count("help") ||
       (argc < 2 && !options.count("version")))
     runtime_failure("Usage: " << argv[0] << " nn [options]\n"
-                    "Options: --direct_connections (should nn contain direct connections)\n"
+                    "Options: --batch_size=batch size\n"
+                    "         --direct_connections (should nn contain direct connections)\n"
                     "         --embeddings=embedding description file\n"
                     "         --heldout=heldout data file\n"
                     "         --hidden_layer=hidden layer size\n"
