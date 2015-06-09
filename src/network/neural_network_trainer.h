@@ -32,8 +32,10 @@ class neural_network_trainer {
     vector<double> hidden_layer;
     vector<double> error_outcomes;
     vector<double> error_hidden;
-    vector<vector<float>> increments_direct;
-    vector<vector<float>> increments_hidden[2];
+
+    // Delta accumulators
+    vector<vector<float>> direct_batch;
+    vector<vector<float>> hidden_batch[2];
     vector<vector<vector<float>>> error_embedding;
     vector<vector<unsigned>> error_embedding_nonempty;
   };
