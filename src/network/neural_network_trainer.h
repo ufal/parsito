@@ -67,6 +67,10 @@ class neural_network_trainer {
     static bool need_trainer_data;
     static inline double delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data);
   };
+  struct trainer_adadelta {
+    static bool need_trainer_data;
+    static inline double delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data);
+  };
 
   template <class TRAINER> void backpropagate_template(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w);
   void save_matrix(const vector<vector<float>>& m, binary_encoder& enc) const;

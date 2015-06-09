@@ -90,6 +90,15 @@ double neural_network_trainer::trainer_adagrad::delta(double gradient, const net
   return trainer.learning_rate / sqrt(data.gradient) * gradient;
 }
 
+// AdaDelta
+bool neural_network_trainer::trainer_adadelta::need_trainer_data = true;
+double neural_network_trainer::trainer_adadelta::delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data) {
+  data.gradient = trainer.momentum * data.gradient + (1 - trainer.momentum) * gradient * gradient;
+  double delta = sqrt(data.delta + trainer.epsilon) / sqrt(data.gradient + trainer.epsilon) * gradient;
+  data.delta = trainer.momentum * data.delta + (1 - trainer.momentum) * delta * delta;
+  return delta;
+}
+
 // Backpropagation
 template <class TRAINER>
 void neural_network_trainer::backpropagate_template(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w) {
@@ -265,16 +274,19 @@ void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const 
   switch (trainer.algorithm) {
     case network_trainer::SGD:
       backpropagate_template<trainer_sgd>(embeddings, embedding_ids_sequences, required_outcome, w);
-      break;
+      return;
     case network_trainer::SGD_MOMENTUM:
       backpropagate_template<trainer_sgd_momentum>(embeddings, embedding_ids_sequences, required_outcome, w);
-      break;
+      return;
     case network_trainer::ADAGRAD:
       backpropagate_template<trainer_adagrad>(embeddings, embedding_ids_sequences, required_outcome, w);
-      break;
-    default:
-      runtime_failure("Internal error, unsupported trainer!");
+      return;
+    case network_trainer::ADADELTA:
+      backpropagate_template<trainer_adadelta>(embeddings, embedding_ids_sequences, required_outcome, w);
+      return;
   }
+
+  runtime_failure("Internal error, unsupported trainer!");
 }
 
 void neural_network_trainer::finalize_sentence() {

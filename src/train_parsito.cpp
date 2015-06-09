@@ -32,7 +32,8 @@ int main(int argc, char* argv[]) {
     runtime_failure("Unknown parser_model_identifier '" << argv[1] << "'.!");
 
   options::map options;
-  if (!options::parse({{"adagrad", options::value::any},
+  if (!options::parse({{"adadelta", options::value::any},
+                       {"adagrad", options::value::any},
                        {"batch_size", options::value::any},
                        {"direct_connections", options::value::none},
                        {"embeddings", options::value::any},
@@ -55,7 +56,8 @@ int main(int argc, char* argv[]) {
       options.count("help") ||
       (argc < 2 && !options.count("version")))
     runtime_failure("Usage: " << argv[0] << " nn [options]\n"
-                    "Options: --adagrad=learning rate\n"
+                    "Options: --adadelta=momentum,epsilon\n"
+                    "         --adagrad=learning rate\n"
                     "         --batch_size=batch size\n"
                     "         --direct_connections (should nn contain direct connections)\n"
                     "         --embeddings=embedding description file\n"
@@ -102,18 +104,17 @@ int main(int argc, char* argv[]) {
   if (!options.count("transition_oracle")) runtime_failure("The transition oracle must be specified!");
 
   // Process network trainer options
-  if (options.count("sgd") + options.count("sgd_momentum") + options.count("adagrad") > 1)
+  if (options.count("sgd") + options.count("sgd_momentum") + options.count("adagrad") + options.count("adedelta") > 1)
     runtime_failure("Cannot specify multiple trainer algorithms!");
+  vector<string_piece> parts;
   if (options.count("sgd")) {
     parameters.trainer.algorithm = network_trainer::SGD;
-    vector<string_piece> parts;
     split(options["sgd"], ',', parts);
     if (parts.size() > 2) runtime_failure("More than two values given to the --sgd option!");
     parameters.trainer.learning_rate = parse_double(parts[0], "learning rate");
     parameters.trainer.learning_rate_final = parts.size() > 1 ? parse_double(parts[1], "final learning rate") : parameters.trainer.learning_rate;
   } else if (options.count("sgd_momentum")) {
     parameters.trainer.algorithm = network_trainer::SGD_MOMENTUM;
-    vector<string_piece> parts;
     split(options["sgd_momentum"], ',', parts);
     if (parts.size() < 2) runtime_failure("Expecting at least two values to the --sgd_momentum option!");
     if (parts.size() > 3) runtime_failure("More than three values given to the --sgd_momentum option!");
@@ -123,6 +124,12 @@ int main(int argc, char* argv[]) {
   } else if (options.count("adagrad")) {
     parameters.trainer.algorithm = network_trainer::ADAGRAD;
     parameters.trainer.learning_rate = parse_double(options["adagrad"], "learning rate");
+  } else if (options.count("adadelta")) {
+    parameters.trainer.algorithm = network_trainer::ADADELTA;
+    split(options["adadelta"], ',', parts);
+    if (parts.size() != 2) runtime_failure("Expecting two values to the --adadelta option!");
+    parameters.trainer.momentum = parse_double(parts[0], "momentum");
+    parameters.trainer.epsilon = parse_double(parts[1], "adadelta epsilon");
   } else
     runtime_failure("No trainer algorithm was specified!");
 
