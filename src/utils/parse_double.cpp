@@ -49,7 +49,7 @@ bool parse_double(string_piece str, const char* value_name, double& value, strin
       str.str++, str.len--;
     }
 
-    value = (value + 0.5) / divider;
+    value /= divider;
   }
 
   // Apply initial minus
