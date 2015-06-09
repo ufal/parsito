@@ -59,6 +59,10 @@ class neural_network_trainer {
     static bool need_trainer_data;
     static inline double delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data);
   };
+  struct trainer_sgd_momentum {
+    static bool need_trainer_data;
+    static inline double delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data);
+  };
   struct trainer_adagrad {
     static bool need_trainer_data;
     static inline double delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data);

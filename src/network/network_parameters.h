@@ -18,6 +18,7 @@ namespace parsito {
 struct network_trainer {
   enum network_trainer_algorithm {
     SGD,
+    SGD_MOMENTUM,
     ADAGRAD
   };
 

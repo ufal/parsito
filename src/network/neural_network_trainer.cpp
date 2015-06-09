@@ -76,6 +76,13 @@ double neural_network_trainer::trainer_sgd::delta(double gradient, const network
   return trainer.learning_rate * gradient;
 }
 
+// SGD with momentum
+bool neural_network_trainer::trainer_sgd_momentum::need_trainer_data = true;
+double neural_network_trainer::trainer_sgd_momentum::delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data) {
+  data.delta = trainer.momentum * data.delta + trainer.learning_rate * gradient;
+  return data.delta;
+}
+
 // AdaGrad
 bool neural_network_trainer::trainer_adagrad::need_trainer_data = true;
 double neural_network_trainer::trainer_adagrad::delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data) {
@@ -258,6 +265,9 @@ void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const 
   switch (trainer.algorithm) {
     case network_trainer::SGD:
       backpropagate_template<trainer_sgd>(embeddings, embedding_ids_sequences, required_outcome, w);
+      break;
+    case network_trainer::SGD_MOMENTUM:
+      backpropagate_template<trainer_sgd_momentum>(embeddings, embedding_ids_sequences, required_outcome, w);
       break;
     case network_trainer::ADAGRAD:
       backpropagate_template<trainer_adagrad>(embeddings, embedding_ids_sequences, required_outcome, w);

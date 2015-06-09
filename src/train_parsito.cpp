@@ -46,6 +46,7 @@ int main(int argc, char* argv[]) {
                        {"l2_regularization", options::value::any},
                        {"nodes", options::value::any},
                        {"sgd", options::value::any},
+                       {"sgd_momentum", options::value::any},
                        {"threads", options::value::any},
                        {"transition_oracle", options::value{"static"}},
                        {"transition_system", options::value{"projective"}},
@@ -68,6 +69,7 @@ int main(int argc, char* argv[]) {
                     "         --l2_regularization=l2 regularization factor\n"
                     "         --nodes=node selector file\n"
                     "         --sgd=learning rate[,final learning rate]\n"
+                    "         --sgd_momentum=momentum,learning rate[,final learning rate]\n"
                     "         --threads=number of training threads\n"
                     "         --transition_oracle=static\n"
                     "         --transition_system=projective\n"
@@ -100,7 +102,7 @@ int main(int argc, char* argv[]) {
   if (!options.count("transition_oracle")) runtime_failure("The transition oracle must be specified!");
 
   // Process network trainer options
-  if (options.count("sgd") + options.count("adagrad") > 1)
+  if (options.count("sgd") + options.count("sgd_momentum") + options.count("adagrad") > 1)
     runtime_failure("Cannot specify multiple trainer algorithms!");
   if (options.count("sgd")) {
     parameters.trainer.algorithm = network_trainer::SGD;
@@ -109,6 +111,15 @@ int main(int argc, char* argv[]) {
     if (parts.size() > 2) runtime_failure("More than two values given to the --sgd option!");
     parameters.trainer.learning_rate = parse_double(parts[0], "learning rate");
     parameters.trainer.learning_rate_final = parts.size() > 1 ? parse_double(parts[1], "final learning rate") : parameters.trainer.learning_rate;
+  } else if (options.count("sgd_momentum")) {
+    parameters.trainer.algorithm = network_trainer::SGD_MOMENTUM;
+    vector<string_piece> parts;
+    split(options["sgd_momentum"], ',', parts);
+    if (parts.size() < 2) runtime_failure("Expecting at least two values to the --sgd_momentum option!");
+    if (parts.size() > 3) runtime_failure("More than three values given to the --sgd_momentum option!");
+    parameters.trainer.momentum = parse_double(parts[0], "momentum");
+    parameters.trainer.learning_rate = parse_double(parts[1], "learning rate");
+    parameters.trainer.learning_rate_final = parts.size() > 2 ? parse_double(parts[2], "final learning rate") : parameters.trainer.learning_rate;
   } else if (options.count("adagrad")) {
     parameters.trainer.algorithm = network_trainer::ADAGRAD;
     parameters.trainer.learning_rate = parse_double(options["adagrad"], "learning rate");
