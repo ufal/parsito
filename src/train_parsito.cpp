@@ -18,6 +18,7 @@
 #include "utils/options.h"
 #include "utils/parse_double.h"
 #include "utils/parse_int.h"
+#include "utils/split.h"
 #include "version/version.h"
 
 using namespace ufal::parsito;
@@ -31,7 +32,8 @@ int main(int argc, char* argv[]) {
     runtime_failure("Unknown parser_model_identifier '" << argv[1] << "'.!");
 
   options::map options;
-  if (!options::parse({{"batch_size", options::value::any},
+  if (!options::parse({{"adagrad", options::value::any},
+                       {"batch_size", options::value::any},
                        {"direct_connections", options::value::none},
                        {"embeddings", options::value::any},
                        {"heldout", options::value::any},
@@ -40,11 +42,10 @@ int main(int argc, char* argv[]) {
                        {"initialization_range", options::value::any},
                        {"input", options::value{"conllu"}},
                        {"iterations", options::value::any},
-                       {"learning_rate", options::value::any},
-                       {"learning_rate_final", options::value::any},
                        {"l1_regularization", options::value::any},
                        {"l2_regularization", options::value::any},
                        {"nodes", options::value::any},
+                       {"sgd", options::value::any},
                        {"threads", options::value::any},
                        {"transition_oracle", options::value{"static"}},
                        {"transition_system", options::value{"projective"}},
@@ -53,7 +54,8 @@ int main(int argc, char* argv[]) {
       options.count("help") ||
       (argc < 2 && !options.count("version")))
     runtime_failure("Usage: " << argv[0] << " nn [options]\n"
-                    "Options: --batch_size=batch size\n"
+                    "Options: --adagrad=learning rate\n"
+                    "         --batch_size=batch size\n"
                     "         --direct_connections (should nn contain direct connections)\n"
                     "         --embeddings=embedding description file\n"
                     "         --heldout=heldout data file\n"
@@ -62,11 +64,10 @@ int main(int argc, char* argv[]) {
                     "         --initialization_range=initialization range\n"
                     "         --input=conllu (input format)\n"
                     "         --iterations=number of training iterations\n"
-                    "         --learning_rate=initial learning rate\n"
-                    "         --learning_rate_final=final learning rate\n"
                     "         --l1_regularization=l1 regularization factor\n"
                     "         --l2_regularization=l2 regularization factor\n"
                     "         --nodes=node selector file\n"
+                    "         --sgd=learning rate[,final learning rate]\n"
                     "         --threads=number of training threads\n"
                     "         --transition_oracle=static\n"
                     "         --transition_system=projective\n"
@@ -87,8 +88,6 @@ int main(int argc, char* argv[]) {
   if (!parameters.direct_connections && !parameters.hidden_layer) runtime_failure("The neural networks cannot have no direct connections nor hidden layer!");
   if (!activation_function::create(options.count("hidden_layer_type") ? options["hidden_layer_type"] : "cubic", parameters.hidden_layer_type))
     runtime_failure("Unknown hidden layer type '" << options["hidden_layer_type"] << "'!");
-  parameters.learning_rate = options.count("learning_rate") ? parse_double(options["learning_rate"], "learning rate") : 0.1;
-  parameters.learning_rate_final = options.count("learning_rate_final") ? parse_double(options["learning_rate_final"], "final learning rate") : 0;
   parameters.batch_size = options.count("batch_size") ? parse_int(options["batch_size"], "batch size") : 1;
   parameters.initialization_range = options.count("initialization_range") ? parse_double(options["initialization_range"], "initialiation range") : 0.1;
   parameters.l1_regularization = options.count("l1_regularization") ? parse_double(options["l1_regularization"], "l1 regularization") : 0;
@@ -99,6 +98,22 @@ int main(int argc, char* argv[]) {
 
   if (!options.count("transition_system")) runtime_failure("The transition system must be specified!");
   if (!options.count("transition_oracle")) runtime_failure("The transition oracle must be specified!");
+
+  // Process network trainer options
+  if (options.count("sgd") + options.count("adagrad") > 1)
+    runtime_failure("Cannot specify multiple trainer algorithms!");
+  if (options.count("sgd")) {
+    parameters.trainer.algorithm = network_trainer::SGD;
+    vector<string_piece> parts;
+    split(options["sgd"], ',', parts);
+    if (parts.size() > 2) runtime_failure("More than two values given to the --sgd option!");
+    parameters.trainer.learning_rate = parse_double(parts[0], "learning rate");
+    parameters.trainer.learning_rate_final = parts.size() > 1 ? parse_double(parts[1], "final learning rate") : parameters.trainer.learning_rate;
+  } else if (options.count("adagrad")) {
+    parameters.trainer.algorithm = network_trainer::ADAGRAD;
+    parameters.trainer.learning_rate = parse_double(options["adagrad"], "learning rate");
+  } else
+    runtime_failure("No trainer algorithm was specified!");
 
   // Load embeddings description
   if (!options.count("embeddings")) runtime_failure("The embedding description file is required!");

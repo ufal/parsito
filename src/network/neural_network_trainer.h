@@ -38,6 +38,15 @@ class neural_network_trainer {
     vector<vector<float>> hidden_batch[2];
     vector<vector<vector<float>>> error_embedding;
     vector<vector<unsigned>> error_embedding_nonempty;
+
+    // Trainer data
+    struct trainer_data {
+      double delta = 0;
+      double gradient = 0;
+    };
+    vector<vector<trainer_data>> direct_trainer;
+    vector<vector<trainer_data>> hidden_trainer[2];
+    vector<vector<vector<trainer_data>>> embedding_trainer;
   };
   void propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, workspace& w) const;
   void backpropagate(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w);
@@ -46,11 +55,22 @@ class neural_network_trainer {
   void save_network(binary_encoder& enc) const;
 
  private:
+  struct trainer_sgd {
+    static bool need_trainer_data;
+    static inline double delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data);
+  };
+  struct trainer_adagrad {
+    static bool need_trainer_data;
+    static inline double delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data);
+  };
+
+  template <class TRAINER> void backpropagate_template(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w);
   void save_matrix(const vector<vector<float>>& m, binary_encoder& enc) const;
 
   neural_network& network;
   unsigned iteration, iterations;
-  double learning_rate, learning_rate_initial, learning_rate_final;
+  network_trainer trainer;
+  double trainer_parameter;
   unsigned batch_size;
   double l1_regularization, l2_regularization;
 };

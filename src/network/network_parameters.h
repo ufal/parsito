@@ -15,13 +15,24 @@
 namespace ufal {
 namespace parsito {
 
+struct network_trainer {
+  enum network_trainer_algorithm {
+    SGD,
+    ADAGRAD
+  };
+
+  network_trainer_algorithm algorithm;
+  double learning_rate, learning_rate_final;
+  double momentum;
+  double epsilon;
+};
+
 struct network_parameters {
   unsigned iterations;
   bool direct_connections;
   unsigned hidden_layer;
   activation_function::type hidden_layer_type;
-  double learning_rate;
-  double learning_rate_final;
+  network_trainer trainer;
   unsigned batch_size;
   double initialization_range;
   double l1_regularization;

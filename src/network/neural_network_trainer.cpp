@@ -49,8 +49,7 @@ neural_network_trainer::neural_network_trainer(neural_network& network, unsigned
   // Store the network_parameters
   iteration = 0;
   iterations = parameters.iterations;
-  learning_rate_initial = parameters.learning_rate;
-  learning_rate_final = parameters.learning_rate_final;
+  trainer = parameters.trainer;
   batch_size = parameters.batch_size;
   l1_regularization = parameters.l1_regularization;
   l2_regularization = parameters.l2_regularization;
@@ -59,9 +58,10 @@ neural_network_trainer::neural_network_trainer(neural_network& network, unsigned
 bool neural_network_trainer::next_iteration() {
   if (iteration++ >= iterations) return false;
 
-  learning_rate = learning_rate_final && iterations > 1 ?
-      exp(((iterations - iteration) * log(learning_rate_initial) + (iteration-1) * log(learning_rate_final)) / (iterations-1)) :
-      learning_rate_initial;
+  if (trainer.algorithm == network_trainer::SGD)
+    if (trainer.learning_rate != trainer.learning_rate_final && iteration > 1)
+      trainer.learning_rate =
+          exp(((iterations - iteration) * log(trainer.learning_rate) + log(trainer.learning_rate_final)) / (iterations - iteration + 1));
 
   return true;
 }
@@ -70,7 +70,22 @@ void neural_network_trainer::propagate(const vector<embedding>& embeddings, cons
   network.propagate(embeddings, embedding_ids_sequences, w.hidden_layer, w.outcomes);
 }
 
-void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w) {
+// SGD
+bool neural_network_trainer::trainer_sgd::need_trainer_data = false;
+double neural_network_trainer::trainer_sgd::delta(double gradient, const network_trainer& trainer, workspace::trainer_data& /*data*/) {
+  return trainer.learning_rate * gradient;
+}
+
+// AdaGrad
+bool neural_network_trainer::trainer_adagrad::need_trainer_data = true;
+double neural_network_trainer::trainer_adagrad::delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data) {
+  data.gradient += gradient * gradient;
+  return trainer.learning_rate / sqrt(data.gradient) * gradient;
+}
+
+// Backpropagation
+template <class TRAINER>
+void neural_network_trainer::backpropagate_template(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w) {
   size_t outcomes_size = w.outcomes.size();
 
   // Allocate space for delta accumulators
@@ -79,6 +94,13 @@ void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const 
   if (network.hidden[1].size() > w.hidden_batch[1].size()) w.hidden_batch[1].resize(network.hidden[1].size());
   if (embeddings.size() > w.error_embedding.size()) w.error_embedding.resize(embeddings.size());
   if (embeddings.size() > w.error_embedding_nonempty.size()) w.error_embedding_nonempty.resize(embeddings.size());
+
+  // Allocate space for trainer_data if required)
+  if (TRAINER::need_trainer_data) {
+    while (network.direct.size() > w.direct_trainer.size()) w.direct_trainer.emplace_back(outcomes_size);
+    while (network.hidden[0].size() > w.hidden_trainer[0].size()) w.hidden_trainer[0].emplace_back(network.hidden[0].front().size());
+    while (network.hidden[1].size() > w.hidden_trainer[1].size()) w.hidden_trainer[1].emplace_back(outcomes_size);
+  }
 
   // Compute error vector
   w.error_outcomes.resize(outcomes_size);
@@ -199,7 +221,7 @@ void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const 
     for (unsigned i = 0; i < w.direct_batch.size(); i++)
       if (!w.direct_batch[i].empty()) {
         for (unsigned j = 0; j < outcomes_size; j++)
-          network.direct[i][j] += learning_rate * w.direct_batch[i][j] - l2_regularization * network.direct[i][j];
+          network.direct[i][j] += TRAINER::delta(w.direct_batch[i][j], trainer, w.direct_trainer[i][j]) - l2_regularization * network.direct[i][j];
         w.direct_batch[i].clear();
       }
   }
@@ -210,7 +232,7 @@ void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const 
       for (unsigned j = 0; j < w.hidden_batch[i].size(); j++)
         if (!w.hidden_batch[i][j].empty()) {
           for (unsigned k = 0, size = w.hidden_batch[i][j].size(); k < size; k++)
-            network.hidden[i][j][k] += learning_rate * w.hidden_direct[i][j][k] - l2_regularization * network.hidden[i][j][k];
+            network.hidden[i][j][k] += TRAINER::delta(w.hidden_batch[i][j][k], trainer, w.hidden_trainer[i][j][k]) - l2_regularization * network.hidden[i][j][k];
           w.hidden_batch[i][j].clear();
         }
     }
@@ -218,13 +240,30 @@ void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const 
   // Update embedding weights using error_embedding
   for (unsigned i = 0; i < embeddings.size(); i++) {
     for (auto&& id : w.error_embedding_nonempty[i]) {
+      if (TRAINER::need_trainer_data) {
+        if (w.embedding_trainer.size() <= i) w.embedding_trainer.resize(i + 1);
+        if (w.embedding_trainer[i].size() <= id) w.embedding_trainer[i].resize(id + 1);
+        if (w.embedding_trainer[i][id].size() < embeddings[i].dimension) w.embedding_trainer[i][id].resize(embeddings[i].dimension);
+      }
       float* embedding = embeddings[i].weight(id);
-      const float* error_embedding = w.error_embedding[i][id].data();
-      for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, embedding++, error_embedding++)
-        *embedding += learning_rate * *error_embedding - l2_regularization * *embedding;
+      for (unsigned j = 0; j < embeddings[i].dimension; j++)
+        embedding[j] += TRAINER::delta(w.error_embedding[i][id][j], trainer, w.embedding_trainer[i][id][j]) - l2_regularization * embedding[j];
       w.error_embedding[i][id].clear();
     }
     w.error_embedding_nonempty[i].clear();
+  }
+}
+
+void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w) {
+  switch (trainer.algorithm) {
+    case network_trainer::SGD:
+      backpropagate_template<trainer_sgd>(embeddings, embedding_ids_sequences, required_outcome, w);
+      break;
+    case network_trainer::ADAGRAD:
+      backpropagate_template<trainer_adagrad>(embeddings, embedding_ids_sequences, required_outcome, w);
+      break;
+    default:
+      runtime_failure("Internal error, unsupported trainer!");
   }
 }
 
