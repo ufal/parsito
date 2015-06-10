@@ -102,17 +102,17 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
       int update_weights = tokens.size() >= 5 ? parse_int(tokens[4], "update weights") : 1;
       int max_embeddings = tokens.size() >= 6 ? parse_int(tokens[5], "maximum embeddings count") : numeric_limits<int>::max();
       ifstream in(string(tokens[3].str, tokens[3].len));
-      if (!in.is_open()) runtime_failure("Cannot load '" << tokens[0] << "' embedding from file '" << tokens[4] << "'!");
+      if (!in.is_open()) runtime_failure("Cannot load '" << tokens[0] << "' embedding from file '" << tokens[3] << "'!");
 
       // Load first line containing dictionary size and dimensions
       string line;
       vector<string_piece> parts;
-      if (!getline(in, line)) runtime_failure("Cannot read first line from embedding file '" << tokens[4] << "'!");
+      if (!getline(in, line)) runtime_failure("Cannot read first line from embedding file '" << tokens[3] << "'!");
       split(line, ' ', parts);
-      if (parts.size() != 2) runtime_failure("Expected two numbers on the first line of embedding file '" << tokens[4] << "'!");
+      if (parts.size() != 2) runtime_failure("Expected two numbers on the first line of embedding file '" << tokens[3] << "'!");
       int file_dimension = parse_int(parts[1], "embedding file dimension");
 
-      if (file_dimension < dimension) runtime_failure("The embedding file '" << tokens[4] << "' has lower dimension than required!");
+      if (file_dimension < dimension) runtime_failure("The embedding file '" << tokens[3] << "' has lower dimension than required!");
 
       // Generate random projection when smaller dimension is required
       vector<vector<float>> projection;
@@ -137,7 +137,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
       while (getline(in, line) && int(weights.size()) < max_embeddings) {
         split(line, ' ', parts);
         if (!parts.empty() && !parts.back().len) parts.pop_back(); // Ignore space at the end of line
-        if (int(parts.size()) != file_dimension + 1) runtime_failure("Wrong number of values on line '" << line << "' of embedding file '" << tokens[4]);
+        if (int(parts.size()) != file_dimension + 1) runtime_failure("Wrong number of values on line '" << line << "' of embedding file '" << tokens[3]);
         for (int i = 0; i < file_dimension; i++)
           input_weights[i] = parse_double(parts[1 + i], "embedding weight");
 
