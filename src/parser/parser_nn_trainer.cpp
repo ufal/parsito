@@ -166,7 +166,6 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     }
 
     // Add embedding for non-present word with min_count
-    vector<float> unknown_weights(dimension);
     {
       vector<float> word_weights(dimension);
       uniform_real_distribution<float> uniform(-1, 1);
@@ -177,7 +176,15 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
 
           weights.emplace_back(word_count.first, word_weights);
         }
-      for (auto&& weight : unknown_weights) weight = uniform(generator);
+    }
+
+    // If there are unknown words in the training data, create initial embedding
+    vector<float> unknown_weights(dimension);
+    if (min_count > 1) {
+      uniform_real_distribution<float> uniform(-1, 1);
+
+      for (auto&& weight : unknown_weights)
+        weight = uniform(generator);
     }
 
     // Add the embedding

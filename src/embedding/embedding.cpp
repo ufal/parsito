@@ -93,11 +93,12 @@ void embedding::load(binary_decoder& data) {
     data.next_str(word);
     dictionary.emplace(word, dictionary.size());
   }
-  unknown_index = dictionary.size();
+
+  unknown_index = data.next_1B() ? dictionary.size() : -1;
 
   // Load weights
-  const float* weights_ptr = data.next<float>(dimension * (dictionary.size() + 1));
-  weights.assign(weights_ptr, weights_ptr + dimension * (dictionary.size() + 1));
+  const float* weights_ptr = data.next<float>(dimension * (dictionary.size() + (unknown_index >= 0)));
+  weights.assign(weights_ptr, weights_ptr + dimension * (dictionary.size() + (unknown_index >= 0)));
 }
 
 } // namespace parsito

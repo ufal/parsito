@@ -32,9 +32,9 @@ class embedding {
 
   void load(binary_decoder& data);
   void save(binary_encoder& enc) const;
-  void create(unsigned dimension, unsigned updatable_index, const vector<pair<string, vector<float>>>& words, const vector<float>& unknown_weights);
+  void create(unsigned dimension, int updatable_index, const vector<pair<string, vector<float>>>& words, const vector<float>& unknown_weights);
  private:
-  unsigned updatable_index, unknown_index;
+  int updatable_index, unknown_index;
 
   unordered_map<string, int> dictionary;
   vector<float> weights;

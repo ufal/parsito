@@ -27,6 +27,8 @@ void embedding::save(binary_encoder& enc) const {
   for (auto&& word : words)
     enc.add_str(word);
 
+  enc.add_1B(unknown_index >= 0);
+
   // Save the weights
   enc.add<float>(weights.data(), weights.size());
 }
@@ -35,7 +37,7 @@ bool embedding::can_update_weights(int id) const {
   return id >= int(updatable_index);
 }
 
-void embedding::create(unsigned dimension, unsigned updatable_index, const vector<pair<string, vector<float>>>& words, const vector<float>& unknown_weights) {
+void embedding::create(unsigned dimension, int updatable_index, const vector<pair<string, vector<float>>>& words, const vector<float>& unknown_weights) {
   this->dimension = dimension;
   this->updatable_index = updatable_index;
 
@@ -47,8 +49,12 @@ void embedding::create(unsigned dimension, unsigned updatable_index, const vecto
     weights.insert(weights.end(), word.second.begin(), word.second.end());
   }
 
-  this->unknown_index = dictionary.size();
-  weights.insert(weights.end(), unknown_weights.begin(), unknown_weights.end());
+  if (unknown_weights.empty()) {
+    this->unknown_index = -1;
+  } else {
+    this->unknown_index = dictionary.size();
+    weights.insert(weights.end(), unknown_weights.begin(), unknown_weights.end());
+  }
 }
 
 } // namespace parsito
