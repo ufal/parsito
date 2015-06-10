@@ -284,13 +284,12 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
           // Follow the chosen outcome
           int child = parser.system->perform(conf, prediction.to_follow);
 
-          // If a node was linked, recompute its not-found embeddings as deprel has changed
+          // If a node was linked, recompute its embeddings as deprel has changed
           if (child >= 0)
-            for (size_t i = 0; i < parser.embeddings.size(); i++)
-              if (nodes_embeddings[child][i] < 0) {
-                parser.values[i].extract(t.nodes[child], word);
-                nodes_embeddings[child][i] = parser.embeddings[i].lookup_word(word, word_buffer);
-              }
+            for (size_t i = 0; i < parser.embeddings.size(); i++) {
+              parser.values[i].extract(t.nodes[child], word);
+              nodes_embeddings[child][i] = parser.embeddings[i].lookup_word(word, word_buffer);
+            }
         }
         network_trainer.finalize_sentence();
       }
