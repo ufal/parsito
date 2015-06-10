@@ -16,28 +16,18 @@ neural_network_trainer::neural_network_trainer(neural_network& network, unsigned
                                                const network_parameters& parameters, mt19937& generator) : network(network) {
   uniform_real_distribution<float> uniform(-parameters.initialization_range, parameters.initialization_range);
 
-  // Initialize direct connections
-  if (parameters.direct_connections) {
-    network.direct.resize(input_size + 1/*bias*/);
-    for (auto&& row : network.direct) {
-      row.resize(output_size);
-      for (auto&& weight : row)
-        weight = uniform(generator);
-    }
-  }
-
   // Initialize hidden layer
   network.hidden_layer_activation = parameters.hidden_layer_type;
   if (parameters.hidden_layer) {
-    network.hidden[0].resize(input_size + 1/*bias*/);
-    for (auto&& row : network.hidden[0]) {
+    network.weights[0].resize(input_size + 1/*bias*/);
+    for (auto&& row : network.weights[0]) {
       row.resize(parameters.hidden_layer);
       for (auto&& weight : row)
         weight = uniform(generator);
     }
 
-    network.hidden[1].resize(parameters.hidden_layer + 1/*bias*/);
-    for (auto&& row : network.hidden[1]) {
+    network.weights[1].resize(parameters.hidden_layer + 1/*bias*/);
+    for (auto&& row : network.weights[1]) {
       row.resize(output_size);
       for (auto&& weight : row)
         weight = uniform(generator);
@@ -104,20 +94,19 @@ double neural_network_trainer::trainer_adadelta::delta(double gradient, const ne
 // Backpropagation
 template <class TRAINER>
 void neural_network_trainer::backpropagate_template(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w) {
-  size_t outcomes_size = w.outcomes.size();
+  size_t hidden_layer_size = network.weights[0].front().size();
+  size_t outcomes_size = network.weights[1].front().size();
 
   // Allocate space for delta accumulators
-  if (network.direct.size() > w.direct_batch.size()) w.direct_batch.resize(network.direct.size());
-  if (network.hidden[0].size() > w.hidden_batch[0].size()) w.hidden_batch[0].resize(network.hidden[0].size());
-  if (network.hidden[1].size() > w.hidden_batch[1].size()) w.hidden_batch[1].resize(network.hidden[1].size());
+  if (network.weights[0].size() > w.weights_batch[0].size()) w.weights_batch[0].resize(network.weights[0].size());
+  if (network.weights[1].size() > w.weights_batch[1].size()) w.weights_batch[1].resize(network.weights[1].size());
   if (embeddings.size() > w.error_embedding.size()) w.error_embedding.resize(embeddings.size());
   if (embeddings.size() > w.error_embedding_nonempty.size()) w.error_embedding_nonempty.resize(embeddings.size());
 
   // Allocate space for trainer_data if required)
   if (TRAINER::need_trainer_data) {
-    while (network.direct.size() > w.direct_trainer.size()) w.direct_trainer.emplace_back(outcomes_size);
-    while (network.hidden[0].size() > w.hidden_trainer[0].size()) w.hidden_trainer[0].emplace_back(network.hidden[0].front().size());
-    while (network.hidden[1].size() > w.hidden_trainer[1].size()) w.hidden_trainer[1].emplace_back(outcomes_size);
+    while (network.weights[0].size() > w.weights_trainer[0].size()) w.weights_trainer[0].emplace_back(network.weights[0].front().size());
+    while (network.weights[1].size() > w.weights_trainer[1].size()) w.weights_trainer[1].emplace_back(outcomes_size);
   }
 
   // Compute error vector
@@ -125,138 +114,85 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
   for (unsigned i = 0; i < outcomes_size; i++)
     w.error_outcomes[i] = (i == required_outcome) - w.outcomes[i];
 
-  // Update direct connections and backpropagate to error_embedding
-  if (!network.direct.empty()) {
-    unsigned direct_index = 0;
-    for (auto&& embedding_ids : embedding_ids_sequences)
-      for (unsigned i = 0; i < embeddings.size(); i++)
-        if (embedding_ids && (*embedding_ids)[i] >= 0) {
-          int embedding_id = (*embedding_ids)[i];
+  // Backpropagate error_outcomes to error_hidden
+  w.error_hidden.assign(hidden_layer_size, 0);
+  for (unsigned i = 0; i < hidden_layer_size; i++)
+    for (unsigned j = 0; j < outcomes_size; j++)
+      w.error_hidden[i] += network.weights[1][i][j] * w.error_outcomes[j];
 
-          float* error_embedding = nullptr; // Accumulate embedding error if required
-          if (embeddings[i].can_update_weights(embedding_id)) {
-            if (w.error_embedding[i].size() <= unsigned(embedding_id)) w.error_embedding[i].resize(embedding_id + 1);
-            if (w.error_embedding[i][embedding_id].empty()) {
-              w.error_embedding[i][embedding_id].assign(embeddings[i].dimension, 0);
-              w.error_embedding_nonempty[i].emplace_back(embedding_id);
-            }
-            error_embedding = w.error_embedding[i][embedding_id].data();
-          }
-
-          const float* embedding = embeddings[i].weight(embedding_id);
-          for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, direct_index++, embedding++, error_embedding += !!error_embedding) {
-            if (error_embedding)
-              for (unsigned j = 0; j < outcomes_size; j++)
-                *error_embedding += network.direct[direct_index][j] * w.error_outcomes[j];
-            if (w.direct_batch[direct_index].empty()) w.direct_batch[direct_index].resize(outcomes_size);
-            for (unsigned j = 0; j < outcomes_size; j++)
-              w.direct_batch[direct_index][j] += *embedding * w.error_outcomes[j];
-          }
-        } else {
-          direct_index += embeddings[i].dimension;
-        }
-    // Bias
-    if (w.direct_batch[direct_index].empty()) w.direct_batch[direct_index].resize(outcomes_size);
-    for (unsigned i = 0; i < outcomes_size; i++)
-      w.direct_batch[direct_index][i] += w.error_outcomes[i];
+  // Perform activation function derivation
+  switch (network.hidden_layer_activation) {
+    case activation_function::TANH:
+      for (unsigned i = 0; i < hidden_layer_size; i++)
+        w.error_hidden[i] *= 1 - w.hidden_layer[i] * w.hidden_layer[i];
+      break;
+    case activation_function::CUBIC:
+      for (unsigned i = 0; i < hidden_layer_size; i++) {
+        double hidden_layer = cbrt(w.hidden_layer[i]);
+        w.error_hidden[i] *= 3 * hidden_layer * hidden_layer;
+      }
+      break;
   }
 
-  // Update hidden layer connections and backpropagate to error_embedding
-  if (!network.hidden[0].empty()) {
-    unsigned hidden_layer_size = network.hidden[0].front().size();
+  // Update weights[1]
+  for (unsigned i = 0; i < hidden_layer_size; i++) {
+    if (w.weights_batch[1][i].empty()) w.weights_batch[1][i].resize(outcomes_size);
+    for (unsigned j = 0; j < outcomes_size; j++)
+      w.weights_batch[1][i][j] += w.hidden_layer[i] * w.error_outcomes[j];
+  }
+  // Bias
+  if (w.weights_batch[1][hidden_layer_size].empty()) w.weights_batch[1][hidden_layer_size].resize(outcomes_size);
+  for (unsigned i = 0; i < outcomes_size; i++)
+    w.weights_batch[1][hidden_layer_size][i] += w.error_outcomes[i];
 
-    // Backpropagate error_outcomes to error_hidden
-    w.error_hidden.assign(hidden_layer_size, 0);
-    for (unsigned i = 0; i < hidden_layer_size; i++)
-      for (unsigned j = 0; j < outcomes_size; j++)
-        w.error_hidden[i] += network.hidden[1][i][j] * w.error_outcomes[j];
+  // Update weights[0] and backpropagate to error_embedding
+  unsigned index = 0;
+  for (auto&& embedding_ids : embedding_ids_sequences)
+    for (unsigned i = 0; i < embeddings.size(); i++)
+      if (embedding_ids && (*embedding_ids)[i] >= 0) {
+        int embedding_id = (*embedding_ids)[i];
 
-    // Perform activation function derivation
-    switch (network.hidden_layer_activation) {
-      case activation_function::TANH:
-        for (unsigned i = 0; i < hidden_layer_size; i++)
-          w.error_hidden[i] *= 1 - w.hidden_layer[i] * w.hidden_layer[i];
-        break;
-      case activation_function::CUBIC:
-        for (unsigned i = 0; i < hidden_layer_size; i++) {
-          double hidden_layer = cbrt(w.hidden_layer[i]);
-          w.error_hidden[i] *= 3 * hidden_layer * hidden_layer;
-        }
-        break;
-    }
-
-    // Update hidden[1]
-    for (unsigned i = 0; i < hidden_layer_size; i++) {
-      if (w.hidden_batch[1][i].empty()) w.hidden_batch[1][i].resize(outcomes_size);
-      for (unsigned j = 0; j < outcomes_size; j++)
-        w.hidden_batch[1][i][j] += w.hidden_layer[i] * w.error_outcomes[j];
-    }
-    // Bias
-    if (w.hidden_batch[1][hidden_layer_size].empty()) w.hidden_batch[1][hidden_layer_size].resize(outcomes_size);
-    for (unsigned i = 0; i < outcomes_size; i++)
-      w.hidden_batch[1][hidden_layer_size][i] += w.error_outcomes[i];
-
-    // Update hidden[0] and backpropagate to error_embedding
-    unsigned hidden_index = 0;
-    for (auto&& embedding_ids : embedding_ids_sequences)
-      for (unsigned i = 0; i < embeddings.size(); i++)
-        if (embedding_ids && (*embedding_ids)[i] >= 0) {
-          int embedding_id = (*embedding_ids)[i];
-
-          float* error_embedding = nullptr; // Accumulate embedding error if required
-          if (embeddings[i].can_update_weights(embedding_id)) {
-            if (w.error_embedding[i].size() <= unsigned(embedding_id)) w.error_embedding[i].resize(embedding_id + 1);
-            if (w.error_embedding[i][embedding_id].empty()) {
-              w.error_embedding[i][embedding_id].assign(embeddings[i].dimension, 0);
-              w.error_embedding_nonempty[i].emplace_back(embedding_id);
-            }
-            error_embedding = w.error_embedding[i][embedding_id].data();
+        float* error_embedding = nullptr; // Accumulate embedding error if required
+        if (embeddings[i].can_update_weights(embedding_id)) {
+          if (w.error_embedding[i].size() <= unsigned(embedding_id)) w.error_embedding[i].resize(embedding_id + 1);
+          if (w.error_embedding[i][embedding_id].empty()) {
+            w.error_embedding[i][embedding_id].assign(embeddings[i].dimension, 0);
+            w.error_embedding_nonempty[i].emplace_back(embedding_id);
           }
+          error_embedding = w.error_embedding[i][embedding_id].data();
+        }
 
-          const float* embedding = embeddings[i].weight(embedding_id);
-          for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, hidden_index++, embedding++, error_embedding += !!error_embedding) {
-            if (error_embedding)
-              for (unsigned j = 0; j < hidden_layer_size; j++)
-                *error_embedding += network.hidden[0][hidden_index][j] * w.error_hidden[j];
-            if (w.hidden_batch[0][hidden_index].empty()) w.hidden_batch[0][hidden_index].resize(hidden_layer_size);
+        const float* embedding = embeddings[i].weight(embedding_id);
+        for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, index++, embedding++, error_embedding += !!error_embedding) {
+          if (error_embedding)
             for (unsigned j = 0; j < hidden_layer_size; j++)
-              w.hidden_batch[0][hidden_index][j] += *embedding * w.error_hidden[j];
-          }
-        } else {
-          hidden_index += embeddings[i].dimension;
+              *error_embedding += network.weights[0][index][j] * w.error_hidden[j];
+          if (w.weights_batch[0][index].empty()) w.weights_batch[0][index].resize(hidden_layer_size);
+          for (unsigned j = 0; j < hidden_layer_size; j++)
+            w.weights_batch[0][index][j] += *embedding * w.error_hidden[j];
         }
-    // Bias
-    if (w.hidden_batch[0][hidden_index].empty()) w.hidden_batch[0][hidden_index].resize(hidden_layer_size);
-    for (unsigned i = 0; i < hidden_layer_size; i++)
-      w.hidden_batch[0][hidden_index][i] += w.error_hidden[i];
-  }
+      } else {
+        index += embeddings[i].dimension;
+      }
+  // Bias
+  if (w.weights_batch[0][index].empty()) w.weights_batch[0][index].resize(hidden_layer_size);
+  for (unsigned i = 0; i < hidden_layer_size; i++)
+    w.weights_batch[0][index][i] += w.error_hidden[i];
 
+  // End if not at the end of the batch
   if (++w.batch < batch_size) return;
   w.batch = 0;
 
-  // Update direct weights
-  if (!network.direct.empty()) {
-    for (unsigned i = 0; i < w.direct_batch.size(); i++)
-      if (!w.direct_batch[i].empty()) {
-        for (unsigned j = 0; j < outcomes_size; j++)
-          network.direct[i][j] += TRAINER::delta(w.direct_batch[i][j], trainer, w.direct_trainer[i][j]) - l2_regularization * network.direct[i][j];
-        w.direct_batch[i].clear();
-      }
-  }
-
   // Update hidden weights
-  if (!network.hidden[0].empty())
+  if (!network.weights[0].empty())
     for (int i = 0; i < 2; i++) {
-      for (unsigned j = 0; j < w.hidden_batch[i].size(); j++)
-        if (!w.hidden_batch[i][j].empty()) {
-          for (unsigned k = 0, size = w.hidden_batch[i][j].size(); k < size; k++)
-            network.hidden[i][j][k] += TRAINER::delta(w.hidden_batch[i][j][k], trainer, w.hidden_trainer[i][j][k]) - l2_regularization * network.hidden[i][j][k];
-          w.hidden_batch[i][j].clear();
+      for (unsigned j = 0; j < w.weights_batch[i].size(); j++)
+        if (!w.weights_batch[i][j].empty()) {
+          for (unsigned k = 0; k < w.weights_batch[i][j].size(); k++)
+            network.weights[i][j][k] += TRAINER::delta(w.weights_batch[i][j][k], trainer, w.weights_trainer[i][j][k]) - l2_regularization * network.weights[i][j][k];
+          w.weights_batch[i][j].clear();
         }
     }
-
-  // Maxnorm regularize the updated weights
-  if (maxnorm_regularization) maxnorm_regularize();
 
   // Update embedding weights using error_embedding
   for (unsigned i = 0; i < embeddings.size(); i++) {
@@ -273,6 +209,9 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
     }
     w.error_embedding_nonempty[i].clear();
   }
+
+  // Maxnorm regularize the updated weights
+  if (maxnorm_regularization) maxnorm_regularize();
 }
 
 
@@ -298,54 +237,28 @@ void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const 
 void neural_network_trainer::l1_regularize() {
   if (!l1_regularization) return;
 
-  // Direct connections
-  if (!network.direct.empty())
-    for (auto&& row : network.direct)
+  for (auto&& weights : network.weights)
+    for (auto&& row : weights)
       for (auto&& weight : row)
         if (weight < l1_regularization) weight += l1_regularization;
         else if (weight > l1_regularization) weight -= l1_regularization;
         else weight = 0;
-
-  // Hidden layer connections
-  if (!network.hidden[0].empty())
-    for (auto&& hidden : network.hidden)
-      for (auto&& row : hidden)
-        for (auto&& weight : row)
-          if (weight < l1_regularization) weight += l1_regularization;
-          else if (weight > l1_regularization) weight -= l1_regularization;
-          else weight = 0;
 }
 
 void neural_network_trainer::maxnorm_regularize() {
   if (!maxnorm_regularization) return;
 
-  // Direct connections
-  if (!network.direct.empty())
-    for (unsigned i = 0, size = network.direct.front().size(); i < size; i++) {
+  for (unsigned i = 0; i < 2; i++)
+    for (unsigned j = 0; j < network.weights[i].front().size(); j++) {
       double length = 0;
-      for (auto&& row : network.direct)
-        length += row[i] * row[i];
+      for (auto&& row : network.weights[i])
+        length += row[j] * row[j];
 
-      if (length > maxnorm_regularization * maxnorm_regularization) {
+      if (length > 0 && length > maxnorm_regularization * maxnorm_regularization) {
         double factor = 1 / sqrt(length / (maxnorm_regularization * maxnorm_regularization));
-        for (auto&& row : network.direct)
-          row[i] *= factor;
+        for (auto&& row : network.weights[i])
+          row[j] *= factor;
       }
-    }
-
-  // Hidden layer connections
-  if (!network.hidden[0].empty())
-    for (unsigned i = 0; i < 2; i++)
-      for (unsigned j = 0, size = network.hidden[i].front().size(); j < size; j++) {
-        double length = 0;
-        for (auto&& row : network.hidden[i])
-          length += row[j] * row[j];
-
-        if (length > maxnorm_regularization * maxnorm_regularization) {
-          double factor = 1 / sqrt(length / (maxnorm_regularization * maxnorm_regularization));
-          for (auto&& row : network.hidden[i])
-            row[j] *= factor;
-        }
     }
 }
 
@@ -364,10 +277,9 @@ void neural_network_trainer::save_matrix(const vector<vector<float>>& m, binary_
 }
 
 void neural_network_trainer::save_network(binary_encoder& enc) const {
-  save_matrix(network.direct, enc);
   enc.add_1B(network.hidden_layer_activation);
-  save_matrix(network.hidden[0], enc);
-  save_matrix(network.hidden[1], enc);
+  save_matrix(network.weights[0], enc);
+  save_matrix(network.weights[1], enc);
 }
 
 } // namespace parsito

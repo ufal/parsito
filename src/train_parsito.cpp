@@ -35,7 +35,6 @@ int main(int argc, char* argv[]) {
   if (!options::parse({{"adadelta", options::value::any},
                        {"adagrad", options::value::any},
                        {"batch_size", options::value::any},
-                       {"direct_connections", options::value::none},
                        {"embeddings", options::value::any},
                        {"heldout", options::value::any},
                        {"hidden_layer", options::value::any},
@@ -60,7 +59,6 @@ int main(int argc, char* argv[]) {
                     "Options: --adadelta=momentum,epsilon\n"
                     "         --adagrad=learning rate,epsilon\n"
                     "         --batch_size=batch size\n"
-                    "         --direct_connections (should nn contain direct connections)\n"
                     "         --embeddings=embedding description file\n"
                     "         --heldout=heldout data file\n"
                     "         --hidden_layer=hidden layer size\n"
@@ -89,9 +87,8 @@ int main(int argc, char* argv[]) {
   network_parameters parameters;
   if (!options.count("iterations")) runtime_failure("Number of iterations must be specified!");
   parameters.iterations = parse_int(options["iterations"], "number of iterations");
-  parameters.direct_connections = options.count("direct_connections");
   parameters.hidden_layer = options.count("hidden_layer") ? parse_int(options["hidden_layer"], "hidden layer size") : 0;
-  if (!parameters.direct_connections && !parameters.hidden_layer) runtime_failure("The neural networks cannot have no direct connections nor hidden layer!");
+  if (!parameters.hidden_layer) runtime_failure("The size of hidden layer must be specified!");
   if (!activation_function::create(options.count("hidden_layer_type") ? options["hidden_layer_type"] : "tanh", parameters.hidden_layer_type))
     runtime_failure("Unknown hidden layer type '" << options["hidden_layer_type"] << "'!");
   parameters.batch_size = options.count("batch_size") ? parse_int(options["batch_size"], "batch size") : 1;

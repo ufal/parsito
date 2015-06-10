@@ -29,12 +29,8 @@ class neural_network {
 
   void load_matrix(binary_decoder& data, vector<vector<float>>& m);
 
-  // Direct connections
-  vector<vector<float>> direct;
-
-  // Hidden layer
   activation_function::type hidden_layer_activation;
-  vector<vector<float>> hidden[2];
+  vector<vector<float>> weights[2];
 };
 
 } // namespace parsito

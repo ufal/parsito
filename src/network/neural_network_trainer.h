@@ -34,8 +34,7 @@ class neural_network_trainer {
     vector<double> error_hidden;
 
     // Delta accumulators
-    vector<vector<float>> direct_batch;
-    vector<vector<float>> hidden_batch[2];
+    vector<vector<float>> weights_batch[2];
     vector<vector<vector<float>>> error_embedding;
     vector<vector<unsigned>> error_embedding_nonempty;
 
@@ -44,8 +43,7 @@ class neural_network_trainer {
       double delta = 0;
       double gradient = 0;
     };
-    vector<vector<trainer_data>> direct_trainer;
-    vector<vector<trainer_data>> hidden_trainer[2];
+    vector<vector<trainer_data>> weights_trainer[2];
     vector<vector<vector<trainer_data>>> embedding_trainer;
   };
   void propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, workspace& w) const;
