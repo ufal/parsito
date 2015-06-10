@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
                        {"iterations", options::value::any},
                        {"l1_regularization", options::value::any},
                        {"l2_regularization", options::value::any},
+                       {"maxnorm_regularization", options::value::any},
                        {"nodes", options::value::any},
                        {"sgd", options::value::any},
                        {"sgd_momentum", options::value::any},
@@ -69,6 +70,7 @@ int main(int argc, char* argv[]) {
                     "         --iterations=number of training iterations\n"
                     "         --l1_regularization=l1 regularization factor\n"
                     "         --l2_regularization=l2 regularization factor\n"
+                    "         --maxnorm_regularization=max-norm regularization factor\n"
                     "         --nodes=node selector file\n"
                     "         --sgd=learning rate[,final learning rate]\n"
                     "         --sgd_momentum=momentum,learning rate[,final learning rate]\n"
@@ -96,6 +98,7 @@ int main(int argc, char* argv[]) {
   parameters.initialization_range = options.count("initialization_range") ? parse_double(options["initialization_range"], "initialiation range") : 0.1;
   parameters.l1_regularization = options.count("l1_regularization") ? parse_double(options["l1_regularization"], "l1 regularization") : 0;
   parameters.l2_regularization = options.count("l2_regularization") ? parse_double(options["l2_regularization"], "l2 regularization") : 0;
+  parameters.maxnorm_regularization = options.count("maxnorm_regularization") ? parse_double(options["maxnorm_regularization"], "max-norm regularization") : 0;
 
   int threads = options.count("threads") ? parse_int(options["threads"], "number of threads") : 1;
   if (threads <= 0) runtime_failure("The number of threads must be positive!");

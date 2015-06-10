@@ -53,6 +53,10 @@ neural_network_trainer::neural_network_trainer(neural_network& network, unsigned
   batch_size = parameters.batch_size;
   l1_regularization = parameters.l1_regularization;
   l2_regularization = parameters.l2_regularization;
+  maxnorm_regularization = parameters.maxnorm_regularization;
+
+  // Maxnorm regularize the created weights
+  if (maxnorm_regularization) maxnorm_regularize();
 }
 
 bool neural_network_trainer::next_iteration() {
@@ -253,6 +257,9 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
         }
     }
 
+  // Maxnorm regularize the updated weights
+  if (maxnorm_regularization) maxnorm_regularize();
+
   // Update embedding weights using error_embedding
   for (unsigned i = 0; i < embeddings.size(); i++) {
     for (auto&& id : w.error_embedding_nonempty[i]) {
@@ -269,6 +276,7 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
     w.error_embedding_nonempty[i].clear();
   }
 }
+
 
 void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w) {
   switch (trainer.algorithm) {
@@ -289,26 +297,62 @@ void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const 
   runtime_failure("Internal error, unsupported trainer!");
 }
 
-void neural_network_trainer::finalize_sentence() {
-  // Perform L1 regularization
-  if (l1_regularization) {
-    // Direct connections
-    if (!network.direct.empty())
-      for (auto&& row : network.direct)
+void neural_network_trainer::l1_regularize() {
+  if (!l1_regularization) return;
+
+  // Direct connections
+  if (!network.direct.empty())
+    for (auto&& row : network.direct)
+      for (auto&& weight : row)
+        if (weight < l1_regularization) weight += l1_regularization;
+        else if (weight > l1_regularization) weight -= l1_regularization;
+        else weight = 0;
+
+  // Hidden layer connections
+  if (!network.hidden[0].empty())
+    for (auto&& hidden : network.hidden)
+      for (auto&& row : hidden)
         for (auto&& weight : row)
           if (weight < l1_regularization) weight += l1_regularization;
           else if (weight > l1_regularization) weight -= l1_regularization;
           else weight = 0;
+}
 
-    // Hidden layer connections
-    if (!network.hidden[0].empty())
-      for (auto&& hidden : network.hidden)
-        for (auto&& row : hidden)
-          for (auto&& weight : row)
-            if (weight < l1_regularization) weight += l1_regularization;
-            else if (weight > l1_regularization) weight -= l1_regularization;
-            else weight = 0;
-  }
+void neural_network_trainer::maxnorm_regularize() {
+  if (!maxnorm_regularization) return;
+
+  // Direct connections
+  if (!network.direct.empty())
+    for (unsigned i = 0, size = network.direct.front().size(); i < size; i++) {
+      double length = 0;
+      for (auto&& row : network.direct)
+        length += row[i] * row[i];
+
+      if (length > maxnorm_regularization * maxnorm_regularization) {
+        double factor = 1 / sqrt(length / (maxnorm_regularization * maxnorm_regularization));
+        for (auto&& row : network.direct)
+          row[i] *= factor;
+      }
+    }
+
+  // Hidden layer connections
+  if (!network.hidden[0].empty())
+    for (unsigned i = 0; i < 2; i++)
+      for (unsigned j = 0, size = network.hidden[i].front().size(); j < size; j++) {
+        double length = 0;
+        for (auto&& row : network.hidden[i])
+          length += row[j] * row[j];
+
+        if (length > maxnorm_regularization * maxnorm_regularization) {
+          double factor = 1 / sqrt(length / (maxnorm_regularization * maxnorm_regularization));
+          for (auto&& row : network.hidden[i])
+            row[j] *= factor;
+        }
+    }
+}
+
+void neural_network_trainer::finalize_sentence() {
+  if (l1_regularization) l1_regularize();
 }
 
 void neural_network_trainer::save_matrix(const vector<vector<float>>& m, binary_encoder& enc) const {

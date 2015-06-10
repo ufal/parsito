@@ -39,6 +39,7 @@ struct network_parameters {
   double initialization_range;
   double l1_regularization;
   double l2_regularization;
+  double maxnorm_regularization;
 };
 
 } // namespace parsito

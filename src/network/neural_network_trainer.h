@@ -71,8 +71,11 @@ class neural_network_trainer {
     static bool need_trainer_data;
     static inline double delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data);
   };
-
   template <class TRAINER> void backpropagate_template(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w);
+
+  void l1_regularize();
+  void maxnorm_regularize();
+
   void save_matrix(const vector<vector<float>>& m, binary_encoder& enc) const;
 
   neural_network& network;
@@ -80,7 +83,7 @@ class neural_network_trainer {
   network_trainer trainer;
   double trainer_parameter;
   unsigned batch_size;
-  double l1_regularization, l2_regularization;
+  double l1_regularization, l2_regularization, maxnorm_regularization;
 };
 
 } // namespace parsito
