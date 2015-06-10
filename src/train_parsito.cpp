@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
       (argc < 2 && !options.count("version")))
     runtime_failure("Usage: " << argv[0] << " nn [options]\n"
                     "Options: --adadelta=momentum,epsilon\n"
-                    "         --adagrad=learning rate\n"
+                    "         --adagrad=learning rate,epsilon\n"
                     "         --batch_size=batch size\n"
                     "         --direct_connections (should nn contain direct connections)\n"
                     "         --embeddings=embedding description file\n"
@@ -126,7 +126,10 @@ int main(int argc, char* argv[]) {
     parameters.trainer.learning_rate_final = parts.size() > 2 ? parse_double(parts[2], "final learning rate") : parameters.trainer.learning_rate;
   } else if (options.count("adagrad")) {
     parameters.trainer.algorithm = network_trainer::ADAGRAD;
-    parameters.trainer.learning_rate = parse_double(options["adagrad"], "learning rate");
+    split(options["adagrad"], ',', parts);
+    if (parts.size() != 2) runtime_failure("Expecting two values to the --adagrad option!");
+    parameters.trainer.learning_rate = parse_double(parts[0], "learning rate");
+    parameters.trainer.epsilon = parse_double(parts[1], "adagrad epsilon");
   } else if (options.count("adadelta")) {
     parameters.trainer.algorithm = network_trainer::ADADELTA;
     split(options["adadelta"], ',', parts);

@@ -89,7 +89,7 @@ double neural_network_trainer::trainer_sgd_momentum::delta(double gradient, cons
 bool neural_network_trainer::trainer_adagrad::need_trainer_data = true;
 double neural_network_trainer::trainer_adagrad::delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data) {
   data.gradient += gradient * gradient;
-  return trainer.learning_rate / sqrt(data.gradient) * gradient;
+  return trainer.learning_rate / sqrt(data.gradient + trainer.epsilon) * gradient;
 }
 
 // AdaDelta
