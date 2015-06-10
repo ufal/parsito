@@ -43,7 +43,7 @@ void node_extractor::extract(const configuration& conf, vector<int>& nodes) cons
             current = node.head ? node.head : -1;
             break;
           case CHILD:
-            current = direction.second > 0 && direction.second < int(node.children.size()) ?
+            current = direction.second >= 0 && direction.second < int(node.children.size()) ?
                         node.children[direction.second] :
                       direction.second < 0 && -direction.second <= int(node.children.size()) ?
                         node.children[node.children.size() + direction.second] :
