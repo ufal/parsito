@@ -166,6 +166,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     }
 
     // Add embedding for non-present word with min_count
+    vector<float> unknown_weights(dimension);
     {
       vector<float> word_weights(dimension);
       uniform_real_distribution<float> uniform(-1, 1);
@@ -176,11 +177,12 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
 
           weights.emplace_back(word_count.first, word_weights);
         }
+      for (auto&& weight : unknown_weights) weight = uniform(generator);
     }
 
     // Add the embedding
     parser.embeddings.emplace_back();
-    parser.embeddings.back().create(dimension, updatable_index, weights);
+    parser.embeddings.back().create(dimension, updatable_index, weights, unknown_weights);
 
     // Count the cover of this embedding
     string buffer;
@@ -191,8 +193,8 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
           parser.values.back().extract(node, word);
           words_total++;
           int word_id = parser.embeddings.back().lookup_word(word, buffer);
-          words_covered += word_id >= 0;
-          words_covered_from_file += word_id >= 0 && unsigned(word_id) < embeddings_from_file;
+          words_covered += word_id != parser.embeddings.back().unknown_word();
+          words_covered_from_file += word_id != parser.embeddings.back().unknown_word() && unsigned(word_id) < embeddings_from_file;
         }
 
     cerr << "Initialized '" << tokens[0] << "' embedding with " << embeddings_from_file << embeddings_from_file_comment

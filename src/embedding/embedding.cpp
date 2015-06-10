@@ -63,7 +63,11 @@ int embedding::lookup_word(const string& word, string& buffer) const {
     if (it != dictionary.end()) return it->second;
   }
 
-  return -1;
+  return unknown_index;
+}
+
+int embedding::unknown_word() const {
+  return unknown_index;
 }
 
 float* embedding::weight(int id) {
@@ -89,10 +93,11 @@ void embedding::load(binary_decoder& data) {
     data.next_str(word);
     dictionary.emplace(word, dictionary.size());
   }
+  unknown_index = dictionary.size();
 
   // Load weights
-  const float* weights_ptr = data.next<float>(dimension * dictionary.size());
-  weights.assign(weights_ptr, weights_ptr + dimension * dictionary.size());
+  const float* weights_ptr = data.next<float>(dimension * (dictionary.size() + 1));
+  weights.assign(weights_ptr, weights_ptr + dimension * (dictionary.size() + 1));
 }
 
 } // namespace parsito
