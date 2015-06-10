@@ -309,8 +309,9 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
 
     // Evaluate heldout data if present
     if (!heldout.empty()) {
-      tree t;
+      network_trainer.finalize_dropout_weights();
 
+      tree t;
       unsigned total = 0, correct_unlabelled = 0, correct_labelled = 0;
       for (auto&& gold : heldout) {
         t = gold;
@@ -323,11 +324,14 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
         }
       }
 
+      network_trainer.finalize_dropout_weights(false);
+
       cerr << ", heldout UAS " << fixed << setprecision(2) << (100. * correct_unlabelled / total) << "%, LAS " << (100. * correct_labelled / total) << "%";
     }
 
     cerr << endl;
   }
+  network_trainer.finalize_dropout_weights();
 
   // Encode transition system
   enc.add_2B(parser.labels.size());

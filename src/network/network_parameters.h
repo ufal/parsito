@@ -40,6 +40,7 @@ struct network_parameters {
   double l1_regularization;
   double l2_regularization;
   double maxnorm_regularization;
+  double dropout_hidden, dropout_input;
 };
 
 } // namespace parsito

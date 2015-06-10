@@ -45,10 +45,17 @@ class neural_network_trainer {
     };
     vector<vector<trainer_data>> weights_trainer[2];
     vector<vector<vector<trainer_data>>> embedding_trainer;
+
+    // Dropout vectors
+    vector<bool> input_dropout;
+    vector<bool> hidden_dropout;
+    vector<unsigned> hidden_kept;
   };
   void propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, workspace& w) const;
   void backpropagate(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w);
+
   void finalize_sentence();
+  void finalize_dropout_weights(bool finalize = true);
 
   void save_network(binary_encoder& enc) const;
 
@@ -77,11 +84,13 @@ class neural_network_trainer {
   void save_matrix(const vector<vector<float>>& m, binary_encoder& enc) const;
 
   neural_network& network;
+  mt19937& generator;
   unsigned iteration, iterations;
   network_trainer trainer;
   double trainer_parameter;
   unsigned batch_size;
   double l1_regularization, l2_regularization, maxnorm_regularization;
+  double dropout_hidden, dropout_input;
 };
 
 } // namespace parsito

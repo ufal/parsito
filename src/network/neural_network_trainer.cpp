@@ -13,7 +13,7 @@ namespace ufal {
 namespace parsito {
 
 neural_network_trainer::neural_network_trainer(neural_network& network, unsigned input_size, unsigned output_size,
-                                               const network_parameters& parameters, mt19937& generator) : network(network) {
+                                               const network_parameters& parameters, mt19937& generator) : network(network), generator(generator) {
   uniform_real_distribution<float> uniform(-parameters.initialization_range, parameters.initialization_range);
 
   // Initialize hidden layer
@@ -42,6 +42,8 @@ neural_network_trainer::neural_network_trainer(neural_network& network, unsigned
   l1_regularization = parameters.l1_regularization;
   l2_regularization = parameters.l2_regularization;
   maxnorm_regularization = parameters.maxnorm_regularization;
+  dropout_hidden = parameters.dropout_hidden;
+  dropout_input = parameters.dropout_input;
 
   // Maxnorm regularize the created weights
   if (maxnorm_regularization) maxnorm_regularize();
@@ -59,7 +61,78 @@ bool neural_network_trainer::next_iteration() {
 }
 
 void neural_network_trainer::propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, workspace& w) const {
-  network.propagate(embeddings, embedding_ids_sequences, w.hidden_layer, w.outcomes);
+  // Initialize dropout if requested
+  if (dropout_input) {
+    w.input_dropout.resize(network.weights[0].size());
+    bernoulli_distribution dropout(1 - dropout_input);
+    for (auto&& flag : w.input_dropout)
+      flag = dropout(generator);
+  }
+
+  if (dropout_hidden) {
+    w.hidden_dropout.resize(network.weights[1].size());
+    bernoulli_distribution dropout(1 - dropout_hidden);
+    for (auto&& flag : w.hidden_dropout)
+      flag = dropout(generator);
+  }
+  w.hidden_kept.clear();
+  for (unsigned i = 0; i < network.weights[0].front().size(); i++)
+    if (w.hidden_dropout.empty() || !w.hidden_dropout[i])
+      w.hidden_kept.push_back(i);
+
+  // Propagate
+  unsigned hidden_layer_size = network.weights[0].front().size();
+  unsigned outcomes_size = network.weights[1].front().size();
+
+  w.outcomes.assign(outcomes_size, 0);
+
+  // Hidden layer
+  w.hidden_layer.assign(hidden_layer_size, 0);
+
+  unsigned index = 0;
+  for (auto&& embedding_ids : embedding_ids_sequences)
+    for (unsigned i = 0; i < embeddings.size(); i++)
+      if (embedding_ids && (*embedding_ids)[i] >= 0) {
+        const float* embedding = embeddings[i].weight((*embedding_ids)[i]);
+        for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, embedding++, index++)
+          if (w.input_dropout.empty() || !w.input_dropout[index])
+            for (auto&& j : w.hidden_kept)
+              w.hidden_layer[j] += *embedding * network.weights[0][index][j];
+      } else {
+        index += embeddings[i].dimension;
+      }
+  if (w.input_dropout.empty() || !w.input_dropout[index]) // Bias
+    for (auto&& i : w.hidden_kept)
+      w.hidden_layer[i] += network.weights[0][index][i];
+
+  // Activation function
+  switch (network.hidden_layer_activation) {
+    case activation_function::TANH:
+      for (auto&& weight : w.hidden_layer)
+        weight = tanh(weight);
+      break;
+    case activation_function::CUBIC:
+      for (auto&& weight : w.hidden_layer)
+        weight = weight * weight * weight;
+      break;
+  }
+
+  for (auto&& i : w.hidden_kept)
+    for (unsigned j = 0; j < outcomes_size; j++)
+      w.outcomes[j] += w.hidden_layer[i] * network.weights[1][i][j];
+  if (w.hidden_dropout.empty() || !w.hidden_dropout[hidden_layer_size]) // Bias
+    for (unsigned i = 0; i < outcomes_size; i++)
+      w.outcomes[i] += network.weights[1][hidden_layer_size][i];
+
+  // Softmax
+  double max = w.outcomes[0];
+  for (unsigned i = 1; i < outcomes_size; i++) if (w.outcomes[i] > max) max = w.outcomes[i];
+
+  double sum = 0;
+  for (unsigned i = 0; i < outcomes_size; i++) sum += (w.outcomes[i] = exp(w.outcomes[i] - max));
+  sum = 1 / sum;
+
+  for (unsigned i = 0; i < outcomes_size; i++) w.outcomes[i] *= sum;
 }
 
 // SGD
@@ -116,18 +189,18 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
 
   // Backpropagate error_outcomes to error_hidden
   w.error_hidden.assign(hidden_layer_size, 0);
-  for (unsigned i = 0; i < hidden_layer_size; i++)
+  for (auto&& i : w.hidden_kept)
     for (unsigned j = 0; j < outcomes_size; j++)
       w.error_hidden[i] += network.weights[1][i][j] * w.error_outcomes[j];
 
   // Perform activation function derivation
   switch (network.hidden_layer_activation) {
     case activation_function::TANH:
-      for (unsigned i = 0; i < hidden_layer_size; i++)
+      for (auto&& i : w.hidden_kept)
         w.error_hidden[i] *= 1 - w.hidden_layer[i] * w.hidden_layer[i];
       break;
     case activation_function::CUBIC:
-      for (unsigned i = 0; i < hidden_layer_size; i++) {
+      for (auto&& i : w.hidden_kept) {
         double hidden_layer = cbrt(w.hidden_layer[i]);
         w.error_hidden[i] *= 3 * hidden_layer * hidden_layer;
       }
@@ -135,15 +208,17 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
   }
 
   // Update weights[1]
-  for (unsigned i = 0; i < hidden_layer_size; i++) {
+  for (auto&& i : w.hidden_kept) {
     if (w.weights_batch[1][i].empty()) w.weights_batch[1][i].resize(outcomes_size);
     for (unsigned j = 0; j < outcomes_size; j++)
       w.weights_batch[1][i][j] += w.hidden_layer[i] * w.error_outcomes[j];
   }
   // Bias
-  if (w.weights_batch[1][hidden_layer_size].empty()) w.weights_batch[1][hidden_layer_size].resize(outcomes_size);
-  for (unsigned i = 0; i < outcomes_size; i++)
-    w.weights_batch[1][hidden_layer_size][i] += w.error_outcomes[i];
+  if (w.hidden_dropout.empty() || !w.hidden_dropout[hidden_layer_size]) {
+    if (w.weights_batch[1][hidden_layer_size].empty()) w.weights_batch[1][hidden_layer_size].resize(outcomes_size);
+    for (unsigned i = 0; i < outcomes_size; i++)
+      w.weights_batch[1][hidden_layer_size][i] += w.error_outcomes[i];
+  }
 
   // Update weights[0] and backpropagate to error_embedding
   unsigned index = 0;
@@ -163,21 +238,24 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
         }
 
         const float* embedding = embeddings[i].weight(embedding_id);
-        for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, index++, embedding++, error_embedding += !!error_embedding) {
-          if (error_embedding)
-            for (unsigned j = 0; j < hidden_layer_size; j++)
-              *error_embedding += network.weights[0][index][j] * w.error_hidden[j];
-          if (w.weights_batch[0][index].empty()) w.weights_batch[0][index].resize(hidden_layer_size);
-          for (unsigned j = 0; j < hidden_layer_size; j++)
-            w.weights_batch[0][index][j] += *embedding * w.error_hidden[j];
-        }
+        for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, index++, embedding++, error_embedding += !!error_embedding)
+          if (w.input_dropout.empty() || !w.input_dropout[index]) {
+            if (error_embedding)
+              for (auto&& j : w.hidden_kept)
+                *error_embedding += network.weights[0][index][j] * w.error_hidden[j];
+            if (w.weights_batch[0][index].empty()) w.weights_batch[0][index].resize(hidden_layer_size);
+            for (auto&& j : w.hidden_kept)
+              w.weights_batch[0][index][j] += *embedding * w.error_hidden[j];
+          }
       } else {
         index += embeddings[i].dimension;
       }
   // Bias
-  if (w.weights_batch[0][index].empty()) w.weights_batch[0][index].resize(hidden_layer_size);
-  for (unsigned i = 0; i < hidden_layer_size; i++)
-    w.weights_batch[0][index][i] += w.error_hidden[i];
+  if (w.input_dropout.empty() || !w.input_dropout[index]) {
+    if (w.weights_batch[0][index].empty()) w.weights_batch[0][index].resize(hidden_layer_size);
+    for (auto&& i : w.hidden_kept)
+      w.weights_batch[0][index][i] += w.error_hidden[i];
+  }
 
   // End if not at the end of the batch
   if (++w.batch < batch_size) return;
@@ -264,6 +342,22 @@ void neural_network_trainer::maxnorm_regularize() {
 
 void neural_network_trainer::finalize_sentence() {
   if (l1_regularization) l1_regularize();
+}
+
+void neural_network_trainer::finalize_dropout_weights(bool finalize) {
+  if (dropout_input) {
+    bool factor = finalize ? dropout_input : 1 / dropout_input;
+    for (auto&& row : network.weights[0])
+      for (auto&& weight : row)
+        weight *= factor;
+  }
+
+  if (dropout_hidden) {
+    bool factor = finalize ? dropout_hidden : 1 / dropout_hidden;
+    for (auto&& row : network.weights[1])
+      for (auto&& weight : row)
+        weight *= factor;
+  }
 }
 
 void neural_network_trainer::save_matrix(const vector<vector<float>>& m, binary_encoder& enc) const {

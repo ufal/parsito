@@ -35,6 +35,8 @@ int main(int argc, char* argv[]) {
   if (!options::parse({{"adadelta", options::value::any},
                        {"adagrad", options::value::any},
                        {"batch_size", options::value::any},
+                       {"dropout_hidden", options::value::any},
+                       {"dropout_input", options::value::any},
                        {"embeddings", options::value::any},
                        {"heldout", options::value::any},
                        {"hidden_layer", options::value::any},
@@ -59,6 +61,8 @@ int main(int argc, char* argv[]) {
                     "Options: --adadelta=momentum,epsilon\n"
                     "         --adagrad=learning rate,epsilon\n"
                     "         --batch_size=batch size\n"
+                    "         --dropout_hidden=hidden layer dropout\n"
+                    "         --dropout_input=input dropout\n"
                     "         --embeddings=embedding description file\n"
                     "         --heldout=heldout data file\n"
                     "         --hidden_layer=hidden layer size\n"
@@ -96,6 +100,8 @@ int main(int argc, char* argv[]) {
   parameters.l1_regularization = options.count("l1_regularization") ? parse_double(options["l1_regularization"], "l1 regularization") : 0;
   parameters.l2_regularization = options.count("l2_regularization") ? parse_double(options["l2_regularization"], "l2 regularization") : 0;
   parameters.maxnorm_regularization = options.count("maxnorm_regularization") ? parse_double(options["maxnorm_regularization"], "max-norm regularization") : 0;
+  parameters.dropout_hidden = options.count("dropout_hidden") ? parse_double(options["dropout_hidden"], "hidden layer dropout") : 0;
+  parameters.dropout_input = options.count("dropout_input") ? parse_double(options["dropout_input"], "input dropout") : 0;
 
   int threads = options.count("threads") ? parse_int(options["threads"], "number of threads") : 1;
   if (threads <= 0) runtime_failure("The number of threads must be positive!");
