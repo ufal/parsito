@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
   parameters.direct_connections = options.count("direct_connections");
   parameters.hidden_layer = options.count("hidden_layer") ? parse_int(options["hidden_layer"], "hidden layer size") : 0;
   if (!parameters.direct_connections && !parameters.hidden_layer) runtime_failure("The neural networks cannot have no direct connections nor hidden layer!");
-  if (!activation_function::create(options.count("hidden_layer_type") ? options["hidden_layer_type"] : "cubic", parameters.hidden_layer_type))
+  if (!activation_function::create(options.count("hidden_layer_type") ? options["hidden_layer_type"] : "tanh", parameters.hidden_layer_type))
     runtime_failure("Unknown hidden layer type '" << options["hidden_layer_type"] << "'!");
   parameters.batch_size = options.count("batch_size") ? parse_int(options["batch_size"], "batch size") : 1;
   parameters.initialization_range = options.count("initialization_range") ? parse_double(options["initialization_range"], "initialiation range") : 0.1;
