@@ -19,10 +19,13 @@ namespace parsito {
 
 class neural_network {
  public:
+  typedef vector<vector<vector<float>>> embeddings_cache;
+
   void propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences,
-                 vector<double>& hidden_layer, vector<double>& outcomes) const;
+                 vector<double>& hidden_layer, vector<double>& outcomes, const embeddings_cache* cache = nullptr) const;
 
   void load(binary_decoder& data);
+  void generate_embeddings_cache(const vector<embedding>& embeddings, embeddings_cache& cache) const;
 
  private:
   friend class neural_network_trainer;

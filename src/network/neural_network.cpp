@@ -32,7 +32,7 @@ void neural_network::load(binary_decoder& data) {
 }
 
 void neural_network::propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences,
-                               vector<double>& hidden_layer, vector<double>& outcomes) const {
+                               vector<double>& hidden_layer, vector<double>& outcomes, const embeddings_cache* cache) const {
   assert(!weights[0].empty());
   assert(!weights[1].empty());
   for (auto&& embedding_ids : embedding_ids_sequences) if (embedding_ids) assert(embeddings.size() == embedding_ids->size());
@@ -46,15 +46,22 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
   hidden_layer.assign(hidden_layer_size, 0);
 
   unsigned index = 0;
-  for (auto&& embedding_ids : embedding_ids_sequences)
-    for (unsigned i = 0; i < embeddings.size(); i++)
-      if (embedding_ids && (*embedding_ids)[i] >= 0) {
-        const float* embedding = embeddings[i].weight((*embedding_ids)[i]);
-        for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, embedding++, index++)
+  for (unsigned sequence = 0; sequence < embedding_ids_sequences.size(); sequence++)
+    for (unsigned i = 0; i < embeddings.size(); index += embeddings[i].dimension, i++)
+      if (embedding_ids_sequences[sequence] && embedding_ids_sequences[sequence]->at(i) >= 0) {
+        unsigned word = embedding_ids_sequences[sequence]->at(i);
+        if (cache && i < cache->size() && word < cache->at(i).size()) {
+          // Use cache
+          const float* precomputed = cache->at(i)[word].data() + sequence * hidden_layer_size;
           for (unsigned j = 0; j < hidden_layer_size; j++)
-            hidden_layer[j] += *embedding * weights[0][index][j];
-      } else {
-        index += embeddings[i].dimension;
+            hidden_layer[j] += precomputed[j];
+        } else {
+          // Compute directly
+          const float* embedding = embeddings[i].weight(word);
+          for (unsigned j = 0; j < embeddings[i].dimension; j++)
+            for (unsigned k = 0; k < hidden_layer_size; k++)
+              hidden_layer[k] += embedding[j] * weights[0][index + j][k];
+        }
       }
   for (unsigned i = 0; i < hidden_layer_size; i++) // Bias
     hidden_layer[i] += weights[0][index][i];
@@ -86,6 +93,33 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
   sum = 1 / sum;
 
   for (unsigned i = 0; i < outcomes_size; i++) outcomes[i] *= sum;
+}
+
+void neural_network::generate_embeddings_cache(const vector<embedding>& embeddings, embeddings_cache& cache) const {
+  unsigned embeddings_dim = 0;
+  for (auto&& embedding : embeddings) embeddings_dim += embedding.dimension;
+
+  unsigned sequences = weights[0].size() / embeddings_dim;
+  assert(sequences * embeddings_dim + 1 == weights[0].size());
+
+  unsigned hidden_layer_size = weights[0].front().size();
+
+  cache.resize(embeddings.size());
+  for (unsigned i = 0, weight_index = 0; i < embeddings.size(); weight_index += embeddings[i].dimension, i++) {
+    unsigned words = 0;
+    while (embeddings[i].weight(words)) words++;
+
+    cache[i].resize(words);
+    for (unsigned word = 0; word < words; word++) {
+      const float* embedding = embeddings[i].weight(word);
+
+      cache[i][word].assign(sequences * hidden_layer_size, 0);
+      for (unsigned sequence = 0, index = weight_index; sequence < sequences; index += embeddings_dim, sequence++)
+        for (unsigned j = 0; j < embeddings[i].dimension; j++)
+          for (unsigned k = 0; k < hidden_layer_size; k++)
+            cache[i][word][sequence * hidden_layer_size + k] += embedding[j] * weights[0][index + j][k];
+    }
+  }
 }
 
 } // namespace parsito

@@ -40,6 +40,7 @@ class parser_nn : public parser {
   vector<embedding> embeddings;
 
   neural_network network;
+  neural_network::embeddings_cache embeddings_cache;
 
   struct workspace {
     configuration conf;
