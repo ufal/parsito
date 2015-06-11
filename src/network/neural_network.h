@@ -25,6 +25,7 @@ class neural_network {
                  vector<double>& hidden_layer, vector<double>& outcomes, const embeddings_cache* cache = nullptr, bool softmax = true) const;
 
   void load(binary_decoder& data);
+  void generate_tanh_cache();
   void generate_embeddings_cache(const vector<embedding>& embeddings, embeddings_cache& cache) const;
 
  private:
@@ -34,6 +35,8 @@ class neural_network {
 
   activation_function::type hidden_layer_activation;
   vector<vector<float>> weights[2];
+
+  vector<float> tanh_cache;
 };
 
 } // namespace parsito

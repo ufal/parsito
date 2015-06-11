@@ -97,6 +97,7 @@ void parser_nn::load(binary_decoder& data) {
 
   // Load the network
   network.load(data);
+  network.generate_tanh_cache();
   network.generate_embeddings_cache(embeddings, embeddings_cache);
 }
 

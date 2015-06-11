@@ -69,8 +69,12 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
   // Activation function
   switch (hidden_layer_activation) {
     case activation_function::TANH:
-      for (auto&& weight : hidden_layer)
-        weight = tanh(weight);
+      if (!tanh_cache.empty())
+        for (auto&& weight : hidden_layer)
+          weight = weight <= -10 ? -1 : weight >= 10 ? 1 : tanh_cache[weight * 32768 + 10 * 32768];
+      else
+        for (auto&& weight : hidden_layer)
+          weight = tanh(weight);
       break;
     case activation_function::CUBIC:
       for (auto&& weight : hidden_layer)
@@ -95,7 +99,12 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
 
     for (unsigned i = 0; i < outcomes_size; i++) outcomes[i] *= sum;
   }
+}
 
+void neural_network::generate_tanh_cache() {
+  tanh_cache.resize(2 * 10 * 32768);
+  for (unsigned i = 0; i < tanh_cache.size(); i++)
+    tanh_cache[i] = tanh(i / 32768.0 - 10);
 }
 
 void neural_network::generate_embeddings_cache(const vector<embedding>& embeddings, embeddings_cache& cache) const {
