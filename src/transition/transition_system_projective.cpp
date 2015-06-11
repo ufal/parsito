@@ -58,17 +58,6 @@ transition_oracle::predicted_transition transition_system_projective_oracle_stat
     }
   }
 
-  if (conf.buffer.empty()) {
-    // Non-projective tree, use right as heuristics
-    assert(conf.stack.size() >= 2);
-
-    for (size_t i = 0; i < labels.size(); i++)
-      if (gold.nodes[conf.stack.back()].deprel == labels[i])
-        return predicted_transition(1 + 2*i + 1, 1 + 2*i + 1);
-
-    assert(!"label was not found");
-  }
-
   // Otherwise, just shift
   return predicted_transition(0, 0);
 }
