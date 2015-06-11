@@ -22,7 +22,7 @@ class neural_network {
   typedef vector<vector<vector<float>>> embeddings_cache;
 
   void propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences,
-                 vector<double>& hidden_layer, vector<double>& outcomes, const embeddings_cache* cache = nullptr) const;
+                 vector<double>& hidden_layer, vector<double>& outcomes, const embeddings_cache* cache = nullptr, bool softmax = true) const;
 
   void load(binary_decoder& data);
   void generate_embeddings_cache(const vector<embedding>& embeddings, embeddings_cache& cache) const;

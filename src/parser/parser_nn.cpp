@@ -41,7 +41,7 @@ void parser_nn::parse(tree& t) const {
       w->extracted_embeddings[i] = w->extracted_nodes[i] >= 0 ? &w->embeddings[w->extracted_nodes[i]] : nullptr;
 
     // Classify using neural network
-    network.propagate(embeddings, w->extracted_embeddings, w->network_buffer, w->outcomes, &embeddings_cache);
+    network.propagate(embeddings, w->extracted_embeddings, w->network_buffer, w->outcomes, &embeddings_cache, false);
 
     // Find most probable applicable transition
     int best = -1;
