@@ -32,7 +32,7 @@ void neural_network::load(binary_decoder& data) {
 }
 
 void neural_network::propagate(const vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences,
-                               vector<double>& hidden_layer, vector<double>& outcomes, const embeddings_cache* cache, bool softmax) const {
+                               vector<float>& hidden_layer, vector<float>& outcomes, const embeddings_cache* cache, bool softmax) const {
   assert(!weights[0].empty());
   assert(!weights[1].empty());
   for (auto&& embedding_ids : embedding_ids_sequences) if (embedding_ids) assert(embeddings.size() == embedding_ids->size());
@@ -90,10 +90,10 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
 
   // Softmax if requested
   if (softmax) {
-    double max = outcomes[0];
+    float max = outcomes[0];
     for (unsigned i = 1; i < outcomes_size; i++) if (outcomes[i] > max) max = outcomes[i];
 
-    double sum = 0;
+    float sum = 0;
     for (unsigned i = 0; i < outcomes_size; i++) sum += (outcomes[i] = exp(outcomes[i] - max));
     sum = 1 / sum;
 

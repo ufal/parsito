@@ -51,7 +51,7 @@ class parser_nn : public parser {
     vector<int> extracted_nodes;
     vector<const vector<int>*> extracted_embeddings;
 
-    vector<double> outcomes, network_buffer;
+    vector<float> outcomes, network_buffer;
   };
   mutable threadsafe_stack<workspace> workspaces;
 };
