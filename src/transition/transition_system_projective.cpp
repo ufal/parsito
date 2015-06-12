@@ -25,12 +25,25 @@ class transition_system_projective_oracle_static : public transition_oracle {
  public:
   transition_system_projective_oracle_static(const vector<string>& labels) : labels(labels) {}
 
-  virtual predicted_transition predict(const configuration& conf, const tree& gold, unsigned network_outcome) const override;
+  class tree_oracle_static : public transition_oracle::tree_oracle {
+   public:
+    tree_oracle_static(const vector<string>& labels, const tree& gold) : labels(labels), gold(gold) {}
+    virtual predicted_transition predict(const configuration& conf, unsigned network_outcome, unsigned iteration) const override;
+   private:
+    const vector<string>& labels;
+    const tree& gold;
+  };
+
+  virtual unique_ptr<tree_oracle> create_tree_oracle(const tree& gold) const override;
  private:
   const vector<string>& labels;
 };
 
-transition_oracle::predicted_transition transition_system_projective_oracle_static::predict(const configuration& conf, const tree& gold, unsigned /*network_outcome*/) const {
+unique_ptr<transition_oracle::tree_oracle> transition_system_projective_oracle_static::create_tree_oracle(const tree& gold) const {
+  return unique_ptr<transition_oracle::tree_oracle>(new tree_oracle_static(labels, gold));
+}
+
+transition_oracle::predicted_transition transition_system_projective_oracle_static::tree_oracle_static::predict(const configuration& conf, unsigned /*network_outcome*/, unsigned /*iteration*/) const {
   // Use left if appropriate
   if (conf.stack.size() >= 2) {
     int parent = conf.stack[conf.stack.size() - 1];

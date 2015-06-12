@@ -26,7 +26,15 @@ class transition_oracle {
 
     predicted_transition(unsigned best, unsigned to_follow) : best(best), to_follow(to_follow) {}
   };
-  virtual predicted_transition predict(const configuration& conf, const tree& gold, unsigned network_outcome) const = 0;
+
+  class tree_oracle {
+   public:
+    virtual ~tree_oracle() {}
+
+    virtual predicted_transition predict(const configuration& conf, unsigned network_outcome, unsigned iteration) const = 0;
+  };
+
+  virtual unique_ptr<tree_oracle> create_tree_oracle(const tree& gold) const = 0;
 };
 
 } // namespace parsito

@@ -254,6 +254,9 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
           }
         }
 
+        // Create tree oracle
+        auto tree_oracle = oracle->create_tree_oracle(gold);
+
         // Train the network
         while (!conf.final()) {
           // Extract nodes
@@ -272,7 +275,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
               network_best = i;
 
           // Apply the oracle
-          auto prediction = oracle->predict(conf, gold, network_best);
+          auto prediction = tree_oracle->predict(conf, network_best, iteration);
 
           // If the best transition is applicable, train on it
           if (parser.system->applicable(conf, prediction.best)) {
