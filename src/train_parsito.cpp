@@ -50,6 +50,7 @@ int main(int argc, char* argv[]) {
                        {"nodes", options::value::any},
                        {"sgd", options::value::any},
                        {"sgd_momentum", options::value::any},
+                       {"structured_interval", options::value::any},
                        {"threads", options::value::any},
                        {"transition_oracle", options::value{"static", "static_eager", "static_lazy"}},
                        {"transition_system", options::value{"projective","swap"}},
@@ -74,6 +75,7 @@ int main(int argc, char* argv[]) {
                     "         --l2_regularization=l2 regularization factor\n"
                     "         --maxnorm_regularization=max-norm regularization factor\n"
                     "         --nodes=node selector file\n"
+                    "         --structured_interval=structured prediction interval\n"
                     "         --sgd=learning rate[,final learning rate]\n"
                     "         --sgd_momentum=momentum,learning rate[,final learning rate]\n"
                     "         --threads=number of training threads\n"
@@ -91,6 +93,7 @@ int main(int argc, char* argv[]) {
   network_parameters parameters;
   if (!options.count("iterations")) runtime_failure("Number of iterations must be specified!");
   parameters.iterations = parse_int(options["iterations"], "number of iterations");
+  parameters.structured_interval = options.count("structured_interval") ? parse_int(options["structured_interval"], "structured prediction interval") : 0;
   parameters.hidden_layer = options.count("hidden_layer") ? parse_int(options["hidden_layer"], "hidden layer size") : 0;
   if (!parameters.hidden_layer) runtime_failure("The size of hidden layer must be specified!");
   if (!activation_function::create(options.count("hidden_layer_type") ? options["hidden_layer_type"] : "tanh", parameters.hidden_layer_type))

@@ -31,7 +31,7 @@ struct network_trainer {
 
 struct network_parameters {
   unsigned iterations;
-  bool direct_connections;
+  int structured_interval;
   unsigned hidden_layer;
   activation_function::type hidden_layer_type;
   network_trainer trainer;

@@ -32,6 +32,7 @@ class transition_oracle {
     virtual ~tree_oracle() {}
 
     virtual predicted_transition predict(const configuration& conf, unsigned network_outcome, unsigned iteration) const = 0;
+    virtual void interesting_transitions(const configuration& conf, vector<unsigned>& transitions) const = 0;
   };
 
   virtual unique_ptr<tree_oracle> create_tree_oracle(const tree& gold) const = 0;

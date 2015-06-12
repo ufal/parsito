@@ -238,6 +238,15 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
       neural_network_trainer::workspace workspace;
       double logprob = 0;
 
+      // Data for structured prediction
+      tree t_eval;
+      configuration conf_eval;
+      vector<vector<int>> nodes_embeddings_eval;
+      vector<int>  extracted_nodes_eval;
+      vector<const vector<int>*>  extracted_embeddings_eval;
+      vector<unsigned> transitions_eval;
+      vector<float> hidden_layer_eval, outcomes_eval;
+
       for (unsigned current_index; (current_index = atomic_index++) < permutation.size();) {
         const tree& gold = train[permutation[current_index]];
         t = gold;
@@ -302,6 +311,115 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
             }
         }
         network_trainer.finalize_sentence();
+
+        // Structured prediction
+        if (parameters.structured_interval && (current_index % parameters.structured_interval) == 0) {
+          uniform_int_distribution<size_t> train_distribution(0, train.size() - 1);
+          const tree& gold = train[train_distribution(generator)];
+          t = gold;
+          t.unlink_all_nodes();
+          conf.init(&t);
+
+          // Compute embeddings
+          if (t.nodes.size() > nodes_embeddings.size()) nodes_embeddings.resize(t.nodes.size());
+          for (size_t i = 0; i < t.nodes.size(); i++) {
+            nodes_embeddings[i].resize(parser.embeddings.size());
+            for (size_t j = 0; j < parser.embeddings.size(); j++) {
+              parser.values[j].extract(t.nodes[i], word);
+              nodes_embeddings[i][j] = parser.embeddings[j].lookup_word(word, word_buffer);
+            }
+          }
+
+          // Create tree oracle
+          auto tree_oracle = oracle->create_tree_oracle(gold);
+
+          // Train the network
+          while (!conf.final()) {
+            // Extract nodes
+            parser.nodes.extract(conf, extracted_nodes);
+            extracted_embeddings.resize(extracted_nodes.size());
+            for (size_t i = 0; i < extracted_nodes.size(); i++)
+              extracted_embeddings[i] = extracted_nodes[i] >= 0 ? &nodes_embeddings[extracted_nodes[i]] : nullptr;
+
+            // Find the best transition
+            int best = 0;
+            int best_uas = -1;
+            tree_oracle->interesting_transitions(conf, transitions_eval);
+            for (auto&& transition : transitions_eval) {
+              t_eval = t;
+              conf_eval = conf;
+              conf_eval.t = &t_eval;
+              nodes_embeddings_eval = nodes_embeddings;
+
+              // Perform probed transition
+              int child = parser.system->perform(conf_eval, transition);
+              if (child >= 0)
+                for (size_t i = 0; i < parser.embeddings.size(); i++) {
+                  parser.values[i].extract(t_eval.nodes[child], word);
+                  nodes_embeddings_eval[child][i] = parser.embeddings[i].lookup_word(word, word_buffer);
+                }
+
+              // Train the network
+              while (!conf_eval.final()) {
+                // Extract nodes
+                parser.nodes.extract(conf_eval, extracted_nodes_eval);
+                extracted_embeddings_eval.resize(extracted_nodes_eval.size());
+                for (size_t i = 0; i < extracted_nodes_eval.size(); i++)
+                  extracted_embeddings_eval[i] = extracted_nodes_eval[i] >= 0 ? &nodes_embeddings_eval[extracted_nodes_eval[i]] : nullptr;
+
+                // Classify using neural network
+                parser.network.propagate(parser.embeddings, extracted_embeddings_eval, hidden_layer_eval, outcomes_eval, nullptr, false);
+
+                // Find most probable applicable transition
+                int network_best = -1;
+                for (unsigned i = 0; i < outcomes_eval.size(); i++)
+                  if (parser.system->applicable(conf_eval, i) && (network_best < 0 || outcomes_eval[i] > outcomes_eval[network_best]))
+                    network_best = i;
+
+                // Perform the best transition
+                int child = parser.system->perform(conf_eval, network_best);
+
+                // If a node was linked, recompute its embeddings as deprel has changed
+                if (child >= 0)
+                  for (size_t i = 0; i < parser.embeddings.size(); i++) {
+                    parser.values[i].extract(t_eval.nodes[child], word);
+                    nodes_embeddings_eval[child][i] = parser.embeddings[i].lookup_word(word, word_buffer);
+                  }
+              }
+
+              int uas = 0;
+              for (unsigned i = 1; i < gold.nodes.size(); i++)
+                uas += gold.nodes[i].head == t_eval.nodes[i].head;
+
+              if (uas > best_uas) best = transition, best_uas = uas;
+            }
+
+            // Propagate
+            network_trainer.propagate(parser.embeddings, extracted_embeddings, workspace);
+
+            // Backpropagate for the best transition
+            if (workspace.outcomes[best])
+              logprob += log(workspace.outcomes[best]);
+            network_trainer.backpropagate(parser.embeddings, extracted_embeddings, best, workspace);
+
+            //              // Find most probable applicable transition when following network outcome
+            //              int network_best = -1;
+            //              for (unsigned i = 0; i < workspace.outcomes.size(); i++)
+            //                if (parser.system->applicable(conf, i) && (network_best < 0 || workspace.outcomes[i] > workspace.outcomes[network_best]))
+            //                  network_best = i;
+
+            // Follow the best outcome
+            int child = parser.system->perform(conf, /*network_*/best);
+
+            // If a node was linked, recompute its embeddings as deprel has changed
+            if (child >= 0)
+              for (size_t i = 0; i < parser.embeddings.size(); i++) {
+                parser.values[i].extract(t.nodes[child], word);
+                nodes_embeddings[child][i] = parser.embeddings[i].lookup_word(word, word_buffer);
+              }
+          }
+          network_trainer.finalize_sentence();
+        }
       }
       for (double old_atomic_logprob = atomic_logprob; atomic_logprob.compare_exchange_weak(old_atomic_logprob, old_atomic_logprob + logprob); ) {}
     };
@@ -340,6 +458,8 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
 
     cerr << endl;
   }
+
+  // Finalize weights for dropout
   network_trainer.finalize_dropout_weights();
 
   // Encode transition system

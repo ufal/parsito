@@ -31,6 +31,7 @@ class transition_system_swap_oracle_static : public transition_oracle {
     tree_oracle_static(const vector<string>& labels, const tree& gold, vector<int>&& projective_order, vector<int>&& projective_components)
         : labels(labels), gold(gold), projective_order(projective_order), projective_components(projective_components) {}
     virtual predicted_transition predict(const configuration& conf, unsigned network_outcome, unsigned iteration) const override;
+    virtual void interesting_transitions(const configuration& conf, vector<unsigned>& transitions) const override;
    private:
     const vector<string>& labels;
     const tree& gold;
@@ -88,6 +89,29 @@ void transition_system_swap_oracle_static::create_projective_component(const tre
   projective_components[node] = component_index;
   for (auto&& child : gold.nodes[node].children)
     create_projective_component(gold, child, projective_components, component_index);
+}
+
+void transition_system_swap_oracle_static::tree_oracle_static::interesting_transitions(const configuration& conf, vector<unsigned>& transitions) const {
+  transitions.clear();
+  if (!conf.buffer.empty()) transitions.push_back(0);
+  if (conf.stack.size() >= 2)
+    // Swap
+    if (!projective_order.empty()) {
+      int last = conf.stack[conf.stack.size() - 1];
+      int prev = conf.stack[conf.stack.size() - 2];
+      if (projective_order[last] < projective_order[prev] &&
+          (projective_components.empty() ||
+           (conf.buffer.empty() || projective_components[last] != projective_components[conf.buffer.back()])))
+        transitions.push_back(1);
+    }
+
+    // Arcs
+    for (int direction = 0; direction < 2; direction++) {
+      int child = conf.stack[conf.stack.size() - 2 + direction];
+      for (size_t i = 0; i < labels.size(); i++)
+        if (gold.nodes[child].deprel == labels[i])
+          transitions.push_back(2 + 2*i + direction);
+    }
 }
 
 transition_oracle::predicted_transition transition_system_swap_oracle_static::tree_oracle_static::predict(const configuration& conf, unsigned /*network_outcome*/, unsigned /*iteration*/) const {
