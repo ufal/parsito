@@ -9,6 +9,7 @@
 
 #include "transition_system.h"
 #include "transition_system_projective.h"
+#include "transition_system_swap.h"
 
 namespace ufal {
 namespace parsito {
@@ -31,6 +32,7 @@ int transition_system::perform(configuration& conf, unsigned transition) const {
 
 transition_system* transition_system::create(const string& name, const vector<string>& labels) {
   if (name == "projective") return new transition_system_projective(labels);
+  if (name == "swap") return new transition_system_swap(labels);
   return nullptr;
 }
 

@@ -51,8 +51,8 @@ int main(int argc, char* argv[]) {
                        {"sgd", options::value::any},
                        {"sgd_momentum", options::value::any},
                        {"threads", options::value::any},
-                       {"transition_oracle", options::value{"static"}},
-                       {"transition_system", options::value{"projective"}},
+                       {"transition_oracle", options::value{"static", "static_eager"}},
+                       {"transition_system", options::value{"projective","swap"}},
                        {"version", options::value::none},
                        {"help", options::value::none}}, argc, argv, options) ||
       options.count("help") ||
@@ -77,8 +77,8 @@ int main(int argc, char* argv[]) {
                     "         --sgd=learning rate[,final learning rate]\n"
                     "         --sgd_momentum=momentum,learning rate[,final learning rate]\n"
                     "         --threads=number of training threads\n"
-                    "         --transition_oracle=static\n"
-                    "         --transition_system=projective\n"
+                    "         --transition_oracle=static|static_eager\n"
+                    "         --transition_system=projective|swap\n"
                     "         --version\n"
                     "         --help");
   if (options.count("version"))
