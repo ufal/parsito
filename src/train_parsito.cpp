@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
                        {"structured_interval", options::value::any},
                        {"threads", options::value::any},
                        {"transition_oracle", options::value{"static", "static_eager", "static_lazy"}},
-                       {"transition_system", options::value{"projective","swap"}},
+                       {"transition_system", options::value{"projective","swap","link2"}},
                        {"version", options::value::none},
                        {"help", options::value::none}}, argc, argv, options) ||
       options.count("help") ||
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
                     "         --sgd_momentum=momentum,learning rate[,final learning rate]\n"
                     "         --threads=number of training threads\n"
                     "         --transition_oracle=static|static_eager|static_lazy\n"
-                    "         --transition_system=projective|swap\n"
+                    "         --transition_system=projective|swap|link2\n"
                     "         --version\n"
                     "         --help");
   if (options.count("version"))

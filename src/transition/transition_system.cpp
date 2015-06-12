@@ -8,6 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "transition_system.h"
+#include "transition_system_link2.h"
 #include "transition_system_projective.h"
 #include "transition_system_swap.h"
 
@@ -33,6 +34,7 @@ int transition_system::perform(configuration& conf, unsigned transition) const {
 transition_system* transition_system::create(const string& name, const vector<string>& labels) {
   if (name == "projective") return new transition_system_projective(labels);
   if (name == "swap") return new transition_system_swap(labels);
+  if (name == "link2") return new transition_system_link2(labels);
   return nullptr;
 }
 
