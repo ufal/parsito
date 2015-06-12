@@ -289,7 +289,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
 
           // Emergency break if the to_follow transition is not applicable
           if (!parser.system->applicable(conf, prediction.to_follow))
-              break;
+            break;
 
           // Follow the chosen outcome
           int child = parser.system->perform(conf, prediction.to_follow);

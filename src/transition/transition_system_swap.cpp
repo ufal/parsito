@@ -22,34 +22,60 @@ transition_system_swap::transition_system_swap(const vector<string>& labels) : t
 }
 
 // Static oracle
-class transition_system_swap_oracle_static_eager : public transition_oracle {
+class transition_system_swap_oracle_static : public transition_oracle {
  public:
-  transition_system_swap_oracle_static_eager(const vector<string>& labels) : labels(labels) {}
+  transition_system_swap_oracle_static(const vector<string>& labels, bool lazy) : labels(labels), lazy(lazy) {}
 
-  class tree_oracle_static_eager : public transition_oracle::tree_oracle {
+  class tree_oracle_static : public transition_oracle::tree_oracle {
    public:
-    tree_oracle_static_eager(const vector<string>& labels, const tree& gold, vector<int>&& projective_order) : labels(labels), gold(gold), projective_order(projective_order) {}
+    tree_oracle_static(const vector<string>& labels, const tree& gold, vector<int>&& projective_order, vector<int>&& projective_components)
+        : labels(labels), gold(gold), projective_order(projective_order), projective_components(projective_components) {}
     virtual predicted_transition predict(const configuration& conf, unsigned network_outcome, unsigned iteration) const override;
    private:
     const vector<string>& labels;
     const tree& gold;
     const vector<int> projective_order;
+    const vector<int> projective_components;
   };
 
   virtual unique_ptr<tree_oracle> create_tree_oracle(const tree& gold) const override;
  private:
   void create_projective_order(const tree& gold, int node, vector<int>& projective_order, int& projective_index) const;
+  void create_projective_component(const tree& gold, int node, vector<int>& projective_components, int component_index) const;
+
   const vector<string>& labels;
+  bool lazy;
 };
 
-unique_ptr<transition_oracle::tree_oracle> transition_system_swap_oracle_static_eager::create_tree_oracle(const tree& gold) const {
+unique_ptr<transition_oracle::tree_oracle> transition_system_swap_oracle_static::create_tree_oracle(const tree& gold) const {
   vector<int> projective_order(gold.nodes.size());
   int projective_index;
   create_projective_order(gold, 0, projective_order, projective_index);
-  return unique_ptr<transition_oracle::tree_oracle>(new tree_oracle_static_eager(labels, gold, move(projective_order)));
+
+  vector<int> projective_components;
+  if (lazy) {
+    tree_oracle_static projective_oracle(labels, gold, vector<int>(), vector<int>());
+    configuration conf;
+    tree t = gold;
+    transition_system_swap system(labels);
+
+    conf.init(&t);
+    while (!conf.final()) {
+      auto prediction = projective_oracle.predict(conf, 0, 0);
+      if (!system.applicable(conf, prediction.to_follow)) break;
+      system.perform(conf, prediction.to_follow);
+    }
+
+    projective_components.assign(gold.nodes.size(), 0);
+    for (auto&& node : conf.stack)
+      if (node)
+        create_projective_component(t, node, projective_components, node);
+  }
+
+  return unique_ptr<transition_oracle::tree_oracle>(new tree_oracle_static(labels, gold, move(projective_order), move(projective_components)));
 }
 
-void transition_system_swap_oracle_static_eager::create_projective_order(const tree& gold, int node, vector<int>& projective_order, int& projective_index) const {
+void transition_system_swap_oracle_static::create_projective_order(const tree& gold, int node, vector<int>& projective_order, int& projective_index) const {
   unsigned child_index = 0;
   while (child_index < gold.nodes[node].children.size() && gold.nodes[node].children[child_index] < node)
     create_projective_order(gold, gold.nodes[node].children[child_index++], projective_order, projective_index);
@@ -58,7 +84,13 @@ void transition_system_swap_oracle_static_eager::create_projective_order(const t
     create_projective_order(gold, gold.nodes[node].children[child_index++], projective_order, projective_index);
 }
 
-transition_oracle::predicted_transition transition_system_swap_oracle_static_eager::tree_oracle_static_eager::predict(const configuration& conf, unsigned /*network_outcome*/, unsigned /*iteration*/) const {
+void transition_system_swap_oracle_static::create_projective_component(const tree& gold, int node, vector<int>& projective_components, int component_index) const {
+  projective_components[node] = component_index;
+  for (auto&& child : gold.nodes[node].children)
+    create_projective_component(gold, child, projective_components, component_index);
+}
+
+transition_oracle::predicted_transition transition_system_swap_oracle_static::tree_oracle_static::predict(const configuration& conf, unsigned /*network_outcome*/, unsigned /*iteration*/) const {
   // Use left if appropriate
   if (conf.stack.size() >= 2) {
     int parent = conf.stack[conf.stack.size() - 1];
@@ -86,10 +118,12 @@ transition_oracle::predicted_transition transition_system_swap_oracle_static_eag
   }
 
   // Use swap if appropriate
-  if (conf.stack.size() >= 2) {
+  if (conf.stack.size() >= 2 && !projective_order.empty()) {
     int last = conf.stack[conf.stack.size() - 1];
     int prev = conf.stack[conf.stack.size() - 2];
-    if (projective_order[last] < projective_order[prev])
+    if (projective_order[last] < projective_order[prev] &&
+        (projective_components.empty() ||
+         (conf.buffer.empty() || projective_components[last] != projective_components[conf.buffer.back()])))
       return predicted_transition(1, 1);
   }
 
@@ -99,7 +133,8 @@ transition_oracle::predicted_transition transition_system_swap_oracle_static_eag
 
 // Oracle factory method
 transition_oracle* transition_system_swap::oracle(const string& name) const {
-  if (name == "static_eager") return new transition_system_swap_oracle_static_eager(labels);
+  if (name == "static_eager") return new transition_system_swap_oracle_static(labels, false);
+  if (name == "static_lazy") return new transition_system_swap_oracle_static(labels, true);
   return nullptr;
 }
 
