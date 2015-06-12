@@ -28,10 +28,10 @@ class neural_network_trainer {
 
   struct workspace {
     unsigned batch = 0;
-    vector<double> outcomes;
-    vector<double> hidden_layer;
-    vector<double> error_outcomes;
-    vector<double> error_hidden;
+    vector<float> outcomes;
+    vector<float> hidden_layer;
+    vector<float> error_outcomes;
+    vector<float> error_hidden;
 
     // Delta accumulators
     vector<vector<float>> weights_batch[2];
@@ -40,8 +40,8 @@ class neural_network_trainer {
 
     // Trainer data
     struct trainer_data {
-      double delta = 0;
-      double gradient = 0;
+      float delta = 0;
+      float gradient = 0;
     };
     vector<vector<trainer_data>> weights_trainer[2];
     vector<vector<vector<trainer_data>>> embedding_trainer;
@@ -62,19 +62,19 @@ class neural_network_trainer {
  private:
   struct trainer_sgd {
     static bool need_trainer_data;
-    static inline double delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data);
+    static inline float delta(float gradient, const network_trainer& trainer, workspace::trainer_data& data);
   };
   struct trainer_sgd_momentum {
     static bool need_trainer_data;
-    static inline double delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data);
+    static inline float delta(float gradient, const network_trainer& trainer, workspace::trainer_data& data);
   };
   struct trainer_adagrad {
     static bool need_trainer_data;
-    static inline double delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data);
+    static inline float delta(float gradient, const network_trainer& trainer, workspace::trainer_data& data);
   };
   struct trainer_adadelta {
     static bool need_trainer_data;
-    static inline double delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data);
+    static inline float delta(float gradient, const network_trainer& trainer, workspace::trainer_data& data);
   };
   template <class TRAINER> void backpropagate_template(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w);
 
@@ -87,10 +87,9 @@ class neural_network_trainer {
   mt19937& generator;
   unsigned iteration, iterations;
   network_trainer trainer;
-  double trainer_parameter;
   unsigned batch_size;
-  double l1_regularization, l2_regularization, maxnorm_regularization;
-  double dropout_hidden, dropout_input;
+  float l1_regularization, l2_regularization, maxnorm_regularization;
+  float dropout_hidden, dropout_input;
 };
 
 } // namespace parsito

@@ -24,9 +24,9 @@ struct network_trainer {
   };
 
   network_trainer_algorithm algorithm;
-  double learning_rate, learning_rate_final;
-  double momentum;
-  double epsilon;
+  float learning_rate, learning_rate_final;
+  float momentum;
+  float epsilon;
 };
 
 struct network_parameters {
@@ -36,11 +36,11 @@ struct network_parameters {
   activation_function::type hidden_layer_type;
   network_trainer trainer;
   unsigned batch_size;
-  double initialization_range;
-  double l1_regularization;
-  double l2_regularization;
-  double maxnorm_regularization;
-  double dropout_hidden, dropout_input;
+  float initialization_range;
+  float l1_regularization;
+  float l2_regularization;
+  float maxnorm_regularization;
+  float dropout_hidden, dropout_input;
 };
 
 } // namespace parsito

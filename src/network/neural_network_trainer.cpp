@@ -125,10 +125,10 @@ void neural_network_trainer::propagate(const vector<embedding>& embeddings, cons
       w.outcomes[i] += network.weights[1][hidden_layer_size][i];
 
   // Softmax
-  double max = w.outcomes[0];
+  float max = w.outcomes[0];
   for (unsigned i = 1; i < outcomes_size; i++) if (w.outcomes[i] > max) max = w.outcomes[i];
 
-  double sum = 0;
+  float sum = 0;
   for (unsigned i = 0; i < outcomes_size; i++) sum += (w.outcomes[i] = exp(w.outcomes[i] - max));
   sum = 1 / sum;
 
@@ -137,29 +137,29 @@ void neural_network_trainer::propagate(const vector<embedding>& embeddings, cons
 
 // SGD
 bool neural_network_trainer::trainer_sgd::need_trainer_data = false;
-double neural_network_trainer::trainer_sgd::delta(double gradient, const network_trainer& trainer, workspace::trainer_data& /*data*/) {
+float neural_network_trainer::trainer_sgd::delta(float gradient, const network_trainer& trainer, workspace::trainer_data& /*data*/) {
   return trainer.learning_rate * gradient;
 }
 
 // SGD with momentum
 bool neural_network_trainer::trainer_sgd_momentum::need_trainer_data = true;
-double neural_network_trainer::trainer_sgd_momentum::delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data) {
+float neural_network_trainer::trainer_sgd_momentum::delta(float gradient, const network_trainer& trainer, workspace::trainer_data& data) {
   data.delta = trainer.momentum * data.delta + trainer.learning_rate * gradient;
   return data.delta;
 }
 
 // AdaGrad
 bool neural_network_trainer::trainer_adagrad::need_trainer_data = true;
-double neural_network_trainer::trainer_adagrad::delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data) {
+float neural_network_trainer::trainer_adagrad::delta(float gradient, const network_trainer& trainer, workspace::trainer_data& data) {
   data.gradient += gradient * gradient;
   return trainer.learning_rate / sqrt(data.gradient + trainer.epsilon) * gradient;
 }
 
 // AdaDelta
 bool neural_network_trainer::trainer_adadelta::need_trainer_data = true;
-double neural_network_trainer::trainer_adadelta::delta(double gradient, const network_trainer& trainer, workspace::trainer_data& data) {
+float neural_network_trainer::trainer_adadelta::delta(float gradient, const network_trainer& trainer, workspace::trainer_data& data) {
   data.gradient = trainer.momentum * data.gradient + (1 - trainer.momentum) * gradient * gradient;
-  double delta = sqrt(data.delta + trainer.epsilon) / sqrt(data.gradient + trainer.epsilon) * gradient;
+  float delta = sqrt(data.delta + trainer.epsilon) / sqrt(data.gradient + trainer.epsilon) * gradient;
   data.delta = trainer.momentum * data.delta + (1 - trainer.momentum) * delta * delta;
   return delta;
 }
@@ -201,7 +201,7 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
       break;
     case activation_function::CUBIC:
       for (auto&& i : w.hidden_kept) {
-        double hidden_layer = cbrt(w.hidden_layer[i]);
+        float hidden_layer = cbrt(w.hidden_layer[i]);
         w.error_hidden[i] *= 3 * hidden_layer * hidden_layer;
       }
       break;
@@ -328,12 +328,12 @@ void neural_network_trainer::maxnorm_regularize() {
 
   for (unsigned i = 0; i < 2; i++)
     for (unsigned j = 0; j < network.weights[i].front().size(); j++) {
-      double length = 0;
+      float length = 0;
       for (auto&& row : network.weights[i])
         length += row[j] * row[j];
 
       if (length > 0 && length > maxnorm_regularization * maxnorm_regularization) {
-        double factor = 1 / sqrt(length / (maxnorm_regularization * maxnorm_regularization));
+        float factor = 1 / sqrt(length / (maxnorm_regularization * maxnorm_regularization));
         for (auto&& row : network.weights[i])
           row[j] *= factor;
       }
