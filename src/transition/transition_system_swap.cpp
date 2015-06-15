@@ -94,7 +94,7 @@ void transition_system_swap_oracle_static::create_projective_component(const tre
 void transition_system_swap_oracle_static::tree_oracle_static::interesting_transitions(const configuration& conf, vector<unsigned>& transitions) const {
   transitions.clear();
   if (!conf.buffer.empty()) transitions.push_back(0);
-  if (conf.stack.size() >= 2)
+  if (conf.stack.size() >= 2) {
     // Swap
     if (!projective_order.empty()) {
       int last = conf.stack[conf.stack.size() - 1];
@@ -112,6 +112,7 @@ void transition_system_swap_oracle_static::tree_oracle_static::interesting_trans
         if (gold.nodes[child].deprel == labels[i])
           transitions.push_back(2 + 2*i + direction);
     }
+  }
 }
 
 transition_oracle::predicted_transition transition_system_swap_oracle_static::tree_oracle_static::predict(const configuration& conf, unsigned /*network_outcome*/, unsigned /*iteration*/) const {
