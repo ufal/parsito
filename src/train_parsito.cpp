@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
                        {"sgd_momentum", options::value::any},
                        {"structured_interval", options::value::any},
                        {"threads", options::value::any},
-                       {"transition_oracle", options::value{"static", "static_eager", "static_lazy"}},
+                       {"transition_oracle", options::value{"static", "static_eager", "static_lazy", "dynamic"}},
                        {"transition_system", options::value{"projective","swap","link2"}},
                        {"version", options::value::none},
                        {"help", options::value::none}}, argc, argv, options) ||
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
                     "         --sgd=learning rate[,final learning rate]\n"
                     "         --sgd_momentum=momentum,learning rate[,final learning rate]\n"
                     "         --threads=number of training threads\n"
-                    "         --transition_oracle=static|static_eager|static_lazy\n"
+                    "         --transition_oracle=static|static_eager|static_lazy|dynamic\n"
                     "         --transition_system=projective|swap|link2\n"
                     "         --version\n"
                     "         --help");
