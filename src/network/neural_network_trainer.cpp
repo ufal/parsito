@@ -177,6 +177,7 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
   if (embeddings.size() > w.error_embedding_nonempty.size()) w.error_embedding_nonempty.resize(embeddings.size());
 
   // Allocate space for trainer_data if required)
+  workspace::trainer_data none_trainer_data;
   if (TRAINER::need_trainer_data) {
     while (network.weights[0].size() > w.weights_trainer[0].size()) w.weights_trainer[0].emplace_back(network.weights[0].front().size());
     while (network.weights[1].size() > w.weights_trainer[1].size()) w.weights_trainer[1].emplace_back(outcomes_size);
@@ -267,7 +268,7 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
       for (unsigned j = 0; j < w.weights_batch[i].size(); j++)
         if (!w.weights_batch[i][j].empty()) {
           for (unsigned k = 0; k < w.weights_batch[i][j].size(); k++)
-            network.weights[i][j][k] += TRAINER::delta(w.weights_batch[i][j][k], trainer, w.weights_trainer[i][j][k]) - l2_regularization * network.weights[i][j][k];
+            network.weights[i][j][k] += TRAINER::delta(w.weights_batch[i][j][k], trainer, TRAINER::need_trainer_data ? w.weights_trainer[i][j][k] : none_trainer_data) - l2_regularization * network.weights[i][j][k];
           w.weights_batch[i][j].clear();
         }
     }
@@ -282,7 +283,7 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
       }
       float* embedding = embeddings[i].weight(id);
       for (unsigned j = 0; j < embeddings[i].dimension; j++)
-        embedding[j] += TRAINER::delta(w.error_embedding[i][id][j], trainer, w.embedding_trainer[i][id][j]) - l2_regularization * embedding[j];
+        embedding[j] += TRAINER::delta(w.error_embedding[i][id][j], trainer, TRAINER::need_trainer_data ? w.embedding_trainer[i][id][j] : none_trainer_data) - l2_regularization * embedding[j];
       w.error_embedding[i][id].clear();
     }
     w.error_embedding_nonempty[i].clear();
