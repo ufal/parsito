@@ -45,6 +45,12 @@ void value_extractor::extract(const node& n, string& value) const {
     case UNIVERSAL_TAG:
       value.assign(n.ctag);
       break;
+    case FEATS:
+      value.assign(n.feats);
+      break;
+    case UNIVERSAL_TAG_FEATS:
+      value.assign(n.ctag).append(n.feats);
+      break;
     case DEPREL:
       value.assign(n.deprel);
       break;
@@ -64,6 +70,10 @@ bool value_extractor::create(string_piece description, string& error) {
     selector = TAG;
   else if (description == "universal_tag")
     selector = UNIVERSAL_TAG;
+  else if (description == "feats")
+    selector = FEATS;
+  else if (description == "universal_tag_feats")
+    selector = UNIVERSAL_TAG_FEATS;
   else if (description == "deprel")
     selector = DEPREL;
   else

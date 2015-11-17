@@ -23,7 +23,8 @@ class value_extractor {
   bool create(string_piece description, string& error);
 
  private:
-  enum value_t { FORM = 0, LEMMA = 1, LEMMA_ID = 2, TAG = 3, UNIVERSAL_TAG = 4, DEPREL = 5 };
+  enum value_t { FORM = 0, LEMMA = 1, LEMMA_ID = 2, TAG = 3, UNIVERSAL_TAG = 4,
+    FEATS = 5, UNIVERSAL_TAG_FEATS = 6, DEPREL = 7 };
   value_t selector;
 };
 
