@@ -71,7 +71,7 @@ void neural_network::propagate(const vector<embedding>& embeddings, const vector
     case activation_function::TANH:
       if (!tanh_cache.empty())
         for (auto&& weight : hidden_layer)
-          weight = weight <= -10 ? -1 : weight >= 10 ? 1 : tanh_cache[weight * 32768 + 10 * 32768];
+          weight = weight <= -10 ? -1 : weight >= 10 ? 1 : tanh_cache[int(weight * 32768 + 10 * 32768)];
       else
         for (auto&& weight : hidden_layer)
           weight = tanh(weight);

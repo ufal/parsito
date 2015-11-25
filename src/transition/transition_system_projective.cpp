@@ -178,6 +178,7 @@ transition_oracle::predicted_transition transition_system_projective_oracle_dyna
         if (gold.nodes[child].deprel == labels[i])
           return 1 + 2*i + (child > parent);
       assert(!"label was not found");
+      return 0; // To keep VS 2015 happy and warning-free
     }
 
    private:
