@@ -10,6 +10,7 @@
 //#include <cstring>
 
 #include "tree_format.h"
+#include "utils/iostreams.h"
 #include "utils/parse_int.h"
 #include "utils/split.h"
 
@@ -28,15 +29,7 @@ class tree_input_format_conllu : public tree_input_format {
 };
 
 bool tree_input_format_conllu::read_block(istream& in, string& block) const {
-  block.clear();
-
-  string line;
-  while (getline(in, line)) {
-    block.append(line).push_back('\n');
-    if (line.empty()) break;
-  }
-
-  return !block.empty();
+  return getpara(in, block);
 }
 
 void tree_input_format_conllu::set_block(string_piece block) {
