@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
       for (int i = 1; i < int(t.nodes.size()); i++) {
         for (int punctuation = 0; punctuation < TOTAL_PUNCTUATION; punctuation++)
           if (punctuation == WITH_PUNCTUATION ||
-              (punctuation == WITHOUT_PUNCTUATION && t.nodes[i].ctag != "PUNCT")) {
+              (punctuation == WITHOUT_PUNCTUATION && t.nodes[i].upostag != "PUNCT")) {
             total[punctuation]++;
             correct[punctuation][UAS] += t.nodes[i].head == gold.nodes[i].head;
             correct[punctuation][LAS] += t.nodes[i].head == gold.nodes[i].head && t.nodes[i].deprel == gold.nodes[i].deprel;

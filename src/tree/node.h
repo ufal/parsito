@@ -20,8 +20,8 @@ class node {
 
   string form;
   string lemma;
-  string tag;
-  string ctag; // universal part-of-speech tag
+  string upostag; // universal part-of-speech tag
+  string xpostag; // language-specific tag
   string feats; // list of Morphological features
   int head; // head, 0 is root, <0 is without parent
   string deprel; // dependency relation to the HEAD

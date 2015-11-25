@@ -40,16 +40,16 @@ void value_extractor::extract(const node& n, string& value) const {
       value.assign(n.lemma);
       break;
     case TAG:
-      value.assign(n.tag);
+      value.assign(n.xpostag);
       break;
     case UNIVERSAL_TAG:
-      value.assign(n.ctag);
+      value.assign(n.upostag);
       break;
     case FEATS:
       value.assign(n.feats);
       break;
     case UNIVERSAL_TAG_FEATS:
-      value.assign(n.ctag).append(n.feats);
+      value.assign(n.upostag).append(n.feats);
       break;
     case DEPREL:
       value.assign(n.deprel);

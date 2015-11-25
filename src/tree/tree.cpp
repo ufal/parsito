@@ -27,7 +27,7 @@ bool tree::empty() {
 void tree::clear() {
   nodes.clear();
   node& root = add_node(root_form);
-  root.lemma = root.tag = root.ctag = root.feats = root_form;
+  root.lemma = root.upostag = root.xpostag = root.feats = root_form;
 }
 
 node& tree::add_node(const string& form) {

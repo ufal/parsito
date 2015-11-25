@@ -112,8 +112,8 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
     // Add new node
     auto& node = t.add_node(string(tokens[1].str, tokens[1].len));
     if (!(tokens[2].len == 1 && tokens[2].str[0] == '_')) node.lemma.assign(tokens[2].str, tokens[2].len);
-    if (!(tokens[3].len == 1 && tokens[3].str[0] == '_')) node.ctag.assign(tokens[3].str, tokens[3].len);
-    if (!(tokens[4].len == 1 && tokens[4].str[0] == '_')) node.tag.assign(tokens[4].str, tokens[4].len);
+    if (!(tokens[3].len == 1 && tokens[3].str[0] == '_')) node.upostag.assign(tokens[3].str, tokens[3].len);
+    if (!(tokens[4].len == 1 && tokens[4].str[0] == '_')) node.xpostag.assign(tokens[4].str, tokens[4].len);
     if (!(tokens[5].len == 1 && tokens[5].str[0] == '_')) node.feats.assign(tokens[5].str, tokens[5].len);
     node.head = head;
     if (!(tokens[7].len == 1 && tokens[7].str[0] == '_')) node.deprel.assign(tokens[7].str, tokens[7].len);
@@ -171,8 +171,8 @@ void tree_output_format_conllu::append_tree(const tree& t, string& block, const 
     block.append(to_string(i)).push_back('\t');
     block.append(t.nodes[i].form).push_back('\t');
     block.append(underscore_on_empty(t.nodes[i].lemma)).push_back('\t');
-    block.append(underscore_on_empty(t.nodes[i].ctag)).push_back('\t');
-    block.append(underscore_on_empty(t.nodes[i].tag)).push_back('\t');
+    block.append(underscore_on_empty(t.nodes[i].upostag)).push_back('\t');
+    block.append(underscore_on_empty(t.nodes[i].xpostag)).push_back('\t');
     block.append(underscore_on_empty(t.nodes[i].feats)).push_back('\t');
     block.append(t.nodes[i].head < 0 ? "_" : to_string(t.nodes[i].head)).push_back('\t');
     block.append(underscore_on_empty(t.nodes[i].deprel)).push_back('\t');
