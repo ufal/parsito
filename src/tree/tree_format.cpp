@@ -7,7 +7,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-//#include <cstring>
+#include <utility>
 
 #include "tree_format.h"
 #include "utils/iostreams.h"
@@ -25,6 +25,10 @@ class tree_input_format_conllu : public tree_input_format {
   virtual bool next_tree(tree& t, string& error) override;
 
  private:
+  friend class tree_output_format_conllu;
+  vector<string_piece> comments;
+  vector<pair<int, string_piece>> multiword_tokens;
+
   string_piece block;
 };
 
@@ -39,8 +43,11 @@ void tree_input_format_conllu::set_block(string_piece block) {
 bool tree_input_format_conllu::next_tree(tree& t, string& error) {
   t.clear();
   error.clear();
+  comments.clear();
+  multiword_tokens.clear();
+  int last_multiword_token = 0;
 
-  vector<string_piece> tokens;
+  vector<string_piece> tokens, parts;
   while (block.len) {
     // Read line
     string_piece line(block.str, 0);
@@ -54,23 +61,42 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
       break;
     }
 
-    // Ignore comments
-    if (*line.str == '#') continue;
+    if (*line.str == '#') {
+      // Store comments at the beginning and ignore the rest
+      if (t.empty()) comments.push_back(line);
+      continue;
+    }
 
     // Parse another tree node
     split(line, '\t', tokens);
     if (tokens.size() != 10)
       return error.assign("The CoNLL-U line '").append(line.str, line.len).append("' does not contain 10 columns!") , false;
 
-    // Skip multiword tokens
-    if (memchr(tokens[0].str, '-', tokens[0].len)) continue;
+    // Store and skip multiword tokens
+    if (memchr(tokens[0].str, '-', tokens[0].len)) {
+      split(tokens[0], '-', parts);
+      if (parts.size() != 2)
+        return error.assign("Cannot parse ID of multiword token '").append(line.str, line.len).append("'!") , false;
+      int from, to;
+      if (!parse_int(parts[0], "CoNLL-U id", from, error) || !parse_int(parts[1], "CoNLL-U id", to, error))
+        return false;
+      if (from != int(t.nodes.size()))
+        return error.assign("Incorrect ID '").append(parts[0].str, parts[0].len).append("' of multiword token '").append(line.str, line.len).append("'!"), false;
+      if (to < from)
+        return error.assign("Incorrect range '").append(tokens[0].str, tokens[0].len).append("' of multiword token '").append(line.str, line.len).append("'!"), false;
+      if (from <= last_multiword_token)
+        return error.assign("Multiword token '").append(line.str, line.len).append("' overlaps with the previous one!"), false;
+      last_multiword_token = to;
+      multiword_tokens.emplace_back(from, line);
+      continue;
+    }
 
     // Parse node ID and head
     int id;
     if (!parse_int(tokens[0], "CoNLL-U id", id, error))
       return false;
     if (id != int(t.nodes.size()))
-      return error.assign("Wrong numeric id value '").append(tokens[0].str, tokens[0].len).append("'!"), false;
+      return error.assign("Incorrect ID '").append(tokens[0].str, tokens[0].len).append("' of CoNLL-U line '").append(line.str, line.len).append("'!"), false;
 
     int head;
     if (tokens[6].len == 1 && tokens[6].str[0] == '_') {
@@ -95,10 +121,17 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
     if (!(tokens[9].len == 1 && tokens[9].str[0] == '_')) node.misc.assign(tokens[9].str, tokens[9].len);
   }
 
+  // Check that we got word for the last multiword token
+  if (last_multiword_token >= int(t.nodes.size()))
+    return error.assign("There are words missing for multiword token '").append(multiword_tokens.back().second.str, multiword_tokens.back().second.len).append("'!"), false;
+
   // Set heads correctly
   for (auto&& node : t.nodes)
-    if (node.id && node.head >= 0)
+    if (node.id && node.head >= 0) {
+      if (node.head >= int(t.nodes.size()))
+        return error.assign("Node ID '").append(to_string(node.id)).append("' form '").append(node.form).append("' has too large head: '").append(to_string(node.head)).append("'!"), false;
       t.set_head(node.id, node.head, node.deprel);
+    }
 
   return !t.empty();
 }
@@ -106,7 +139,7 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
 // Output CoNLL-U format
 class tree_output_format_conllu : public tree_output_format {
  public:
-  virtual void append_tree(const tree& t, string& block) const override;
+  virtual void append_tree(const tree& t, string& block, const tree_input_format* additional_info = nullptr) const override;
 
  private:
   static const string underscore;
@@ -114,9 +147,27 @@ class tree_output_format_conllu : public tree_output_format {
 };
 const string tree_output_format_conllu::underscore = "_";
 
-void tree_output_format_conllu::append_tree(const tree& t, string& block) const {
-  // Skip the root node
-  for (size_t i = 1; i < t.nodes.size(); i++) {
+void tree_output_format_conllu::append_tree(const tree& t, string& block, const tree_input_format* additional_info) const {
+  // Try casting input format to CoNLL-U
+  auto input_conllu = dynamic_cast<const tree_input_format_conllu*>(additional_info);
+  size_t input_conllu_multiword_tokens = 0;
+
+  // Comments if present
+  if (input_conllu)
+    for (auto&& comment : input_conllu->comments)
+      block.append(comment.str, comment.len).push_back('\n');
+
+  // Print out the tokens
+  for (int i = 1 /*skip the root node*/; i < int(t.nodes.size()); i++) {
+    // Write multiword token if present
+    if (input_conllu && input_conllu_multiword_tokens < input_conllu->multiword_tokens.size() &&
+        i == input_conllu->multiword_tokens[input_conllu_multiword_tokens].first) {
+      block.append(input_conllu->multiword_tokens[input_conllu_multiword_tokens].second.str,
+                   input_conllu->multiword_tokens[input_conllu_multiword_tokens].second.len).push_back('\n');
+      input_conllu_multiword_tokens++;
+    }
+
+    // Write the token
     block.append(to_string(i)).push_back('\t');
     block.append(t.nodes[i].form).push_back('\t');
     block.append(underscore_on_empty(t.nodes[i].lemma)).push_back('\t');

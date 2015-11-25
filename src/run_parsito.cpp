@@ -30,7 +30,7 @@ void parse(istream& in, ostream& out, const parser& p, tree_input_format& input_
       p.parse(t);
 
       // Output the parsed tree
-      output_format.append_tree(t, output);
+      output_format.append_tree(t, output, &input_format);
       out << output;
       output.clear();
     }
