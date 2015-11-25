@@ -24,4 +24,3 @@ class transition_system_link2 : public transition_system {
 
 } // namespace parsito
 } // namespace ufal
-

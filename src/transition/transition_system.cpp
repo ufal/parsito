@@ -40,4 +40,3 @@ transition_system* transition_system::create(const string& name, const vector<st
 
 } // namespace parsito
 } // namespace ufal
-

@@ -104,4 +104,3 @@ void embedding::load(binary_decoder& data) {
 
 } // namespace parsito
 } // namespace ufal
-
