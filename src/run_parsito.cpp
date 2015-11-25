@@ -31,7 +31,7 @@ void parse(istream& in, ostream& out, const parser& p, tree_input_format& input_
 
       // Output the parsed tree
       output_format.append_tree(t, output, &input_format);
-      out << output;
+      out << output << flush;
       output.clear();
     }
     if (!error.empty())
