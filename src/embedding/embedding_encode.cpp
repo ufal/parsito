@@ -9,6 +9,7 @@
 
 #include "common.h"
 #include "embedding.h"
+#include "utils/binary_encoder.h"
 
 namespace ufal {
 namespace parsito {
