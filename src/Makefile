@@ -1,6 +1,6 @@
 include Makefile.builtem
 
-EXECUTABLES = run_parsito train_parsito
+EXECUTABLES = parsito_accuracy run_parsito train_parsito
 LIBRARIES = libparsito
 
 .PHONY: all exe lib full
@@ -25,6 +25,7 @@ $(call lib,libparsito): $(call obj,$(PARSITO_O))
 	$(call link_lib,$@,$^)
 
 # executables
+$(call exe,parsito_accuracy): $(call obj,parsito_accuracy utils/options $(PARSITO_O))
 $(call exe,run_parsito): $(call obj,run_parsito utils/options $(PARSITO_O))
 $(call exe,train_parsito): LD_FLAGS += $(call use_threads)
 $(call exe,train_parsito): $(call obj,train_parsito embedding/embedding_encode network/neural_network_trainer parser/parser_nn_trainer utils/compressor_save utils/options $(PARSITO_O))

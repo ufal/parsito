@@ -2,5 +2,6 @@
 *.exe
 *.swp
 libparsito.*
+parsito_accuracy
 run_parsito
 train_parsito
