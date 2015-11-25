@@ -1,4 +1,4 @@
-// This file is part of Parsito <http://github.com/ufal/parsito/>.
+// This file is part of UFAL C++ Utils <http://github.com/ufal/cpp_utils/>.
 //
 // Copyright 2015 Institute of Formal and Applied Linguistics, Faculty of
 // Mathematics and Physics, Charles University in Prague, Czech Republic.
@@ -19,8 +19,8 @@ class binary_encoder;
 
 class compressor {
  public:
-  static bool load(istream& in, binary_decoder& data);
-  static bool save(ostream& out, const binary_encoder& enc);
+  static bool load(istream& is, binary_decoder& data);
+  static bool save(ostream& os, const binary_encoder& enc);
 };
 
 } // namespace parsito

@@ -9,7 +9,7 @@
 
 #include "common.h"
 #include "parser/parser.h"
-#include "utils/iostream_init.h"
+#include "utils/iostreams.h"
 #include "utils/options.h"
 #include "utils/process_args.h"
 #include "tree/tree_format.h"
@@ -40,7 +40,7 @@ void parse(istream& in, ostream& out, const parser& p, tree_input_format& input_
 }
 
 int main(int argc, char* argv[]) {
-  iostream_init();
+  iostreams_init();
 
   options::map options;
   if (!options::parse({{"input", options::value{"conllu"}},

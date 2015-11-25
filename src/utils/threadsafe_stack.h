@@ -1,4 +1,4 @@
-// This file is part of Parsito <http://github.com/ufal/parsito/>.
+// This file is part of UFAL C++ Utils <http://github.com/ufal/cpp_utils/>.
 //
 // Copyright 2015 Institute of Formal and Applied Linguistics, Faculty of
 // Mathematics and Physics, Charles University in Prague, Czech Republic.
@@ -16,35 +16,24 @@
 namespace ufal {
 namespace parsito {
 
+//
 // Declarations
+//
+
 template <class T>
 class threadsafe_stack {
  public:
   inline void push(T* t);
   inline T* pop();
 
-  threadsafe_stack();
  private:
   vector<unique_ptr<T>> stack;
-
-  // Unfortunately, Visual C++ 2013 does not support aggregate and list
-  // initialization in non-static data members (see C2797), which is the only
-  // way how atomic_flag can be initialized. Therefore, we initialize it
-  // explicitly in the constructor.
-  atomic_flag lock; // = ATOMIC_FLAG_INIT
+  atomic_flag lock = ATOMIC_FLAG_INIT;
 };
 
-
+//
 // Definitions
-template <class T>
-threadsafe_stack<T>::threadsafe_stack() {
-  // Needed because ATOMIC_FLAG_INIT cannot be used on Visual C++ 2013.
-  lock.clear();
-
-  // Allocate 16 slots in the stack so that we make reallocation during
-  // lock less likely.
-  stack.reserve(16);
-}
+//
 
 template <class T>
 void threadsafe_stack<T>::push(T* t) {

@@ -14,7 +14,7 @@
 #include "parser/parser_nn_trainer.h"
 #include "tree/tree_format.h"
 #include "utils/compressor.h"
-#include "utils/iostream_init.h"
+#include "utils/iostreams.h"
 #include "utils/options.h"
 #include "utils/parse_double.h"
 #include "utils/parse_int.h"
@@ -24,7 +24,7 @@
 using namespace ufal::parsito;
 
 int main(int argc, char* argv[]) {
-  iostream_init();
+  iostreams_init();
 
   if (argc < 2) runtime_failure("Usage: " << argv[0] << " parser_model_identifier [options]");
 
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     return cout << version::version_and_copyright() << endl, 0;
 
   // Use binary standard output
-  iostream_init_binary_output();
+  iostreams_init_binary_output();
 
   // Process options
   network_parameters parameters;

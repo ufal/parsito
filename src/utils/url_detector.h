@@ -1,4 +1,4 @@
-// This file is part of Parsito <http://github.com/ufal/parsito/>.
+// This file is part of UFAL C++ Utils <http://github.com/ufal/cpp_utils/>.
 //
 // Copyright 2015 Institute of Formal and Applied Linguistics, Faculty of
 // Mathematics and Physics, Charles University in Prague, Czech Republic.
@@ -10,13 +10,21 @@
 #pragma once
 
 #include "common.h"
+#include "string_piece.h"
 
 namespace ufal {
 namespace parsito {
 
-void iostream_init();
-void iostream_init_binary_input();
-void iostream_init_binary_output();
+class url_detector {
+ public:
+  enum url_type { NO_URL = 0, URL = 1, EMAIL = 2 };
+
+  // Detect whether given string is an url or an email.
+  // If length==nullptr, the whole str must match.
+  // If length!=nullptr, length of longest matching prefix is returned.
+  static url_type detect(string_piece str, size_t* length = nullptr);
+};
 
 } // namespace parsito
 } // namespace ufal
+

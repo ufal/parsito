@@ -1,4 +1,4 @@
-// This file is part of Parsito <http://github.com/ufal/parsito/>.
+// This file is part of UFAL C++ Utils <http://github.com/ufal/cpp_utils/>.
 //
 // Copyright 2015 Institute of Formal and Applied Linguistics, Faculty of
 // Mathematics and Physics, Charles University in Prague, Czech Republic.
@@ -16,8 +16,7 @@
 namespace ufal {
 namespace parsito {
 
-class string_piece {
- public:
+struct string_piece {
   const char* str;
   size_t len;
 
@@ -27,16 +26,16 @@ class string_piece {
   string_piece(const string& str) : str(str.c_str()), len(str.size()) {}
 };
 
+inline ostream& operator<<(ostream& os, const string_piece& str) {
+  return os.write(str.str, str.len);
+}
+
 inline bool operator==(const string_piece& a, const string_piece& b) {
   return a.len == b.len && memcmp(a.str, b.str, a.len) == 0;
 }
 
 inline bool operator!=(const string_piece& a, const string_piece& b) {
   return a.len != b.len || memcmp(a.str, b.str, a.len) != 0;
-}
-
-inline ostream& operator<<(ostream& out, const string_piece& str) {
-  return out.write(str.str, str.len);
 }
 
 } // namespace parsito

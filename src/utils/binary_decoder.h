@@ -1,4 +1,4 @@
-// This file is part of Parsito <http://github.com/ufal/parsito/>.
+// This file is part of UFAL C++ Utils <http://github.com/ufal/cpp_utils/>.
 //
 // Copyright 2015 Institute of Formal and Applied Linguistics, Faculty of
 // Mathematics and Physics, Charles University in Prague, Czech Republic.
@@ -16,7 +16,10 @@
 namespace ufal {
 namespace parsito {
 
+//
 // Declarations
+//
+
 class binary_decoder_error : public runtime_error {
  public:
   explicit binary_decoder_error(const char* description) : runtime_error(description) {}
@@ -42,8 +45,10 @@ class binary_decoder {
   const unsigned char* data_end;
 };
 
-
+//
 // Definitions
+//
+
 unsigned char* binary_decoder::fill(unsigned len) {
   buffer.resize(len);
   data = buffer.data();

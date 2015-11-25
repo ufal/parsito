@@ -30,7 +30,7 @@ void embedding::save(binary_encoder& enc) const {
   enc.add_1B(unknown_index >= 0);
 
   // Save the weights
-  enc.add<float>(weights.data(), weights.size());
+  enc.add_data(weights);
 }
 
 bool embedding::can_update_weights(int id) const {

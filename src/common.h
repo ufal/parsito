@@ -9,27 +9,5 @@
 
 #pragma once
 
-#include <cassert>
-#include <cstddef>
-#include <cstdint>
-#include <cstdlib>
-#include <iomanip>
-#include <iostream>
-#include <memory>
-#include <string>
-#include <vector>
-
-// Assert that int is at least 4B
-static_assert(sizeof(int) >= sizeof(int32_t), "Int must be at least 4B wide!");
-
-namespace ufal {
-namespace parsito {
-
-#define runtime_failure(message) exit((cerr << message << endl, 1))
-
-using namespace std;
-
-} // namespace parsito
-} // namespace ufal
-
+#include "utils/common.h"
 #include "utils/string_piece.h"

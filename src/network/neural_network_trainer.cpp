@@ -367,7 +367,7 @@ void neural_network_trainer::save_matrix(const vector<vector<float>>& m, binary_
 
   for (auto&& row : m) {
     assert(row.size() == m.front().size());
-    enc.add<float>(row.data(), row.size());
+    enc.add_data(row);
   }
 }
 
