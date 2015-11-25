@@ -1,35 +1,33 @@
-include Makefile.builtem
+# This file is part of Parsito <http://github.com/ufal/parsito/>.
+#
+# Copyright 2015 Institute of Formal and Applied Linguistics, Faculty of
+# Mathematics and Physics, Charles University in Prague, Czech Republic.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-EXECUTABLES = parsito_accuracy run_parsito train_parsito
-LIBRARIES = libparsito
+include Makefile.builtem
+include Makefile.lib
+
+EXECUTABLES = $(call exe,parsito_accuracy run_parsito train_parsito)
+LIBRARIES = $(call lib,libparsito)
 
 .PHONY: all exe lib full
 all: exe
-exe: $(call exe,$(EXECUTABLES))
-lib: $(call lib,$(LIBRARIES))
+exe: $(EXECUTABLES)
+lib: $(LIBRARIES)
 full: exe lib
-
-# compilation
-C_FLAGS += $(call include_dir,.)
-
-PARSITO_O = configuration/configuration configuration/node_extractor
-PARSITO_O += configuration/value_extractor embedding/embedding network/neural_network
-PARSITO_O += parser/parser parser/parser_nn transition/transition
-PARSITO_O += transition/transition_system transition/transition_system_link2
-PARSITO_O += transition/transition_system_projective transition/transition_system_swap
-PARSITO_O += tree/tree tree/tree_format unilib/unicode unilib/utf8
-PARSITO_O += utils/compressor_load version/version
 
 # library
 $(call lib,libparsito): $(call obj,$(PARSITO_O))
 	$(call link_lib,$@,$^)
 
+C_FLAGS += $(call include_dir,.)
 # executables
-$(call exe,parsito_accuracy): $(call obj,parsito_accuracy utils/options $(PARSITO_O))
-$(call exe,run_parsito): $(call obj,run_parsito utils/options $(PARSITO_O))
 $(call exe,train_parsito): LD_FLAGS += $(call use_threads)
-$(call exe,train_parsito): $(call obj,train_parsito embedding/embedding_encode network/neural_network_trainer parser/parser_nn_trainer utils/compressor_save utils/options $(PARSITO_O))
-$(call exe,$(EXECUTABLES)):
+$(call exe,train_parsito): $(call obj,embedding/embedding_encode network/neural_network_trainer parser/parser_nn_trainer utils/compressor_save)
+$(EXECUTABLES): $(call exe,%): $$(call obj,% utils/options $(PARSITO_O))
 	$(call link_exe,$@,$^,$(call win_subsystem,console))
 
 # cleaning
