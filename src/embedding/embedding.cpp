@@ -18,9 +18,9 @@
 namespace ufal {
 namespace parsito {
 
-using namespace unilib;
-
 int embedding::lookup_word(const string& word, string& buffer) const {
+  using namespace unilib;
+
   auto it = dictionary.find(word);
   if (it != dictionary.end()) return it->second;
 
