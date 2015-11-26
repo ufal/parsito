@@ -133,8 +133,7 @@ bool parsito_service::handle_rest_parse(microrestd::rest_request& req) {
 
       parser->parse(t);
 
-      output.clear();
-      output_format->append_tree(t, output, input_format.get());
+      output_format->write_tree(t, output, input_format.get());
       json.value(output, true);
 
       return true;

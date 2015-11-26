@@ -80,7 +80,7 @@ class tree_output_format {
  public:
   virtual ~tree_output_format() {}
 
-  virtual void append_tree(const tree& t, std::string& block, const tree_input_format* additional_info = nullptr) const = 0;
+  virtual void write_tree(const tree& t, std::string& output, const tree_input_format* additional_info = nullptr) const = 0;
 
   // Static factory methods
   static tree_output_format* new_output_format(const std::string& name);

@@ -30,9 +30,8 @@ void parse(istream& in, ostream& out, const parser& p, tree_input_format& input_
       p.parse(t);
 
       // Output the parsed tree
-      output_format.append_tree(t, output, &input_format);
+      output_format.write_tree(t, output, &input_format);
       out << output << flush;
-      output.clear();
     }
     if (!error.empty())
       runtime_failure(error);

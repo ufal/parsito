@@ -46,9 +46,8 @@ int main(int argc, char* argv[]) {
       p->parse(t);
 
       // Output the parsed tree
-      output_format->append_tree(t, output, input_format.get());
+      output_format->write_tree(t, output, input_format.get());
       cout << output << flush;
-      output.clear();
     }
     if (!error.empty()) {
       cerr << "Cannot load input: " << error << endl;

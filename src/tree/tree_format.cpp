@@ -146,7 +146,7 @@ bool tree_input_format_conllu::next_tree(tree& t, string& error) {
 // Output CoNLL-U format
 class tree_output_format_conllu : public tree_output_format {
  public:
-  virtual void append_tree(const tree& t, string& block, const tree_input_format* additional_info = nullptr) const override;
+  virtual void write_tree(const tree& t, string& output, const tree_input_format* additional_info = nullptr) const override;
 
  private:
   static const string underscore;
@@ -154,7 +154,9 @@ class tree_output_format_conllu : public tree_output_format {
 };
 const string tree_output_format_conllu::underscore = "_";
 
-void tree_output_format_conllu::append_tree(const tree& t, string& block, const tree_input_format* additional_info) const {
+void tree_output_format_conllu::write_tree(const tree& t, string& output, const tree_input_format* additional_info) const {
+  output.clear();
+
   // Try casting input format to CoNLL-U
   auto input_conllu = dynamic_cast<const tree_input_format_conllu*>(additional_info);
   size_t input_conllu_multiword_tokens = 0;
@@ -162,31 +164,31 @@ void tree_output_format_conllu::append_tree(const tree& t, string& block, const 
   // Comments if present
   if (input_conllu)
     for (auto&& comment : input_conllu->comments)
-      block.append(comment.str, comment.len).push_back('\n');
+      output.append(comment.str, comment.len).push_back('\n');
 
   // Print out the tokens
   for (int i = 1 /*skip the root node*/; i < int(t.nodes.size()); i++) {
     // Write multiword token if present
     if (input_conllu && input_conllu_multiword_tokens < input_conllu->multiword_tokens.size() &&
         i == input_conllu->multiword_tokens[input_conllu_multiword_tokens].first) {
-      block.append(input_conllu->multiword_tokens[input_conllu_multiword_tokens].second.str,
-                   input_conllu->multiword_tokens[input_conllu_multiword_tokens].second.len).push_back('\n');
+      output.append(input_conllu->multiword_tokens[input_conllu_multiword_tokens].second.str,
+                    input_conllu->multiword_tokens[input_conllu_multiword_tokens].second.len).push_back('\n');
       input_conllu_multiword_tokens++;
     }
 
     // Write the token
-    block.append(to_string(i)).push_back('\t');
-    block.append(t.nodes[i].form).push_back('\t');
-    block.append(underscore_on_empty(t.nodes[i].lemma)).push_back('\t');
-    block.append(underscore_on_empty(t.nodes[i].upostag)).push_back('\t');
-    block.append(underscore_on_empty(t.nodes[i].xpostag)).push_back('\t');
-    block.append(underscore_on_empty(t.nodes[i].feats)).push_back('\t');
-    block.append(t.nodes[i].head < 0 ? "_" : to_string(t.nodes[i].head)).push_back('\t');
-    block.append(underscore_on_empty(t.nodes[i].deprel)).push_back('\t');
-    block.append(underscore_on_empty(t.nodes[i].deps)).push_back('\t');
-    block.append(underscore_on_empty(t.nodes[i].misc)).push_back('\n');
+    output.append(to_string(i)).push_back('\t');
+    output.append(t.nodes[i].form).push_back('\t');
+    output.append(underscore_on_empty(t.nodes[i].lemma)).push_back('\t');
+    output.append(underscore_on_empty(t.nodes[i].upostag)).push_back('\t');
+    output.append(underscore_on_empty(t.nodes[i].xpostag)).push_back('\t');
+    output.append(underscore_on_empty(t.nodes[i].feats)).push_back('\t');
+    output.append(t.nodes[i].head < 0 ? "_" : to_string(t.nodes[i].head)).push_back('\t');
+    output.append(underscore_on_empty(t.nodes[i].deprel)).push_back('\t');
+    output.append(underscore_on_empty(t.nodes[i].deps)).push_back('\t');
+    output.append(underscore_on_empty(t.nodes[i].misc)).push_back('\n');
   }
-  block.push_back('\n');
+  output.push_back('\n');
 }
 
 // Input Static factory methods
