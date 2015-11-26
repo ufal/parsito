@@ -23,11 +23,12 @@ class parser {
 
   virtual void parse(tree& t) const = 0;
 
-  static parser* load(const char* file);
-  static parser* load(istream& in);
+  enum { NO_CACHE = 0, FULL_CACHE = 2147483647};
+  static parser* load(const char* file, unsigned cache = 1000);
+  static parser* load(istream& in, unsigned cache = 1000);
 
  protected:
-  virtual void load(binary_decoder& data) = 0;
+  virtual void load(binary_decoder& data, unsigned cache) = 0;
   static parser* create(const string& name);
 };
 

@@ -26,7 +26,7 @@ class parser_nn : public parser {
   virtual void parse(tree& t) const override;
 
  protected:
-  virtual void load(binary_decoder& data) override;
+  virtual void load(binary_decoder& data, unsigned cache) override;
 
  private:
   friend class parser_nn_trainer;

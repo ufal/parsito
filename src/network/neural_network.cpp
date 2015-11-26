@@ -107,7 +107,7 @@ void neural_network::generate_tanh_cache() {
     tanh_cache[i] = tanh(i / 32768.0 - 10);
 }
 
-void neural_network::generate_embeddings_cache(const vector<embedding>& embeddings, embeddings_cache& cache) const {
+void neural_network::generate_embeddings_cache(const vector<embedding>& embeddings, embeddings_cache& cache, unsigned max_words) const {
   unsigned embeddings_dim = 0;
   for (auto&& embedding : embeddings) embeddings_dim += embedding.dimension;
 
@@ -119,7 +119,7 @@ void neural_network::generate_embeddings_cache(const vector<embedding>& embeddin
   cache.resize(embeddings.size());
   for (unsigned i = 0, weight_index = 0; i < embeddings.size(); weight_index += embeddings[i].dimension, i++) {
     unsigned words = 0;
-    while (embeddings[i].weight(words)) words++;
+    while (words < max_words && embeddings[i].weight(words)) words++;
 
     cache[i].resize(words);
     for (unsigned word = 0; word < words; word++) {

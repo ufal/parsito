@@ -26,7 +26,7 @@ class neural_network {
 
   void load(binary_decoder& data);
   void generate_tanh_cache();
-  void generate_embeddings_cache(const vector<embedding>& embeddings, embeddings_cache& cache) const;
+  void generate_embeddings_cache(const vector<embedding>& embeddings, embeddings_cache& cache, unsigned max_words) const;
 
  private:
   friend class neural_network_trainer;

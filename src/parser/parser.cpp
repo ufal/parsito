@@ -16,13 +16,13 @@
 namespace ufal {
 namespace parsito {
 
-parser* parser::load(const char* file) {
+parser* parser::load(const char* file, unsigned cache) {
   ifstream in(file, ifstream::in | ifstream::binary);
   if (!in.is_open()) return nullptr;
-  return load(in);
+  return load(in, cache);
 }
 
-parser* parser::load(istream& in) {
+parser* parser::load(istream& in, unsigned cache) {
   unique_ptr<parser> result;
 
   binary_decoder data;
@@ -35,7 +35,7 @@ parser* parser::load(istream& in) {
     result.reset(create(name));
     if (!result) return nullptr;
 
-    result->load(data);
+    result->load(data, cache);
   } catch (binary_decoder_error&) {
     return nullptr;
   }

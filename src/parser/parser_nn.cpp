@@ -64,7 +64,7 @@ void parser_nn::parse(tree& t) const {
   workspaces.push(w);
 }
 
-void parser_nn::load(binary_decoder& data) {
+void parser_nn::load(binary_decoder& data, unsigned cache) {
   string description, error;
 
   // Load labels
@@ -98,7 +98,7 @@ void parser_nn::load(binary_decoder& data) {
   // Load the network
   network.load(data);
   network.generate_tanh_cache();
-  network.generate_embeddings_cache(embeddings, embeddings_cache);
+  network.generate_embeddings_cache(embeddings, embeddings_cache, cache);
 }
 
 } // namespace parsito
