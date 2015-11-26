@@ -165,17 +165,23 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
       updatable_index = update_weights ? 0 : embeddings_from_file;
     }
 
-    // Add embedding for non-present word with min_count
+    // Add embedding for non-present word with min_count, sorted by count
     {
+      vector<pair<int, string>> count_words;
+      for (auto&& word_count : word_counts)
+        if (word_count.second >= min_count && !weights_set.count(word_count.first))
+          count_words.emplace_back(word_count.second, word_count.first);
+
+      sort(count_words.rbegin(), count_words.rend());
+
       vector<float> word_weights(dimension);
       uniform_real_distribution<float> uniform(-1, 1);
-      for (auto&& word_count : word_counts)
-        if (word_count.second >= min_count && !weights_set.count(word_count.first)) {
-          for (auto&& word_weight : word_weights)
-            word_weight = uniform(generator);
+      for (auto&& count_word : count_words) {
+        for (auto&& word_weight : word_weights)
+          word_weight = uniform(generator);
 
-          weights.emplace_back(word_count.first, word_weights);
-        }
+        weights.emplace_back(count_word.second, word_weights);
+      }
     }
 
     // If there are unknown words in the training data, create initial embedding
