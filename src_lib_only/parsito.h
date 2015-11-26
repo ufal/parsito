@@ -87,6 +87,17 @@ class tree_output_format {
   static tree_output_format* new_conllu_output_format();
 };
 
+// Current Parsito version
+struct version {
+  unsigned major;
+  unsigned minor;
+  unsigned patch;
+  std::string prerelease;
+
+  // Returns current version.
+  static version current();
+};
+
 // Parser
 class parser {
  public:
