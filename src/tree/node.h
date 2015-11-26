@@ -16,17 +16,16 @@ namespace parsito {
 
 class node {
  public:
-  int id; // 0 is root, >0 is sentence node, <0 is undefined
-
-  string form;
-  string lemma;
+  int id;         // 0 is root, >0 is sentence node, <0 is undefined
+  string form;    // form
+  string lemma;   // lemma
   string upostag; // universal part-of-speech tag
-  string xpostag; // language-specific tag
-  string feats; // list of Morphological features
-  int head; // head, 0 is root, <0 is without parent
-  string deprel; // dependency relation to the HEAD
-  string deps; // secondary dependencies
-  string misc; // miscellaneous information
+  string xpostag; // language-specific part-of-speech tag
+  string feats;   // list of morphological features
+  int head;       // head, 0 is root, <0 is without parent
+  string deprel;  // dependency relation to the head
+  string deps;    // secondary dependencies
+  string misc;    // miscellaneous information
 
   vector<int> children;
 

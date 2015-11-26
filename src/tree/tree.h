@@ -19,13 +19,13 @@ class tree {
  public:
   tree();
 
+  vector<node> nodes;
+
   bool empty();
   void clear();
   node& add_node(const string& form);
   void set_head(int id, int head, const string& deprel);
   void unlink_all_nodes();
-
-  vector<node> nodes;
 
   static const string root_form;
 };

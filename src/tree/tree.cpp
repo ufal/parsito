@@ -17,7 +17,7 @@ namespace parsito {
 const string tree::root_form = "<root>";
 
 tree::tree() {
- add_node(root_form);
+  add_node(root_form);
 }
 
 bool tree::empty() {

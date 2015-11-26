@@ -17,6 +17,7 @@
 namespace ufal {
 namespace parsito {
 
+// Parser
 class parser {
  public:
   virtual ~parser() {};
