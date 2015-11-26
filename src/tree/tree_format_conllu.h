@@ -21,7 +21,7 @@ namespace parsito {
 class tree_input_format_conllu : public tree_input_format {
  public:
   virtual bool read_block(istream& in, string& block) const override;
-  virtual void set_text(string_piece block) override;
+  virtual void set_text(string_piece text, bool make_copy = false) override;
   virtual bool next_tree(tree& t) override;
 
  private:
@@ -29,7 +29,8 @@ class tree_input_format_conllu : public tree_input_format {
   vector<string_piece> comments;
   vector<pair<int, string_piece>> multiword_tokens;
 
-  string_piece block;
+  string_piece text;
+  string text_copy;
 };
 
 // Output CoNLL-U format

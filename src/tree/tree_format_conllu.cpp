@@ -28,8 +28,12 @@ bool tree_input_format_conllu::read_block(istream& in, string& block) const {
   return !block.empty();
 }
 
-void tree_input_format_conllu::set_text(string_piece block) {
-  this->block = block;
+void tree_input_format_conllu::set_text(string_piece text, bool make_copy) {
+  if (make_copy) {
+    text_copy.assign(text.str, text.len);
+    text = string_piece(text_copy.c_str(), text_copy.size());
+  }
+  this->text = text;
 }
 
 bool tree_input_format_conllu::next_tree(tree& t) {
@@ -40,12 +44,12 @@ bool tree_input_format_conllu::next_tree(tree& t) {
   int last_multiword_token = 0;
 
   vector<string_piece> tokens, parts;
-  while (block.len) {
+  while (text.len) {
     // Read line
-    string_piece line(block.str, 0);
-    while (line.len < block.len && line.str[line.len] != '\n') line.len++;
-    block.str += line.len + (line.len < block.len);
-    block.len -= line.len + (line.len < block.len);
+    string_piece line(text.str, 0);
+    while (line.len < text.len && line.str[line.len] != '\n') line.len++;
+    text.str += line.len + (line.len < text.len);
+    text.len -= line.len + (line.len < text.len);
 
     // Empty lines denote end of tree, unless at the beginning
     if (!line.len) {

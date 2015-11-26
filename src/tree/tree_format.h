@@ -22,7 +22,7 @@ class tree_input_format {
   virtual ~tree_input_format() {}
 
   virtual bool read_block(istream& in, string& block) const = 0;
-  virtual void set_text(string_piece block) = 0;
+  virtual void set_text(string_piece text, bool make_copy = false) = 0;
   virtual bool next_tree(tree& t) = 0;
   const string& last_error() const;
 
