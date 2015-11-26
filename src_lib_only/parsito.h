@@ -67,8 +67,9 @@ class tree_input_format {
   virtual ~tree_input_format() {}
 
   virtual bool read_block(std::istream& in, std::string& block) const = 0;
-  virtual void set_block(string_piece block) = 0;
-  virtual bool next_tree(tree& t, std::string& error) = 0;
+  virtual void set_text(string_piece block) = 0;
+  virtual bool next_tree(tree& t) = 0;
+  const std::string& last_error() const;
 
   // Static factory methods
   static tree_input_format* new_input_format(const std::string& name);

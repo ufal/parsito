@@ -51,10 +51,10 @@ int main(int argc, char* argv[]) {
   int correct[TOTAL_PUNCTUATION][TOTAL_AS] = {{0, 0}, {0, 0}};
 
   tree t;
-  string input, output, error;
+  string input, output;
   while (input_format->read_block(cin, input)) {
-    input_format->set_block(input);
-    while (input_format->next_tree(t, error)) {
+    input_format->set_text(input);
+    while (input_format->next_tree(t)) {
       tree gold = t;
 
       // Parse the tree
@@ -72,8 +72,8 @@ int main(int argc, char* argv[]) {
           }
       }
     }
-    if (!error.empty())
-      runtime_failure(error);
+    if (!input_format->last_error().empty())
+      runtime_failure(input_format->last_error());
   }
 
   cerr << "Parsing done, in " << fixed << setprecision(3) << (clock() - now) / double(CLOCKS_PER_SEC) << " seconds." << endl;

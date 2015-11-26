@@ -113,20 +113,21 @@ bool parsito_service::handle_rest_parse(microrestd::rest_request& req) {
   unique_ptr<tree_output_format> output_format(get_output_format(req, error)); if (!output_format) return req.respond_error(error);
 
   // Try loading all input trees
-  input_format->set_block(data);
+  input_format->set_text(data);
   tree t;
-  while (input_format->next_tree(t, error)) {}
-  if (!error.empty()) return req.respond_error(error.insert(0, "Cannot parse input data: ").append("\n"));
+  while (input_format->next_tree(t)) {}
+  if (!input_format->last_error().empty())
+    return req.respond_error(error.assign("Cannot parse input data: ").append(input_format->last_error()).append("\n"));
 
   class generator : public rest_response_generator {
    public:
     generator(const model_info* model, const char* data, tree_input_format* input_format, tree_output_format* output_format, const Parser* parser)
         : rest_response_generator(model), input_format(input_format), output_format(output_format), parser(parser) {
-      input_format->set_block(data);
+      input_format->set_text(data);
     }
 
     bool generate() {
-      if (!input_format->next_tree(t, error)) {
+      if (!input_format->next_tree(t)) {
         json.finish(true);
         return false;
       }
@@ -141,7 +142,7 @@ bool parsito_service::handle_rest_parse(microrestd::rest_request& req) {
 
    private:
     tree t;
-    string error, output;
+    string output;
 
     unique_ptr<tree_input_format> input_format;
     unique_ptr<tree_output_format> output_format;

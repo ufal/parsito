@@ -171,18 +171,19 @@ int main(int argc, char* argv[]) {
   if (!input_format)
     runtime_failure("Unknown input format '" << input << "'!");
 
-  string block, error;
+  string block;
   tree t;
   vector<tree> train;
   unsigned train_words = 0;
   cerr << "Loading training data: ";
   while (input_format->read_block(cin, block)) {
-    input_format->set_block(block);
-    while (input_format->next_tree(t, error)) {
+    input_format->set_text(block);
+    while (input_format->next_tree(t)) {
       train.push_back(t);
       train_words += t.nodes.size() - 1;
     }
-    if (!error.empty()) runtime_failure(error);
+    if (!input_format->last_error().empty())
+      runtime_failure(input_format->last_error());
   }
   cerr << train.size() << " sentences with " << train_words << " words." << endl;
 
@@ -195,12 +196,13 @@ int main(int argc, char* argv[]) {
     unsigned heldout_words = 0;
     cerr << "Loading heldout data: ";
     while (input_format->read_block(in, block)) {
-      input_format->set_block(block);
-      while (input_format->next_tree(t, error)) {
+      input_format->set_text(block);
+      while (input_format->next_tree(t)) {
         heldout.push_back(t);
         heldout_words += t.nodes.size() - 1;
       }
-      if (!error.empty()) runtime_failure(error);
+      if (!input_format->last_error().empty())
+        runtime_failure(input_format->last_error());
     }
     cerr << heldout.size() << " sentences with " << train_words << " words." << endl;
   }

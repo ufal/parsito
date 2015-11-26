@@ -21,8 +21,8 @@ namespace parsito {
 class tree_input_format_conllu : public tree_input_format {
  public:
   virtual bool read_block(istream& in, string& block) const override;
-  virtual void set_block(string_piece block) override;
-  virtual bool next_tree(tree& t, string& error) override;
+  virtual void set_text(string_piece block) override;
+  virtual bool next_tree(tree& t) override;
 
  private:
   friend class tree_output_format_conllu;

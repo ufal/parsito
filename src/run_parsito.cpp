@@ -18,14 +18,14 @@
 using namespace ufal::parsito;
 
 void parse(istream& in, ostream& out, const parser& p, tree_input_format& input_format, const tree_output_format& output_format) {
-  string input, output, error;
+  string input, output;
   tree t;
 
   // Read blocks containing input trees
   while (input_format.read_block(in, input)) {
     // Process all trees in the block
-    input_format.set_block(input);
-    while (input_format.next_tree(t, error)) {
+    input_format.set_text(input);
+    while (input_format.next_tree(t)) {
       // Parse the tree
       p.parse(t);
 
@@ -33,8 +33,8 @@ void parse(istream& in, ostream& out, const parser& p, tree_input_format& input_
       output_format.write_tree(t, output, &input_format);
       out << output << flush;
     }
-    if (!error.empty())
-      runtime_failure(error);
+    if (!input_format.last_error().empty())
+      runtime_failure(input_format.last_error());
   }
 }
 

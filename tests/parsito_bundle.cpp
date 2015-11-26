@@ -37,11 +37,11 @@ int main(int argc, char* argv[]) {
 
   clock_t now = clock();
   tree t;
-  string input, output, error;
+  string input, output;
   while (input_format->read_block(cin, input)) {
     // Process all trees in the block
-    input_format->set_block(input);
-    while (input_format->next_tree(t, error)) {
+    input_format->set_text(input);
+    while (input_format->next_tree(t)) {
       // Parse the tree
       p->parse(t);
 
@@ -49,8 +49,8 @@ int main(int argc, char* argv[]) {
       output_format->write_tree(t, output, input_format.get());
       cout << output << flush;
     }
-    if (!error.empty()) {
-      cerr << "Cannot load input: " << error << endl;
+    if (!input_format->last_error().empty()) {
+      cerr << "Cannot load input: " << input_format->last_error() << endl;
       return 1;
     }
   }

@@ -15,6 +15,10 @@
 namespace ufal {
 namespace parsito {
 
+const string& tree_input_format::last_error() const {
+  return error;
+}
+
 // Input Static factory methods
 tree_input_format* tree_input_format::new_conllu_input_format() {
   return new tree_input_format_conllu();

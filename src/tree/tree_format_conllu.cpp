@@ -28,13 +28,13 @@ bool tree_input_format_conllu::read_block(istream& in, string& block) const {
   return !block.empty();
 }
 
-void tree_input_format_conllu::set_block(string_piece block) {
+void tree_input_format_conllu::set_text(string_piece block) {
   this->block = block;
 }
 
-bool tree_input_format_conllu::next_tree(tree& t, string& error) {
-  t.clear();
+bool tree_input_format_conllu::next_tree(tree& t) {
   error.clear();
+  t.clear();
   comments.clear();
   multiword_tokens.clear();
   int last_multiword_token = 0;
