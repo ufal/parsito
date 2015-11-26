@@ -9,15 +9,18 @@
 
 include Makefile.builtem
 include Makefile.lib
+include rest_server/microrestd/Makefile.include
 
 EXECUTABLES = $(call exe,parsito_accuracy run_parsito train_parsito)
+SERVER = $(call exe,rest_server/parsito_server)
 LIBRARIES = $(call lib,libparsito)
 
-.PHONY: all exe lib full
+.PHONY: all exe server lib full
 all: exe
 exe: $(EXECUTABLES)
+server: $(SERVER)
 lib: $(LIBRARIES)
-full: exe lib
+full: exe server lib
 
 # library
 $(call lib,libparsito): $(call obj,$(PARSITO_O))
@@ -27,10 +30,12 @@ C_FLAGS += $(call include_dir,.)
 # executables
 $(call exe,train_parsito): LD_FLAGS += $(call use_threads)
 $(call exe,train_parsito): $(call obj,embedding/embedding_encode network/neural_network_trainer parser/parser_nn_trainer utils/compressor_save)
-$(EXECUTABLES): $(call exe,%): $$(call obj,% utils/options $(PARSITO_O))
+$(call exe,rest_server/parsito_server): LD_FLAGS+=$(call use_library,$(if $(filter win-%,$(PLATFORM)),$(MICRORESTD_LIBRARIES_WIN),$(MICRORESTD_LIBRARIES_POSIX)))
+$(call exe,rest_server/parsito_server): $(call obj,rest_server/parsito_service $(addprefix rest_server/microrestd/,$(MICRORESTD_OBJECTS) $(MICRORESTD_PUGIXML_OBJECTS)))
+$(EXECUTABLES) $(SERVER): $(call exe,%): $$(call obj,% utils/options $(PARSITO_O))
 	$(call link_exe,$@,$^,$(call win_subsystem,console))
 
 # cleaning
 .PHONY: clean
 clean:
-	$(call rm,.build $(call all_exe,$(EXECUTABLES)) $(call all_lib,$(LIBRARIES)))
+	$(call rm,.build $(call all_exe,$(EXECUTABLES) $(SERVER)) $(call all_lib,$(LIBRARIES)))

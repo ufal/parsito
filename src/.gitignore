@@ -3,5 +3,6 @@
 *.swp
 libparsito.*
 parsito_accuracy
+rest_server/parsito_server
 run_parsito
 train_parsito
