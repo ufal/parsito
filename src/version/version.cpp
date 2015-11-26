@@ -7,6 +7,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <sstream>
+
+#include "unilib/version.h"
 #include "version.h"
 
 namespace ufal {
@@ -18,15 +21,20 @@ version version::current() {
 }
 
 // Returns multi-line formated version and copyright string.
-string version::version_and_copyright() {
-  string copyright;
+string version::version_and_copyright(const string& other_libraries) {
+  ostringstream info;
 
   auto parsito = version::current();
+  auto unilib = unilib::version::current();
 
-  return "Parsito version " + to_string(parsito.major) + '.' + to_string(parsito.minor) + '.' + to_string(parsito.patch) +
-      (parsito.prerelease.empty() ? "" : "-") + parsito.prerelease + "\n"
-      "Copyright 2015 by Institute of Formal and Applied Linguistics, Faculty of\n"
-      "Mathematics and Physics, Charles University in Prague, Czech Republic.";
+  info << "Parsito version " << parsito.major << '.' << parsito.minor << '.' << parsito.patch
+       << (parsito.prerelease.empty() ? "" : "-") << parsito.prerelease
+       << " (using UniLib " << unilib.major << '.' << unilib.minor << '.' << unilib.patch
+       << (other_libraries.empty() ? "" : " and ") << other_libraries << ")\n"
+          "Copyright 2015 by Institute of Formal and Applied Linguistics, Faculty of\n"
+          "Mathematics and Physics, Charles University in Prague, Czech Republic.";
+
+  return info.str();
 }
 
 } // namespace parsito
