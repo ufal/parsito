@@ -1,0 +1,4 @@
+This directory contains language bindings of the Parsito library.
+
+An example is provided for every language:
+  run_parsito: same as C++ run_parsito, with conllu input and output format.

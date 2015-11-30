@@ -1,0 +1,4 @@
+/.build/
+/Ufal/
+libparsito_csharp.so
+parsito_csharp.cpp

@@ -1,0 +1,5 @@
+/.build/
+/cz/
+libparsito_java.so
+parsito.jar
+parsito_java.cpp
