@@ -4,9 +4,14 @@ include t2t_docsys/Makefile.include
 .PHONY: all doc web install
 all: doc
 doc: readme.txt readme_md.md
+doc: manual_bindings_csharp.txt manual_bindings_java.txt manual_bindings_perl.txt manual_bindings_python.txt
 install: doc
 	$(call cp,readme.txt,../README)
 	$(call cp,readme_md.md,../README.md)
+	$(call cp,manual_bindings_csharp.txt,../bindings/README.CS)
+	$(call cp,manual_bindings_java.txt,../bindings/README.JAVA)
+	$(call cp,manual_bindings_perl.txt,../bindings/README.PERL)
+	$(call cp,manual_bindings_python.txt,../bindings/README.PYTHON)
 
 %.html: %.t2t $(wildcard *.t2t)
 	$(call t2t_docsys_html,$@,$<,manual $(if $(findstring _,$*),striplevel))

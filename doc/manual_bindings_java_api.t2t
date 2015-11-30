@@ -1,0 +1,15 @@
+Java Parsito Bindings
+========================
+
+Parsito library bindings is available in the ``cz.cuni.mff.ufal.parsito``
+package.
+
+The bindings is a straightforward conversion of the ``C++`` bindings API.
+Vectors do not have native Java interface, see
+``cz.cuni.mff.ufal.parsito.Children`` class for reference. Also, class members
+are accessible and modifiable using using ``getField`` and ``setField``
+wrappers.
+
+The bindings require native C++ library ``libparsito_java`` (called
+``parsito_java`` on Windows). If the library is found in the current
+directory, it is used, otherwise standard library search process is used.

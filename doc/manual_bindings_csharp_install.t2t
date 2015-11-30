@@ -1,0 +1,7 @@
+C# Parsito Bindings
+======================
+
+Binary C# bindings are available in Parsito binary packages.
+
+To compile C# bindings manually, run ``make`` in the ``bindings/csharp``
+directory, optionally with the options descriged in Parsito Installation.
