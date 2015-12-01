@@ -1,0 +1,366 @@
+Parsito API Reference
+========================
+
+The Parsito API is defined in header ``parsito.h`` and resides in
+``ufal::parsito`` namespace. The API allows only using existing models,
+for custom model creation you have to use the ``train_parser`` binary.
+
+The strings used in the Parsito API are always UTF-8 encoded (except from
+file paths, whose encoding is system dependent).
+
+
+== Parsito Versioning ==[versioning]
+
+Parsito is versioned using [Semantic Versioning http://semver.org/].
+Therefore, a version consists of three numbers //major.minor.patch//, optionally
+followed by a hyphen and pre-release version info, with the following semantics:
+
+- Stable versions have no pre-release version info, development have non-empty
+  pre-release version info.
+- Two versions with the same //major.minor// have the same API with the same
+  behaviour, apart from bugs. Therefore, if only //patch// is increased, the
+  new version is only a bug-fix release.
+- If two versions //v// and //u// have the same //major//, but //minor(v)// is
+  greater than //minor(u)//, version //v// contains only additions to the API.
+  In other words, the API of //u// is all present in //v// with the same
+  behaviour (once again apart from bugs). It is therefore safe to upgrade to
+  a newer Parsito version with the same //major//.
+- If two versions differ in //major//, their API may differ in any way.
+
+
+Models created by Parsito have the same behaviour in all Parsito
+versions with same //major//, apart from obvious bugfixes. On the other hand,
+models created from the same data by different //major.minor// Parsito
+versions may have different behaviour.
+
+
+== Struct string_piece ==[string_piece]
+```
+struct string_piece {
+  const char* str;
+  size_t len;
+
+  string_piece();
+  string_piece(const char* str);
+  string_piece(const char* str, size_t len);
+  string_piece(const std::string& str);
+}
+```
+
+The [``string_piece`` #string_piece] is used for efficient string passing. The string
+referenced in [``string_piece`` #string_piece] is not owned by it, so users have to make sure
+the referenced string exists as long as the [``string_piece`` #string_piece].
+
+== Class node ==[node]
+```
+class node {
+ public:
+  int id;              // 0 is root, >0 is sentence node, <0 is undefined
+  std::string form;    // form
+  std::string lemma;   // lemma
+  std::string upostag; // universal part-of-speech tag
+  std::string xpostag; // language-specific part-of-speech tag
+  std::string feats;   // list of morphological features
+  int head;            // head, 0 is root, <0 is without parent
+  std::string deprel;  // dependency relation to the head
+  std::string deps;    // secondary dependencies
+  std::string misc;    // miscellaneous information
+
+  std::vector<int> children;
+
+  node(int id = -1, const std::string& form = std::string())
+};
+```
+
+The [``node`` #node] class represents a word in the dependency tree.
+The [``node`` #node] fields correspond to CoNLL-U fields, which are documented
+[here http://universaldependencies.github.io/docs/format.html], with
+the ``children`` field representing the opposite direction of ``head`` links.
+
+== Class tree ==[tree]
+```
+class tree {
+ public:
+  tree();
+
+  std::vector<[node #node]> nodes;
+
+  bool [empty #tree_empty]();
+  void [clear #tree_clear]();
+  [node #node]& [add_node #tree_add_node](const std::string& form);
+  void [set_head #tree_set_head](int id, int head, const std::string& deprel);
+  void [unlink_all_nodes #tree_unlink_all_nodes]();
+
+  static const std::string root_form;
+};
+```
+
+The [``tree`` #tree] class represents dependency trees of word nodes.
+Note that the first node (with index 0) is always a technical root, whose
+form is ``root_form``.
+
+Although you can manipulate with the ``nodes`` directly, the [``tree`` #tree]
+class offers several simple node manipulation methods.
+
+
+=== tree::empty() ===[tree_empty]
+``` bool empty();
+
+Returns ``true`` if the tree is empty. i.e., if it contains only a technical root node.
+
+=== tree::clear() ===[tree_clear]
+``` void clear();
+
+Removes all tree nodes but the technical root node.
+
+=== tree::add_node() ===[tree_add_node]
+``` [node #node]& add_node(const std::string& form);
+
+Adds a new node to the tree. The new node has first unused ``id``, specified ``form``
+and is not linked to any other node. Reference to the new node is returned
+so that other fields can be also filled.
+
+=== tree:set_head() ===[tree_set_head]
+``` void set_head(int id, int head, const std::string& deprel);
+
+Link the node ``id`` to the node ``head``, with the specified dependency relation.
+If the ``head`` is negative, the node ``id`` is unlinked from its current head,
+if any.
+
+=== tree::unlink_all_nodes() ===[tree_unlink_all_nodes]
+``` void unlink_all_nodes();
+
+Unlink all nodes.
+
+== Class tree_input_format ==[tree_input_format]
+```
+class tree_input_format {
+ public:
+  virtual ~tree_input_format() {}
+
+  virtual bool [read_block #tree_input_format_read_block](std::istream& in, std::string& block) const = 0;
+  virtual void [set_text #tree_input_format_set_text]([string_piece #string_piece] text, bool make_copy = false) = 0;
+  virtual bool [next_tree #tree_input_format_next_tree]([tree #tree]& t) = 0;
+  const std::string& [last_error #tree_input_format_last_error]() const;
+
+  // Static factory methods
+  static [tree_input_format #tree_input_format]* [new_input_format #tree_input_format_new_input_format](const std::string& name);
+  static [tree_input_format #tree_input_format]* [new_conllu_input_format #tree_input_format_new_conllu_input_format]();
+};
+```
+
+The [``tree_input_format`` #tree_input_format] class allows loading dependency trees
+in various formats.
+
+=== tree_input_format::read_block() ===[tree_input_format_read_block]
+``` virtual bool read_block(std::istream& in, std::string& block) const = 0;
+
+Load from a specified input stream reasonably small text block, which contains
+complete trees (i.e., the last tree in the block is not incomplete).
+
+Such a text block might be for example a paragraph separated by an empty line.
+
+=== tree_input_format::set_text() ===[tree_input_format_set_text]
+``` virtual void set_text([string_piece #string_piece] text, bool make_copy = false) = 0;
+
+Set the text from which the dependency trees will be read.
+
+If ``make_copy`` is ``false``, only a reference to the given text is
+stored and the user has to make sure it exists until the instance
+is destroyed or ``set_text`` is called again. If ``make_copy``
+is ``true``, a copy of the given text is made and retained until the
+instance is destroyed or ``set_text`` is called again.
+
+=== tree_input_format::next_tree() ===[tree_input_format_next_tree]
+``` virtual bool next_tree([tree #tree]& t) = 0;
+
+Try reading another dependency tree from the text specified by
+[``set_text`` #tree_input_format_set_text]. Returns ``true`` if
+a tree was read and ``false`` if the text ended of there was a read error.
+
+If the format contains additional information in addition to the fields stored
+in the [``tree`` #tree], it is stored in the
+[``tree_input_format`` #tree_input_format] instance, and can be printed using
+a corresponding [``tree_output_format`` #tree_output_format].
+Note that this additional information is stored only for the
+last tree read.
+
+=== tree_input_format::last_error() ===[tree_input_format_last_error]
+``` const std::string& last_error() const;
+
+Returns an error which occurred during the last
+[``next_tree`` #tree_input_format_next_tree]. If no error occurred,
+the returned string is empty.
+
+=== tree_input_format::new_input_format() ===[tree_input_format_new_input_format]
+``` static [tree_input_format #tree_input_format]* new_input_format(const std::string& name);
+
+Create new [``tree_input_format`` #tree_input_format] instance, given its name.
+The following input formats are currently supported:
+- ``conllu``
+-
+The new instance must be deleted after use.
+
+
+=== tree_input_format::new_conllu_input_format() ===[tree_input_format_new_conllu_input_format]
+``` static [tree_input_format #tree_input_format]* new_conllu_input_format();
+
+Creates [``tree_input_format`` #tree_input_format] instance which loads
+dependency trees in the
+[CoNLL-U format http://universaldependencies.github.io/docs/format.html].
+The new instance must be deleted after use.
+
+Note that even if sentence comments and multi-word tokens are not stored in the
+[``tree`` #tree] instance, they can be printed using a corresponding
+CoNLL-U [``tree_output_format`` #tree_output_format] instance.
+
+
+== Class tree_output_format ==[tree_output_format]
+```
+class tree_output_format {
+ public:
+  virtual ~tree_output_format() {}
+
+  virtual void [write_tree #tree_output_format_write_tree](const [tree #tree]& t, std::string& output, const [tree_input_format #tree_input_format]* additional_info = nullptr) const = 0;
+
+  // Static factory methods
+  static [tree_output_format #tree_output_format]* [new_output_format #tree_output_format_new_output_format](const std::string& name);
+  static [tree_output_format #tree_output_format]* [new_conllu_output_format #tree_output_format_new_conllu_output_format]();
+};
+```
+
+The [``tree_output_format`` #tree_output_format] class allows printing
+dependency trees in various formats. If the format contains additional
+information in addition to the fields stored in the [``tree`` #tree],
+it can be printed using a corresponding [``tree_output_format`` #tree_output_format].
+
+=== tree_output_format::write_tree() ===[tree_output_format_write_tree]
+``` virtual void write_tree(const [tree #tree]& t, std::string& output, const [tree_input_format #tree_input_format]* additional_info = nullptr) const = 0;
+
+Prints a dependency [``tree`` #tree] to the specified string.
+
+If the tree was read using a [``tree_input_format`` #tree_input_format] instance,
+this instance may store additional information, which may be printed by the
+[``tree_output_format`` #tree_output_format] instance. Note that this additional
+information is stored only for the tree last read with
+[``tree_input_format::next_tree`` ##tree_input_format_next_tree].
+
+=== tree_output_format::new_output_format() ===[tree_output_format_new_output_format]
+``` static [tree_output_format #tree_output_format]* new_output_format(const std::string& name);
+
+Create new [``tree_output_format`` #tree_output_format] instance, given its name.
+The following output formats are currently supported:
+- ``conllu``
+-
+The new instance must be deleted after use.
+
+=== tree_output_format::new_conllu_output_format() ===[tree_output_format_new_conllu_output_format]
+``` static [tree_output_format #tree_output_format]* new_conllu_output_format();
+
+Creates [``tree_output_format`` #tree_output_format] instance which loads
+dependency trees in the
+[CoNLL-U format http://universaldependencies.github.io/docs/format.html].
+The new instance must be deleted after use.
+
+Note that even if sentence comments and multi-word tokens are not stored in the
+[``tree`` #tree] instance, they can be printed using this instance.
+
+
+== Class parser ==[parser]
+```
+class parser {
+ public:
+  virtual ~parser() {};
+
+  virtual void [parse #parser_parse]([tree #tree]& t) const = 0;
+
+  enum { NO_CACHE = 0, FULL_CACHE = 2147483647};
+  static [parser #parser]* [load #parser_load_cstring](const char* file, unsigned cache = 1000);
+  static [parser #parser]* [load #parser_load_istream](std::istream& in, unsigned cache = 1000);
+};
+```
+
+The [``parser`` #parser] class allows parsing given sentence,
+using an existing parser model.
+
+=== parser::parse() ===[parser_parse]
+``` virtual void parse([tree #tree]& t) const = 0;
+
+Parses the sentence (passed in the [``tree`` #tree] instance)
+and returns a dependency tree. If there are any links in the
+input tree, they are discarded using
+[``tree::unlink_all_nodes`` #tree_unlink_all_nodes] first.
+
+=== parser::load(const char*) ===[parser_load_cstring]
+``` static [parser #parser]* load(const char* file, unsigned cache = 1000);
+
+Loads parser model from a specified file. Returns a pointer to a new
+instance of [``parser`` #parser] which must be deleted after use.
+
+The ``cache`` argument specifies caching level, with ``NO_CACHE`` representing
+no caching and ``FULL_CACHE`` maximum caching. Although the interpretation
+of this argument depends on the parser used, you can consider it as a number
+of most frequent forms/lemmas/tags to cache (either during model loading
+or during parsing).
+
+=== parser::load(istream&) ===[parser_load_istream]
+``` static [parser #parser]* load(std::istream& in, unsigned cache = 1000);
+
+Loads parser model from the given input stream. The input stream is not
+closed after loading. Returns a pointer to a new instance of [``parser``
+#parser] which must be deleted after use.
+
+The ``cache`` argument specifies caching level, with ``NO_CACHE`` representing
+no caching and ``FULL_CACHE`` maximum caching. Although the interpretation
+of this argument depends on the parser used, you can consider it as a number
+of most frequent forms/lemmas/tags to cache (either during model loading
+or during parsing).
+
+
+== Class version ==[version]
+```
+class version {
+ public:
+  unsigned major;
+  unsigned minor;
+  unsigned patch;
+  std::string prerelease;
+
+  static [version #version] [current #version_current]();
+};
+```
+
+The [``version`` #version] class represents Parsito version.
+See [Parsito Versioning #versioning] for more information.
+
+=== version::current ===[version_current]
+``` static [version #version] current();
+
+Returns current Parsito version.
+
+
+== C++ Bindings API ==[cpp_bindings_api]
+
+Bindings for other languages than C++ are created using SWIG from the C++
+bindings API, which is a slightly modified version of the native C++ API.
+Main changes are replacement of [``string_piece`` #string_piece] type by native
+strings and removal of methods using ``istream``. Here is the C++ bindings API
+declaration:
+
+%!include: manual_bindings_api.t2t
+
+== C# Bindings ==[csharp_bindings]
+
+%!include: manual_bindings_csharp_api.t2t
+
+== Java Bindings ==[java_bindings]
+
+%!include: manual_bindings_java_api.t2t
+
+== Perl Bindings ==[perl_bindings]
+
+%!include: manual_bindings_perl_api.t2t
+
+== Python Bindings ==[python_bindings]
+
+%!include: manual_bindings_python_api.t2t
