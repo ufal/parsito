@@ -3,11 +3,13 @@ include t2t_docsys/Makefile.include
 
 .PHONY: all doc web install
 all: doc
-doc: readme.txt readme_md.md
+doc: readme.txt readme_md.md manual_install.txt
 doc: manual_bindings_csharp.txt manual_bindings_java.txt manual_bindings_perl.txt manual_bindings_python.txt
+web: web_install.html
 install: doc
 	$(call cp,readme.txt,../README)
 	$(call cp,readme_md.md,../README.md)
+	$(call cp,manual_install.txt,../INSTALL)
 	$(call cp,manual_bindings_csharp.txt,../bindings/README.CS)
 	$(call cp,manual_bindings_java.txt,../bindings/README.JAVA)
 	$(call cp,manual_bindings_perl.txt,../bindings/README.PERL)
