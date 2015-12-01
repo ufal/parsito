@@ -1,0 +1,6 @@
+Parsito
+=======
+
+To use this model, you need Parsito, an open-source tool for dependency parsing
+of natural language texts. Please visit the Parsito website
+http://ufal.mff.cuni.cz/parsito for more information.

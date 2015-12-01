@@ -1,0 +1,119 @@
+Parsito
+Version 0.9.0-devel
+
+= Introduction =[introduction]
+
+%!include: manual_about.t2t
+
+
+= Online =[online]
+
+%!include: manual_online.t2t
+
+
+= Release =[release]
+
+== Download ==[download]
+
+Parsito releases are available on [GitHub http://github.com/ufal/parsito], either as
+a pre-compiled binary package, or source code only. The binary package contains Linux,
+Windows and OS X binaries, Java bindings binary, C# bindings binary, and source
+code of Parsito and all language bindings). While the binary
+packages do not contain compiled Python or Perl bindings, packages for those
+languages are available in standard package repositories, i.e. on PyPI and CPAN.
+
+- [Latest release http://github.com/ufal/parsito/releases/latest]
+- [All releases http://github.com/ufal/parsito/releases], [Changelog https://github.com/ufal/parsito/blob/master/CHANGES]
+
+
+=== Language Models ===[language_models]
+
+To use Parsito, a language model is needed. The language models are available
+from [LINDAT/CLARIN http://www.lindat.cz] infrastructure and described further
+in the
+%web% [Parsito User's Manual parsito/users-manual].
+%manual% [Parsito User's Manual #users_manual].
+Currently the following language models are available:
+
+- Universal Dependencies 1.2 Models: [parsito-ud1.2-151120 http://hdl.handle.net/11234/1-1573] ([documentation http://ufal.mff.cuni.cz/parsito/users-manual#universal_dependencies_12_models])
+
+
+== License ==[license]
+
+Parsito is an open-source project and is freely available for non-commercial
+purposes. The library is distributed under
+[Mozilla Public License 2.0 http://www.mozilla.org/MPL/2.0/] and the associated models and data
+under [CC BY-NC-SA http://creativecommons.org/licenses/by-nc-sa/4.0/], although
+for some models the original data used to create the model may impose
+additional licensing conditions.
+
+If you use this tool for scientific work, please give credit to us by
+referencing [Straka et al. 2015 #bibtex_for_referencing] and
+[Parsito website http://ufal.mff.cuni.cz/parsito].
+
+== Platforms and Requirements ==[platforms_and_requirements]
+
+Parsito is available as a standalone tool and as a library for Linux/Windows/OS
+X. It does not require any additional libraries. As any supervised machine
+learning tool, it needs trained linguistic models to perform dependency
+parsing.
+
+
+= Parsito Installation =[instalation]
+
+%web% [Parsito Installation on separate page. parsito/install]
+%manual% %!include: manual_install.t2t
+
+
+= Parsito User's Manual =[users_manual]
+
+%web% [Parsito User's Manual on separate page. parsito/users-manual]
+%manual% %!include: manual_user.t2t
+
+
+= Parsito API Reference =[api_reference]
+
+%web% [Parsito API Reference on separate page. parsito/api-reference]
+%manual% %!include: manual_api_reference.t2t
+
+
+= Contact =[contact]
+
+Authors:
+- [Milan Straka http://ufal.mff.cuni.cz/milan-straka], straka@ufal.mff.cuni.cz
+
+
+[Parsito website http://ufal.mff.cuni.cz/parsito].
+
+[Parsito LINDAT/CLARIN entry http://hdl.handle.net/11234/1-1584].
+
+
+= Acknowledgements =[parsito_acknowledgements]
+
+This work has been using language resources developed and/or stored and/or distributed by the LINDAT/CLARIN project of the Ministry of Education of the Czech Republic (project //LM2010013//).
+
+%web% Acknowledgements for individual language models are listed in [Parsito User's Manual page parsito/users-manual].
+%manual% Acknowledgements for individual language models are listed in [Parsito User's Manual #users_manual].
+
+
+== Publications ==[publications]
+
+- (Straka et al. 2015) Straka Milan, Hajič Jan, Straková Jana and Hajič Jan jr. //Parsing Universal Dependency Treebanks using Neural Networks and Search-Based Oracle.// In Proceedings of the Fourteenth International Workshop on Treebanks and Linguistic Theories ({TLT\,14}), December 2015.
+-
+
+== Bibtex for Referencing ==[bibtex_for_referencing]
+
+```
+@InProceedings{udparsing:2015,
+  author    = {Straka, Milan and Haji\v{c}, Jan and Strakov\'{a}, Jana and Haji\v{c} jr., Jan},
+  title     = {Parsing Universal Dependency Treebanks using Neural Networks and Search-Based Oracle},
+  booktitle = {Proceedings of Fourteenth International Workshop on Treebanks and Linguistic Theories ({TLT\,14})},
+  month     = {December},
+  year      = {2015},
+}
+```
+
+== Permanent Identifier ==[permanent_identifier]
+
+If you prefer to reference Parsito by a permanent identifier (PID),
+you can use ``http://hdl.handle.net/11234/1-1584``.

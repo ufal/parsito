@@ -1,0 +1,28 @@
+Parsito User's Manual
+=====================
+
+In a natural language text, the task of dependency parsing is to assign for
+each word in a sentence its dependency head and dependency relation
+to the head.
+
+Parsito is a transition-based parser, which greedily chooses transitions
+from the initial state (all words in a sentence unlinked) to the final
+state (full dependency tree). It uses an artificial neural network classifier
+in every state to choose the next transition to perform. Further details
+are described in //(Straka el al. 2015, Parsing Universal Dependency Treebanks using Neural Networks and Search-Based Oracle)//.
+
+Like any supervised machine learning tool, Parsito needs a trained linguistic model.
+This section describes the available language models and also the commandline
+tools and interfaces.
+
+
+%!include: manual_model_ud-1.2.t2t
+
+
+== Running the Parser ==[run_parsito]
+
+TODO
+
+== Training Custom Parser Models ==[model_training]
+
+TODO

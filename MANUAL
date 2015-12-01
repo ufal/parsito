@@ -1,0 +1,882 @@
+Parsito
+Version 0.9.0-devel
+
+Introduction
+============
+
+Parsito is a fast open-source dependency parser written in C++. Parsito is based
+on greedy transition-based parsing, it has very high accuracy and achieves a
+throughput of 30K words per second. Parsito can be trained on any input data
+without feature engineering, because it utilizes artificial neural network
+classifier. Trained models for all treebanks from Universal Dependencies project
+are available (37 treebanks as of Dec 2015).
+
+Parsito is a free software under Mozilla Public License 2.0
+(http://www.mozilla.org/MPL/2.0/) and the linguistic models are free for
+non-commercial use and distributed under CC BY-NC-SA
+(http://creativecommons.org/licenses/by-nc-sa/4.0/) license, although for some
+models the original data used to create the model may impose additional
+licensing conditions. Parsito is versioned using Semantic Versioning
+(http://semver.org/).
+
+Copyright 2015 by Institute of Formal and Applied Linguistics, Faculty of
+Mathematics and Physics, Charles University in Prague, Czech Republic.
+
+
+Online
+======
+
+
+Online Demo
+-----------
+
+Online demo (http://lindat.mff.cuni.cz/services/parsito/) is available as one of
+LINDAT/CLARIN services (http://lindat.mff.cuni.cz/services/).
+
+
+Web Service
+-----------
+
+Web service (http://lindat.mff.cuni.cz/services/parsito/api-reference.php) is
+also available as one of LINDAT/CLARIN services
+(http://lindat.mff.cuni.cz/services/).
+
+
+Release
+=======
+
+
+Download
+--------
+
+Parsito releases are available on GitHub (http://github.com/ufal/parsito),
+either as a pre-compiled binary package, or source code only. The binary package
+contains Linux, Windows and OS X binaries, Java bindings binary, C# bindings
+binary, and source code of Parsito and all language bindings). While the binary
+packages do not contain compiled Python or Perl bindings, packages for those
+languages are available in standard package repositories, i.e. on PyPI and CPAN.
+
+- Latest release (http://github.com/ufal/parsito/releases/latest)
+- All releases (http://github.com/ufal/parsito/releases), Changelog
+  (https://github.com/ufal/parsito/blob/master/CHANGES)
+
+
+Language Models
+---------------
+
+To use Parsito, a language model is needed. The language models are available
+from LINDAT/CLARIN (http://www.lindat.cz) infrastructure and described further
+in the Parsito User's Manual. Currently the following language models are
+available:
+
+- Universal Dependencies 1.2 Models: parsito-ud1.2-151120
+  (http://hdl.handle.net/11234/1-1573) (documentation
+  (http://ufal.mff.cuni.cz/parsito/users-manual#universal_dependencies_12_models))
+
+
+
+License
+-------
+
+Parsito is an open-source project and is freely available for non-commercial
+purposes. The library is distributed under Mozilla Public License 2.0
+(http://www.mozilla.org/MPL/2.0/) and the associated models and data under CC
+BY-NC-SA (http://creativecommons.org/licenses/by-nc-sa/4.0/), although for some
+models the original data used to create the model may impose additional
+licensing conditions.
+
+If you use this tool for scientific work, please give credit to us by
+referencing Straka et al. 2015 and Parsito website
+(http://ufal.mff.cuni.cz/parsito).
+
+
+Platforms and Requirements
+--------------------------
+
+Parsito is available as a standalone tool and as a library for Linux/Windows/OS
+X. It does not require any additional libraries. As any supervised machine
+learning tool, it needs trained linguistic models to perform dependency parsing.
+
+
+Parsito Installation
+====================
+
+Parsito releases are available on GitHub (http://github.com/ufal/parsito),
+either as a pre-compiled binary package, or source code only. The binary package
+contains Linux, Windows and OS X binaries, Java bindings binary, C# bindings
+binary, and source code of Parsito and all language bindings. While the binary
+packages do not contain compiled Python or Perl bindings, packages for those
+languages are available in standard package repositories, i.e. on PyPI and CPAN.
+
+To use Parsito, a language model is needed. Here is a list of available language
+models (http://ufal.mff.cuni.cz/parsito#language_models).
+
+If you want to compile Parsito manually, sources are available on on GitHub
+(http://github.com/ufal/parsito), both in the pre-compiled binary package
+releases (http://github.com/ufal/parsito/releases) and in the repository itself.
+
+
+Requirements
+------------
+
+- G++ 4.7 or newer, clang 3.2 or newer, Visual C++ 2015 or newer
+- make
+- SWIG 2.0.5 or newer for language bindings other than C++
+
+
+Compilation
+-----------
+
+To compile Parsito, run make in the src directory.
+
+Make targets and options:
+- exe: compile the binaries (default)
+- server: compile the REST server
+- tools: compile various tools
+- lib: compile the shared (dynamically loaded) library
+- BITS=32 or BITS=64: compile for specified 32-bit or 64-bit architecture
+  instead of the default one
+- mode=RELEASE: create release build which statically links the C++ runtime and
+  uses LTO
+- mode=DEBUG: create debug build
+- mode=PROFILE: create profile build
+
+
+Platforms
+---------
+
+Platform can be selected using one of the following options:
+- PLATFORM=linux, PLATFORM=linux-gcc: gcc compiler on Linux operating system,
+  default on Linux
+- PLATFORM=linux-clang: clang compiler on Linux, must be selected manually
+- PLATFORM=osx, PLATFORM=osx-clang: clang compiler on OS X, default on OS X;
+  BITS=32+64 enables multiarch build
+- PLATFORM=win, PLATFORM=win-gcc: gcc compiler on Windows (TDM-GCC is well
+  tested), default on Windows
+- PLATFORM=win-vs: Visual C++ 2015 compiler on Windows, must be selected
+  manually; note that the cl.exe compiler must be already present in PATH and
+  corresponding BITS=32 or BITS=64 must be specified
+
+Either POSIX shell or Windows CMD can be used as shell, it is detected
+automatically.
+
+
+Further Details
+---------------
+
+Parsito uses C++ BuilTem system (http://github.com/ufal/cpp_builtem), please
+refer to its manual if interested in all supported options.
+
+
+Other language bindings
+-----------------------
+
+
+C#
+--
+
+Binary C# bindings are available in Parsito binary packages.
+
+To compile C# bindings manually, run make in the bindings/csharp directory,
+optionally with the options descriged in Parsito Installation.
+
+
+Java
+----
+
+Binary Java bindings are available in Parsito binary packages.
+
+To compile Java bindings manually, run make in the bindings/java directory,
+optionally with the options descriged in Parsito Installation. Java 6 and newer
+is supported.
+
+The Java installation specified in the environment variable JAVA_HOME is used.
+If the environment variable does not exist, the JAVA_HOME can be specified using
+  make JAVA_HOME=path_to_Java_installation
+
+
+Perl
+----
+
+The Perl bindings are available as Ufal-Parsito package on CPAN.
+
+To compile Perl bindings manually, run make in the bindings/perl directory,
+optionally with the options descriged in Parsito Installation. Perl 5.10 and
+later is supported.
+
+Path to the include headers of the required Perl version must be specified in
+the PERL_INCLUDE variable using
+  make PERL_INCLUDE=path_to_Perl_includes
+
+
+Python
+------
+
+The Python bindings are available as ufal.parsito package on PyPI.
+
+To compile Python bindings manually, run make in the bindings/python directory,
+optionally with options descriged in Parsito Installation. Both Python 2.6+ and
+Python 3+ are supported.
+
+Path to the include headers of the required Python version must be specified in
+the PYTHON_INCLUDE variable using
+  make PYTHON_INCLUDE=path_to_Python_includes
+
+
+Parsito User's Manual
+=====================
+
+In a natural language text, the task of dependency parsing is to assign for each
+word in a sentence its dependency head and dependency relation to the head.
+
+Parsito is a transition-based parser, which greedily chooses transitions from
+the initial state (all words in a sentence unlinked) to the final state (full
+dependency tree). It uses an artificial neural network classifier in every state
+to choose the next transition to perform. Further details are described in
+(Straka el al. 2015, Parsing Universal Dependency Treebanks using Neural
+Networks and Search-Based Oracle).
+
+Like any supervised machine learning tool, Parsito needs a trained linguistic
+model. This section describes the available language models and also the
+commandline tools and interfaces.
+
+
+Universal Dependencies 1.2 Models
+---------------------------------
+
+Universal Dependencies 1.2 Models are distributed under the CC BY-NC-SA
+(http://creativecommons.org/licenses/by-nc-sa/4.0/) licence. The models are
+based solely on Universal Dependencies 1.2 (http://hdl.handle.net/11234/1-1548)
+treebanks. The models work in Parsito version 1.0.
+
+Universal Dependencies 1.2 Models are versioned according to the date released
+in the format YYMMDD, where YY, MM and DD are two-digit representation of year,
+month and day, respectively. The latest version is 151120.
+
+
+Download
+--------
+
+The latest version 151120 of the Czech MorphoDiTa models can be downloaded from
+LINDAT/CLARIN repository (http://hdl.handle.net/11234/1-1573).
+
+
+Acknowledgements
+----------------
+
+This work has been using language resources developed and/or stored and/or
+distributed by the LINDAT/CLARIN project of the Ministry of Education of the
+Czech Republic (project LM2010013).
+
+The models were trained on Universal Dependencies 1.2
+(http://hdl.handle.net/11234/1-1548) treebanks.
+
+
+Publications
+------------
+
+- (Straka et al. 2015) Straka Milan, Hajič Jan, Straková Jana and Hajič Jan
+  jr. Parsing Universal Dependency Treebanks using Neural Networks and
+  Search-Based Oracle. In Proceedings of the Fourteenth International Workshop
+  on Treebanks and Linguistic Theories ({TLT\,14}), December 2015.
+
+
+Model Description
+-----------------
+
+The parsing models use the following CoNLL-U
+(http://universaldependencies.github.io/docs/format.html) fields during parsing:
+- `form`
+- `upostag`
+- `feats`
+
+All other fields (notably `lemma` and `xpostag`) are currently ignored.
+
+Some language models produce non-projective trees and some projective trees,
+depending on which transition system performed better on development data.
+
+
+Running the Parser
+------------------
+
+TODO
+
+
+Training Custom Parser Models
+-----------------------------
+
+TODO
+
+
+Parsito API Reference
+=====================
+
+The Parsito API is defined in header parsito.h and resides in ufal::parsito
+namespace. The API allows only using existing models, for custom model creation
+you have to use the train_parser binary.
+
+The strings used in the Parsito API are always UTF-8 encoded (except from file
+paths, whose encoding is system dependent).
+
+
+Parsito Versioning
+------------------
+
+Parsito is versioned using Semantic Versioning (http://semver.org/). Therefore,
+a version consists of three numbers major.minor.patch, optionally followed by a
+hyphen and pre-release version info, with the following semantics:
+
+- Stable versions have no pre-release version info, development have non-empty
+  pre-release version info.
+- Two versions with the same major.minor have the same API with the same
+  behaviour, apart from bugs. Therefore, if only patch is increased, the new
+  version is only a bug-fix release.
+- If two versions v and u have the same major, but minor(v) is greater than
+  minor(u), version v contains only additions to the API. In other words, the
+  API of u is all present in v with the same behaviour (once again apart from
+  bugs). It is therefore safe to upgrade to a newer Parsito version with the
+  same major.
+- If two versions differ in major, their API may differ in any way.
+
+Models created by Parsito have the same behaviour in all Parsito versions with
+same major, apart from obvious bugfixes. On the other hand, models created from
+the same data by different major.minor Parsito versions may have different
+behaviour.
+
+
+Struct string_piece
+-------------------
+
+  struct string_piece {
+    const char* str;
+    size_t len;
+
+    string_piece();
+    string_piece(const char* str);
+    string_piece(const char* str, size_t len);
+    string_piece(const std::string& str);
+  }
+
+The string_piece is used for efficient string passing. The string referenced in
+string_piece is not owned by it, so users have to make sure the referenced
+string exists as long as the string_piece.
+
+
+Class node
+----------
+
+  class node {
+   public:
+    int id;              // 0 is root, >0 is sentence node, <0 is undefined
+    std::string form;    // form
+    std::string lemma;   // lemma
+    std::string upostag; // universal part-of-speech tag
+    std::string xpostag; // language-specific part-of-speech tag
+    std::string feats;   // list of morphological features
+    int head;            // head, 0 is root, <0 is without parent
+    std::string deprel;  // dependency relation to the head
+    std::string deps;    // secondary dependencies
+    std::string misc;    // miscellaneous information
+
+    std::vector<int> children;
+
+    node(int id = -1, const std::string& form = std::string())
+  };
+
+The node class represents a word in the dependency tree. The node fields
+correspond to CoNLL-U fields, which are documented here
+(http://universaldependencies.github.io/docs/format.html), with the children
+field representing the opposite direction of head links.
+
+
+Class tree
+----------
+
+  class tree {
+   public:
+    tree();
+
+    std::vector<node> nodes;
+
+    bool empty();
+    void clear();
+    node& add_node(const std::string& form);
+    void set_head(int id, int head, const std::string& deprel);
+    void unlink_all_nodes();
+
+    static const std::string root_form;
+  };
+
+The tree class represents dependency trees of word nodes. Note that the first
+node (with index 0) is always a technical root, whose form is root_form.
+
+Although you can manipulate with the nodes directly, the tree class offers
+several simple node manipulation methods.
+
+
+tree::empty()
+-------------
+
+  bool empty();
+
+Returns true if the tree is empty. i.e., if it contains only a technical root
+node.
+
+
+tree::clear()
+-------------
+
+  void clear();
+
+Removes all tree nodes but the technical root node.
+
+
+tree::add_node()
+----------------
+
+  node& add_node(const std::string& form);
+
+Adds a new node to the tree. The new node has first unused id, specified form
+and is not linked to any other node. Reference to the new node is returned so
+that other fields can be also filled.
+
+
+tree:set_head()
+---------------
+
+  void set_head(int id, int head, const std::string& deprel);
+
+Link the node id to the node head, with the specified dependency relation. If
+the head is negative, the node id is unlinked from its current head, if any.
+
+
+tree::unlink_all_nodes()
+------------------------
+
+  void unlink_all_nodes();
+
+Unlink all nodes.
+
+
+Class tree_input_format
+-----------------------
+
+  class tree_input_format {
+   public:
+    virtual ~tree_input_format() {}
+
+    virtual bool read_block(std::istream& in, std::string& block) const = 0;
+    virtual void set_text(string_piece text, bool make_copy = false) = 0;
+    virtual bool next_tree(tree& t) = 0;
+    const std::string& last_error() const;
+
+    // Static factory methods
+    static tree_input_format* new_input_format(const std::string& name);
+    static tree_input_format* new_conllu_input_format();
+  };
+
+The tree_input_format class allows loading dependency trees in various formats.
+
+
+tree_input_format::read_block()
+-------------------------------
+
+  virtual bool read_block(std::istream& in, std::string& block) const = 0;
+
+Load from a specified input stream reasonably small text block, which contains
+complete trees (i.e., the last tree in the block is not incomplete).
+
+Such a text block might be for example a paragraph separated by an empty line.
+
+
+tree_input_format::set_text()
+-----------------------------
+
+  virtual void set_text(string_piece text, bool make_copy = false) = 0;
+
+Set the text from which the dependency trees will be read.
+
+If make_copy is false, only a reference to the given text is stored and the user
+has to make sure it exists until the instance is destroyed or set_text is called
+again. If make_copy is true, a copy of the given text is made and retained until
+the instance is destroyed or set_text is called again.
+
+
+tree_input_format::next_tree()
+------------------------------
+
+  virtual bool next_tree(tree& t) = 0;
+
+Try reading another dependency tree from the text specified by set_text. Returns
+true if a tree was read and false if the text ended of there was a read error.
+
+If the format contains additional information in addition to the fields stored
+in the tree, it is stored in the tree_input_format instance, and can be printed
+using a corresponding tree_output_format. Note that this additional information
+is stored only for the last tree read.
+
+
+tree_input_format::last_error()
+-------------------------------
+
+  const std::string& last_error() const;
+
+Returns an error which occurred during the last next_tree. If no error occurred,
+the returned string is empty.
+
+
+tree_input_format::new_input_format()
+-------------------------------------
+
+  static tree_input_format* new_input_format(const std::string& name);
+
+Create new tree_input_format instance, given its name. The following input
+formats are currently supported:
+- conllu
+
+The new instance must be deleted after use.
+
+
+tree_input_format::new_conllu_input_format()
+--------------------------------------------
+
+  static tree_input_format* new_conllu_input_format();
+
+Creates tree_input_format instance which loads dependency trees in the CoNLL-U
+format (http://universaldependencies.github.io/docs/format.html). The new
+instance must be deleted after use.
+
+Note that even if sentence comments and multi-word tokens are not stored in the
+tree instance, they can be printed using a corresponding CoNLL-U
+tree_output_format instance.
+
+
+Class tree_output_format
+------------------------
+
+  class tree_output_format {
+   public:
+    virtual ~tree_output_format() {}
+
+    virtual void write_tree(const tree& t, std::string& output, const tree_input_format* additional_info = nullptr) const = 0;
+
+    // Static factory methods
+    static tree_output_format* new_output_format(const std::string& name);
+    static tree_output_format* new_conllu_output_format();
+  };
+
+The tree_output_format class allows printing dependency trees in various
+formats. If the format contains additional information in addition to the fields
+stored in the tree, it can be printed using a corresponding tree_output_format.
+
+
+tree_output_format::write_tree()
+--------------------------------
+
+  virtual void write_tree(const tree& t, std::string& output, const tree_input_format* additional_info = nullptr) const = 0;
+
+Prints a dependency tree to the specified string.
+
+If the tree was read using a tree_input_format instance, this instance may store
+additional information, which may be printed by the tree_output_format instance.
+Note that this additional information is stored only for the tree last read with
+tree_input_format::next_tree.
+
+
+tree_output_format::new_output_format()
+---------------------------------------
+
+  static tree_output_format* new_output_format(const std::string& name);
+
+Create new tree_output_format instance, given its name. The following output
+formats are currently supported:
+- conllu
+
+The new instance must be deleted after use.
+
+
+tree_output_format::new_conllu_output_format()
+----------------------------------------------
+
+  static tree_output_format* new_conllu_output_format();
+
+Creates tree_output_format instance which loads dependency trees in the CoNLL-U
+format (http://universaldependencies.github.io/docs/format.html). The new
+instance must be deleted after use.
+
+Note that even if sentence comments and multi-word tokens are not stored in the
+tree instance, they can be printed using this instance.
+
+
+Class parser
+------------
+
+  class parser {
+   public:
+    virtual ~parser() {};
+
+    virtual void parse(tree& t) const = 0;
+
+    enum { NO_CACHE = 0, FULL_CACHE = 2147483647};
+    static parser* load(const char* file, unsigned cache = 1000);
+    static parser* load(std::istream& in, unsigned cache = 1000);
+  };
+
+The parser class allows parsing given sentence, using an existing parser model.
+
+
+parser::parse()
+---------------
+
+  virtual void parse(tree& t) const = 0;
+
+Parses the sentence (passed in the tree instance) and returns a dependency tree.
+If there are any links in the input tree, they are discarded using
+tree::unlink_all_nodes first.
+
+
+parser::load(const char*)
+-------------------------
+
+  static parser* load(const char* file, unsigned cache = 1000);
+
+Loads parser model from a specified file. Returns a pointer to a new instance of
+parser which must be deleted after use.
+
+The cache argument specifies caching level, with NO_CACHE representing no
+caching and FULL_CACHE maximum caching. Although the interpretation of this
+argument depends on the parser used, you can consider it as a number of most
+frequent forms/lemmas/tags to cache (either during model loading or during
+parsing).
+
+
+parser::load(istream&)
+----------------------
+
+  static parser* load(std::istream& in, unsigned cache = 1000);
+
+Loads parser model from the given input stream. The input stream is not closed
+after loading. Returns a pointer to a new instance of parser which
+must be deleted after use.
+
+The cache argument specifies caching level, with NO_CACHE representing no
+caching and FULL_CACHE maximum caching. Although the interpretation of this
+argument depends on the parser used, you can consider it as a number of most
+frequent forms/lemmas/tags to cache (either during model loading or during
+parsing).
+
+
+Class version
+-------------
+
+  class version {
+   public:
+    unsigned major;
+    unsigned minor;
+    unsigned patch;
+    std::string prerelease;
+
+    static version current();
+  };
+
+The version class represents Parsito version. See Parsito Versioning for more
+information.
+
+
+version::current
+----------------
+
+  static version current();
+
+Returns current Parsito version.
+
+
+C++ Bindings API
+----------------
+
+Bindings for other languages than C++ are created using SWIG from the C++
+bindings API, which is a slightly modified version of the native C++ API. Main
+changes are replacement of string_piece type by native strings and removal of
+methods using istream. Here is the C++ bindings API declaration:
+
+
+Helper Structures
+-----------------
+
+  typedef vector<int> Children;
+
+  class Node {
+   public:
+    int id;          // 0 is root, >0 is sentence node, <0 is undefined
+    string form;    // form
+    string lemma;   // lemma
+    string upostag; // universal part-of-speech tag
+    string xpostag; // language-specific part-of-speech tag
+    string feats;   // list of morphological features
+    int head;       // head, 0 is root, <0 is without parent
+    string deprel;  // dependency relation to the head
+    string deps;    // secondary dependencies
+    string misc;    // miscellaneous information
+
+    Children children;
+
+    node(int id = -1, string form = string());
+  };
+  typedef std::vector<node> Nodes;
+
+
+Main Classes
+------------
+
+  class Tree {
+   public:
+    Tree();
+
+    Nodes nodes;
+
+    bool empty();
+    void clear();
+    node& addNode(string form);
+    void setHead(int id, int head, string deprel);
+    void unlinkAllNodes();
+
+    static const std::string root_form;
+  }
+
+  class TreeInputFormat {
+   public:
+    virtual void setText(string text);
+    virtual bool nextTree(tree& t) = 0;
+    string lastError() const;
+
+    // Static factory methods
+    static TreeInputFormat* newInputFormat(string name);
+    static TreeInputFormat* newConlluInputFormat();
+  };
+
+  class TreeOutputFormat {
+   public:
+
+    virtual string writeTree(const tree& t, const tree_input_format* additional_info = nullptr);
+
+    // Static factory methods
+    static TreeOutputFormat* newOutputFormat(string name);
+    static TreeOutputFormat* newConlluOutputFormat();
+  };
+
+  class Parser {
+   public:
+    virtual void parse(tree& t) const;
+
+    enum { NO_CACHE = 0, FULL_CACHE = 2147483647};
+    static Parser* load(string file, unsigned cache = 1000);
+  };
+
+  class Version {
+   public:
+    unsigned major;
+    unsigned minor;
+    unsigned patch;
+    string prerelease;
+
+    static Version current();
+  };
+
+
+C# Bindings
+-----------
+
+Parsito library bindings is available in the Ufal.Parsito namespace.
+
+The bindings is a straightforward conversion of the C++ bindings API. The
+bindings requires native C++ library libparsito_csharp (called parsito_csharp on
+Windows).
+
+
+Java Bindings
+-------------
+
+Parsito library bindings is available in the cz.cuni.mff.ufal.parsito package.
+
+The bindings is a straightforward conversion of the C++ bindings API. Vectors do
+not have native Java interface, see cz.cuni.mff.ufal.parsito.Children class for
+reference. Also, class members are accessible and modifiable using using
+getField and setField wrappers.
+
+The bindings require native C++ library libparsito_java (called parsito_java on
+Windows). If the library is found in the current directory, it is used,
+otherwise standard library search process is used.
+
+
+Perl Bindings
+-------------
+
+Parsito library bindings is available in the Ufal::Parsito
+(http://search.cpan.org/~straka/Ufal-Parsito/) package. The classes can be
+imported into the current namespace using the :all export tag.
+
+The bindings is a straightforward conversion of the C++ bindings API. Vectors do
+not have native Perl interface, see Ufal::Parsito::Children for reference.
+Static methods and enumerations are available only through the module, not
+through object instance.
+
+
+Python Bindings
+---------------
+
+Parsito library bindings is available in the ufal.parsito
+(http://pypi.python.org/pypi/ufal.parsito) module.
+
+The bindings is a straightforward conversion of the C++ bindings API. In Python
+2, strings can be both unicode and UTF-8 encoded str, and the library always
+produces unicode. In Python 3, strings must be only str.
+
+
+Contact
+=======
+
+Authors:
+- Milan Straka (http://ufal.mff.cuni.cz/milan-straka), straka@ufal.mff.cuni.cz
+
+Parsito website (http://ufal.mff.cuni.cz/parsito).
+
+Parsito LINDAT/CLARIN entry (http://hdl.handle.net/11234/1-1584).
+
+
+Acknowledgements
+================
+
+This work has been using language resources developed and/or stored and/or
+distributed by the LINDAT/CLARIN project of the Ministry of Education of the
+Czech Republic (project LM2010013).
+
+Acknowledgements for individual language models are listed in Parsito User's
+Manual.
+
+
+Publications
+------------
+
+- (Straka et al. 2015) Straka Milan, Hajič Jan, Straková Jana and Hajič Jan
+  jr. Parsing Universal Dependency Treebanks using Neural Networks and
+  Search-Based Oracle. In Proceedings of the Fourteenth International Workshop
+  on Treebanks and Linguistic Theories ({TLT\,14}), December 2015.
+
+
+Bibtex for Referencing
+----------------------
+
+  @InProceedings{udparsing:2015,
+    author    = {Straka, Milan and Haji\v{c}, Jan and Strakov\'{a}, Jana and Haji\v{c} jr., Jan},
+    title     = {Parsing Universal Dependency Treebanks using Neural Networks and Search-Based Oracle},
+    booktitle = {Proceedings of Fourteenth International Workshop on Treebanks and Linguistic Theories ({TLT\,14})},
+    month     = {December},
+    year      = {2015},
+  }
+
+
+Permanent Identifier
+--------------------
+
+If you prefer to reference Parsito by a permanent identifier (PID), you can use
+http://hdl.handle.net/11234/1-1584.

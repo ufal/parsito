@@ -1,0 +1,48 @@
+Universal Dependencies 1.2 Models for Parsito
+=============================================
+
+== Universal Dependencies 1.2 Models ==[universal_dependencies_12_models]
+
+Universal Dependencies 1.2 Models are distributed under the
+[CC BY-NC-SA http://creativecommons.org/licenses/by-nc-sa/4.0/] licence.
+The models are based solely on
+[Universal Dependencies 1.2 http://hdl.handle.net/11234/1-1548] treebanks.
+The models work in Parsito version 1.0.
+
+Universal Dependencies 1.2 Models are versioned according to the date released
+in the format ``YYMMDD``, where ``YY``, ``MM`` and ``DD`` are two-digit
+representation of year, month and day, respectively. The latest version is 151120.
+
+
+=== Download ===[universal_dependencies_12_models_download]
+
+The latest version 151120 of the Czech MorphoDiTa models can be downloaded
+from [LINDAT/CLARIN repository http://hdl.handle.net/11234/1-1573].
+
+
+=== Acknowledgements ===[universal_dependencies_12_models_acknowledgements]
+
+This work has been using language resources developed and/or stored and/or
+distributed by the LINDAT/CLARIN project of the Ministry of Education of the
+Czech Republic (project //LM2010013//).
+
+The models were trained on [Universal Dependencies 1.2 http://hdl.handle.net/11234/1-1548] treebanks.
+
+
+==== Publications ====[universal_dependencies_12_models_publications]
+
+- (Straka et al. 2015) Straka Milan, Hajič Jan, Straková Jana and Hajič Jan jr. //Parsing Universal Dependency Treebanks using Neural Networks and Search-Based Oracle.// In Proceedings of the Fourteenth International Workshop on Treebanks and Linguistic Theories ({TLT\,14}), December 2015.
+
+
+=== Model Description ===[universal_dependencies_12_models_description]
+
+The parsing models use the following [CoNLL-U http://universaldependencies.github.io/docs/format.html]
+fields during parsing:
+- `form`
+- `upostag`
+- `feats`
+-
+All other fields (notably `lemma` and `xpostag`) are currently ignored.
+
+Some language models produce non-projective trees and some projective trees,
+depending on which transition system performed better on development data.
