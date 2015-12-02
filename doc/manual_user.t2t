@@ -177,7 +177,7 @@ deprel 20 1
 Only some nodes are considered by the classifier in every parser state.
 Such nodes are specified in the nodes description file, one node per line,
 in the following format:
-```location index[,direction,...]
+``` location index[,direction,...]
 
 The ``location`` can be one of:
 - ``stack``: use the stack of processed node, with index ``0`` representing the node on top of the stack
