@@ -9,7 +9,7 @@ Parsito is a transition-based parser, which greedily chooses transitions
 from the initial state (all words in a sentence unlinked) to the final
 state (full dependency tree). It uses an artificial neural network classifier
 in every state to choose the next transition to perform. Further details
-are described in //(Straka el al. 2015, Parsing Universal Dependency Treebanks using Neural Networks and Search-Based Oracle)//.
+are described in //Straka et al. 2015: Parsing Universal Dependency Treebanks using Neural Networks and Search-Based Oracle//.
 
 Like any supervised machine learning tool, Parsito needs a trained linguistic model.
 This section describes the available language models and also the commandline
@@ -21,8 +21,206 @@ tools and interfaces.
 
 == Running the Parser ==[run_parsito]
 
-TODO
+To run the parser with existing parser model, use
+``` run_parsito parser_model
+
+The input is assumed to be in UTF-8 encoding and by default in
+[CoNLL-U format http://universaldependencies.github.io/docs/format.html].
+
+Any number of files can be specified after the ``parser_model``. If an argument
+``input_file:output_file`` is used, the given ``input_file`` is processed and
+the result is saved to ``output_file``. If only ``input_file`` is used, the
+result is printed to standard output. If no argument is given, input is read
+from standard input and written to standard output.
+
+The full command syntax of ``run_parser`` is
+```
+run_parsito [options] model_file [file[:output_file]]...
+Options: --input=conllu
+         --output=conllu
+         --version
+         --help
+```
+
+=== Input Format ===[parsito_input_format]
+
+The input format is specified using the ``--input`` option. Currently supported
+input formats are:
+- ``conllu`` (default): the [CoNLL-U format http://universaldependencies.github.io/docs/format.html]
+-
+
+=== Output Format ===[parsito_output_format]
+
+The output format is specified using the ``--output`` option. Currently
+supported output formats are:
+- ``conllu`` (default): the [CoNLL-U format http://universaldependencies.github.io/docs/format.html]
+-
+
 
 == Training Custom Parser Models ==[model_training]
 
-TODO
+Training of Parsito models can be performed using the ``train_parsito`` binary.
+The first argument to ``train_parsito`` is parsing algorithm identifier, currently
+the only algorithm available is ``nn``.
+
+=== The parsing algorithm nn ===[model_training_nn]
+
+The full command syntax of ``train_parsito nn`` is:
+```
+train_parsito nn [options] <training_data >parser_model
+Options: --adadelta=momentum,epsilon
+         --adagrad=learning rate,epsilon
+         --batch_size=batch size
+         --dropout_hidden=hidden layer dropout
+         --dropout_input=input dropout
+         --embeddings=embedding description file
+         --heldout=heldout data file
+         --hidden_layer=hidden layer size
+         --hidden_layer_type=cubic|tanh (hidden layer activation function)
+         --initialization_range=initialization range
+         --input=conllu (input format)
+         --iterations=number of training iterations
+         --l1_regularization=l1 regularization factor
+         --l2_regularization=l2 regularization factor
+         --maxnorm_regularization=max-norm regularization factor
+         --nodes=node selector file
+         --structured_interval=structured prediction interval
+         --sgd=learning rate[,final learning rate]
+         --sgd_momentum=momentum,learning rate[,final learning rate]
+         --threads=number of training threads
+         --transition_oracle=static|static_eager|static_lazy|dynamic
+         --transition_system=projective|swap|link2
+         --version
+         --help
+```
+
+The required options of ``train_parsito nn`` are the following. Reasonable
+defaults are suggested in parentheses:
+- ``iterations``: number of training iterations to use (``10``)
+- ``hidden_layer``: size of the hidden layer (``200``)
+- ``embeddings``: file containing [embedding description #model_training_nn_embedding]
+- ``nodes``: file containing [nodes description #model_training_nn_nodes]
+- ``sgd``, ``sgd_momentum``, ``adadelta``, ``adagrad``: which neural network training algorithm to use (``sgd=0.02,0.001``)
+  - ``sgd=learning rate[,final learning rate]``: use SGD with specified learning rate, using exponential decay
+  - ``sgd_momentum=momentum,learning rate[,final learning rate]``: use SGD with momentum and specified learning rate, using exponential decay
+  - ``adadelta=momentum,epsilon``: use AdaDelta with specified parameters
+  - ``adagrad=learning rate,epsilon``: use AdaGrad with specified parameters
+- ``transition_system``: which transition system to use for parsing (language dependant, you can try all and choose the best)
+  - ``projective``: projective stack-based arc standard system with ``shift``, ``left_arc`` and ``right_arc`` transitions
+  - ``swap``: fully non-projective system which extends ``projective`` system by adding ``swap`` transition
+  - ``link2``: partially non-projective system which extends ``projective`` system by adding ``left_arc2`` and ``right_arc2`` transitions
+- ``transition_oracle``: which transition oracle to use for the chosen ``transition_system``:
+  - ``transition_system=projective``: available oracles are ``static`` and ``dynamic`` (``dynamic`` usually gives better results, but training time is slower)
+  - ``transition_system=swap``: available oracles are ``static_eager`` and ``static_lazy`` (``static_lazy`` almost always gives better results)
+  - ``transition_system=link2``: only available oracle is ``static``
+
+
+The additional options of ``train_parsito nn`` are (again with suggested default values):
+- ``batch_size`` (default ``1``): use batches of specified size (``10``)
+- ``dropout_hidden`` (default ``0``): probability of dropout of hidden layer node
+- ``dropout_input`` (default ``0``): probability of dropout of input layer node
+- ``heldout``: use the specified file as heldout data and report the results of the trained model on them
+- ``hidden_layer_type`` (default ``tanh``): hidden layer activation function
+  - ``tanh``
+  - ``cubic``
+- ``initialization_range`` (default ``0.1``): maximum absolute value of initial random weights in the network
+- ``input`` (default ``conllu``): [input format to use #model_training_nn_input_format]
+- ``l1_regularization`` (default ``0``): L1 regularization
+- ``l2_regularization`` (default ``0``): L2 regularization (``0.3``)
+- ``maxnorm_regularization`` (default ``0``): if the L2 norm of a row in the network is larger than specified maximum, the row vector is scaled so that its norm is exactly the specified maximum
+- ``structured_interval`` (default ``0``): use search-based oracle in addition to the ``translation_oracle`` specified. This almost always gives better results, but makes training 2-3 times slower. For details, see the paper //Straka et al. 2015: Parsing Universal Dependency Treebanks using Neural Networks and Search-Based Oracle// (use ``10`` if you want high accuracy and do not mind slower training time)
+- ``threads`` (default 1): if more than 1, train using asynchronous SGD/AdaDelta/AdaGrad with specified number of threads. Note that asynchronous SGD/AdaDelta/AdaGrad is nondeterministic and may give lower results than synchronous one
+-
+
+==== Input Format ====[model_training_nn_input_format]
+
+The input format is specified using the ``--input`` option. Currently supported
+input formats are:
+- ``conllu`` (default): the [CoNLL-U format http://universaldependencies.github.io/docs/format.html]
+-
+
+==== Embedding description ====[model_training_nn_embedding]
+
+The embeddings used for every word are specified in the embedding description file.
+Each line in the file describes one embedding in the following format:
+``` embedding_source dimension minimum_frequency [precomputed_embeddings [update_weights [maximum_precomputed_embeddings]]]
+- ``embedding_source``: for what data is the embedding created:
+  - ``form``: word form
+  - ``lemma``: word lemma
+  - ``universal_tag``: universal POS tag of the word (the ``upostag`` field of the input CoNLL-U)
+  - ``tag``: language-specific  POS tag of the word (the ``xpostag`` field of the input CoNLL-U)
+  - ``feats``: morphological features of the word (the ``feats`` field of the input CoNLL-U)
+  - ``universal_tag_fields``: concatenation of ``universal_tag`` and ``feats``
+  - ``deprel``: the already assigned dependency relation of the word, of any
+  -
+- ``dimension``: dimension of the embedding
+- ``minimum_frequency``: only create embeddings for values with the specified minimum frequency. If the minimum frequency
+    is more than 1, embedding for artificial OOV value is created and used for unknown values
+- ``precomputed_embeddings`` (default none): use precomputed embeddings (generated by for example word2vec) from the file specified.
+    The precomputed embeddings file format is the one which ``word2vec`` uses.
+- ``update_weights`` (default ``1``): should the weights of precomputed embeddings be updated further during training:
+  - ``0``: no, keep the original precomputed embeddings
+  - ``1``: yes, update the precomputed embeddings
+- ``maximum_precomputed_embeddings`` (default infinity): use at most this many precomputed embeddings (the ones at the beginning of the file are used, which is fine, because the embeddings are usually sorted from the most frequent value)
+-
+
+If unsure, you can use embeddings from //Straka et al. 2015: Parsing Universal Dependency Treebanks using Neural Networks and Search-Based Oracle// (in the paper, embeddings for forms were precomputed using word2vec on the training data):
+```
+universal_tag 20 1
+feats 20 1
+form 50 2 [precomputed_embeddings_if_any]
+deprel 20 1
+```
+
+==== Nodes description ====[model_training_nn_nodes]
+
+Only some nodes are considered by the classifier in every parser state.
+Such nodes are specified in the nodes description file, one node per line,
+in the following format:
+```location index[,direction,...]
+
+The ``location`` can be one of:
+- ``stack``: use the stack of processed node, with index ``0`` representing the node on top of the stack
+- ``buffer``: use the buffer of not yet processed nodes, with index ``0`` representing the first node in the buffer
+-
+
+Using ``location`` and ``index``, a node is found. Optionally, its parent or child can be chosen
+by specifying one or more additional directions in the following format:
+- ``parent``: choose parent of the current node
+- ``child,index``: choose a child of the current node, with the first children
+  being 0, 1, 2, ..., and the last children being -3, -2, -1
+-
+
+If unsure, you can use the set of frequently used 18 nodes (used for example by
+//Zhang and Nivre 2011: Transition-based dependency parsing with rich non-local features//,
+or //Chen and Manning 2014: A fast and accurate dependency parser using neural networks//,
+or //Straka et al. 2015: Parsing Universal Dependency treebanks using neural networks and search-based oracle//):
+```
+stack 0
+stack 1
+stack 2
+buffer 0
+buffer 1
+buffer 2
+stack 0,child 0
+stack 0,child 1
+stack 0,child -2
+stack 0,child -1
+stack 1,child 0
+stack 1,child 1
+stack 1,child -2
+stack 1,child -1
+stack 0,child 0,child 0
+stack 0,child -1,child -1
+stack 1,child 0,child 0
+stack 1,child -1,child -1
+```
+
+=== Measuring Tagger Accuracy ===[parsito_accuracy]
+
+Measuring custom parser model accuracy can be performed by running:
+``` parsito_accuracy parser_model <test_data
+
+This binary reads input in the [CoNLL-U format http://universaldependencies.github.io/docs/format.html]
+containing (probably user-annotated) dependency trees, and evaluates the
+accuracy of the parser model on the given testing data.

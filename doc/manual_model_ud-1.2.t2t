@@ -38,11 +38,11 @@ The models were trained on [Universal Dependencies 1.2 http://hdl.handle.net/112
 
 The parsing models use the following [CoNLL-U http://universaldependencies.github.io/docs/format.html]
 fields during parsing:
-- `form`
-- `upostag`
-- `feats`
+- ``form``
+- ``upostag``
+- ``feats``
 -
-All other fields (notably `lemma` and `xpostag`) are currently ignored.
+All other fields (notably ``lemma`` and ``xpostag``) are currently ignored.
 
 Some language models produce non-projective trees and some projective trees,
 depending on which transition system performed better on development data.
