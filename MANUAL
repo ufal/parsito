@@ -336,6 +336,26 @@ output formats are:
   (http://universaldependencies.github.io/docs/format.html)
 
 
+Running the Parsito REST Server
+-------------------------------
+
+Parsito also provides REST server binary parsito_server. The binary uses
+MicroRestD (http://github.com/ufal/microrestd) as a REST server implementation
+and provides Parsito REST API
+(http://lindat.mff.cuni.cz/services/parsito/api-reference.php).
+
+The full command syntax of parsito_server is
+  parsito_server [options] port (model_name model_file acknowledgements)+
+  Options: --daemon
+           --version
+           --help
+
+The parsito_server can run either in foreground or in background (when --daemon
+is used). The specified model files are loaded during start and kept in memory
+all the time. This behaviour might change in future to load the models on
+demand.
+
+
 Training Custom Parser Models
 -----------------------------
 
