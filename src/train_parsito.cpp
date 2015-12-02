@@ -23,14 +23,7 @@
 
 using namespace ufal::parsito;
 
-int main(int argc, char* argv[]) {
-  iostreams_init();
-
-  if (argc < 2) runtime_failure("Usage: " << argv[0] << " parser_model_identifier [options]");
-
-  if (argv[1] != string("nn"))
-    runtime_failure("Unknown parser_model_identifier '" << argv[1] << "'.!");
-
+void train_parser_nn(int argc, char* argv[]) {
   options::map options;
   if (!options::parse({{"adadelta", options::value::any},
                        {"adagrad", options::value::any},
@@ -56,8 +49,7 @@ int main(int argc, char* argv[]) {
                        {"transition_system", options::value{"projective","swap","link2"}},
                        {"version", options::value::none},
                        {"help", options::value::none}}, argc, argv, options) ||
-      options.count("help") ||
-      (argc < 2 && !options.count("version")))
+      options.count("help"))
     runtime_failure("Usage: " << argv[0] << " nn [options]\n"
                     "Options: --adadelta=momentum,epsilon\n"
                     "         --adagrad=learning rate,epsilon\n"
@@ -83,8 +75,10 @@ int main(int argc, char* argv[]) {
                     "         --transition_system=projective|swap|link2\n"
                     "         --version\n"
                     "         --help");
-  if (options.count("version"))
-    return cout << version::version_and_copyright() << endl, 0;
+  if (options.count("version")) {
+    cout << version::version_and_copyright() << endl;
+    return;
+  }
 
   // Use binary standard output
   iostreams_init_binary_output();
@@ -220,6 +214,28 @@ int main(int argc, char* argv[]) {
   cerr << "Encoding the parser: ";
   compressor::save(cout, enc);
   cerr << "done" << endl;
+
+}
+
+int main(int argc, char* argv[]) {
+  iostreams_init();
+
+  // Use poor-mans argument parsing at this point, not to touch the options
+  // specific for every parser_model_identifier.
+  if (argc < 2 || argv[1] == string("--help"))
+      runtime_failure("Usage: " << argv[0] << " [generic_options] parser_model_identifier [parser_options]\n"
+                      "Generic options: --version\n"
+                      "                 --help\n"
+                      "Parser model identifiers: nn\n"
+                      "Parser options: use " << argv[0] << " nn --help");
+
+  if (argc >= 2 && argv[1] == string("--version"))
+    return cout << version::version_and_copyright() << endl, 0;
+
+  if (argv[1] == string("nn"))
+    train_parser_nn(argc, argv);
+  else
+    runtime_failure("Unknown parser_model_identifier '" << argv[1] << "'.!");
 
   return 0;
 }
