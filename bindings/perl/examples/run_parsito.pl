@@ -11,20 +11,20 @@ use warnings;
 use strict;
 use open qw(:std :utf8);
 
-use Ufal::Parsito qw(:all);
+use Ufal::Parsito;
 
 
 @ARGV >= 1 or die "Usage: $0 parser_file\n";
 
 print STDERR "Loading parser: ";
-my $parser = Parser::load($ARGV[0]);
+my $parser = Ufal::Parsito::Parser::load($ARGV[0]);
 $parser or die "Cannot load parser from file '$ARGV[0]'\n";
 print STDERR "done\n";
 shift @ARGV;
 
-my $conllu_input = TreeInputFormat::newInputFormat("conllu");
-my $conllu_output = TreeOutputFormat::newOutputFormat("conllu");
-my $tree = Tree->new();
+my $conllu_input = Ufal::Parsito::TreeInputFormat::newInputFormat("conllu");
+my $conllu_output = Ufal::Parsito::TreeOutputFormat::newOutputFormat("conllu");
+my $tree = Ufal::Parsito::Tree->new();
 
 for (my $not_eof = 1; $not_eof; ) {
   my $text = '';
