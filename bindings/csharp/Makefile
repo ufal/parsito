@@ -26,4 +26,4 @@ parsito_csharp.cpp: parsito_csharp.i ../common/parsito.i
 
 .PHONY: clean
 clean:
-	@$(call rm,.build Ufal $(call all_dynlib,$(BINDING_MODULE)) parsito_csharp.cpp $(wildcard examples/*.class))
+	@$(call rm,.build Ufal $(call all_dynlib,parsito_csharp libparsito_csharp) parsito_csharp.cpp $(wildcard examples/*.class))

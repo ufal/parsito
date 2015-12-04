@@ -39,4 +39,4 @@ parsito.jar: parsito_java.cpp
 
 .PHONY: clean
 clean:
-	@$(call rm,.build cz $(call all_dynlib,$(BINDING_MODULE)) parsito.jar parsito_java.cpp $(wildcard examples/*.class))
+	@$(call rm,.build cz $(call all_dynlib,parsito_java libparsito_java) parsito.jar parsito_java.cpp $(wildcard examples/*.class))
