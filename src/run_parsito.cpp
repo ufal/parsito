@@ -11,13 +11,14 @@
 #include "parser/parser.h"
 #include "utils/iostreams.h"
 #include "utils/options.h"
+#include "utils/parse_int.h"
 #include "utils/process_args.h"
 #include "tree/tree_format.h"
 #include "version/version.h"
 
 using namespace ufal::parsito;
 
-void parse(istream& in, ostream& out, const parser& p, tree_input_format& input_format, const tree_output_format& output_format) {
+void parse(istream& in, ostream& out, const parser& p, tree_input_format& input_format, const tree_output_format& output_format, unsigned beam_size) {
   string input, output;
   tree t;
 
@@ -27,7 +28,7 @@ void parse(istream& in, ostream& out, const parser& p, tree_input_format& input_
     input_format.set_text(input);
     while (input_format.next_tree(t)) {
       // Parse the tree
-      p.parse(t);
+      p.parse(t, beam_size);
 
       // Output the parsed tree
       output_format.write_tree(t, output, &input_format);
@@ -44,6 +45,7 @@ int main(int argc, char* argv[]) {
   options::map options;
   if (!options::parse({{"input", options::value{"conllu"}},
                        {"output", options::value{"conllu"}},
+                       {"beam_size", options::value::any},
                        {"version", options::value::none},
                        {"help", options::value::none}}, argc, argv, options) ||
       options.count("help") ||
@@ -51,6 +53,7 @@ int main(int argc, char* argv[]) {
     runtime_failure("Usage: " << argv[0] << " [options] model_file\n"
                     "Options: --input=conllu\n"
                     "         --output=conllu\n"
+                    "         --beam_size=beam size during decoding\n"
                     "         --version\n"
                     "         --help");
   if (options.count("version"))
@@ -66,6 +69,9 @@ int main(int argc, char* argv[]) {
   if (!output_format)
     runtime_failure("Unknown output format '" << output << "'!");
 
+  int beam_size = options.count("beam_size") ? parse_int(options["beam_size"], "beam_size") : 0;
+  if (beam_size < 0) runtime_failure("Beam size cannot be negative!");
+
   cerr << "Loading parser: ";
   unique_ptr<parser> p(parser::load(argv[1]));
   if (!p)
@@ -73,7 +79,7 @@ int main(int argc, char* argv[]) {
   cerr << "done" << endl;
 
   clock_t now = clock();
-  process_args(2, argc, argv, parse, *p, *input_format, *output_format);
+  process_args(2, argc, argv, parse, *p, *input_format, *output_format, beam_size);
   cerr << "Parsing done, in " << fixed << setprecision(3) << (clock() - now) / double(CLOCKS_PER_SEC) << " seconds." << endl;
 
   return 0;

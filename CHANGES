@@ -1,5 +1,6 @@
 Version 1.0.1-devel
 -------------------
+- Implement optional beam search.
 
 
 Version 1.0.0 [04 Dec 2015]

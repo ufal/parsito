@@ -12,7 +12,7 @@
 namespace ufal {
 namespace parsito {
 
-void parser_nn::parse(tree& t) const {
+void parser_nn::parse(tree& t, unsigned /*beam_size*/) const {
   assert(system);
 
   // Retrieve or create workspace

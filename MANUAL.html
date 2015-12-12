@@ -1319,7 +1319,7 @@ class parser {
  public:
   virtual ~parser() {};
 
-  virtual void <A HREF="#parser_parse">parse</A>(<A HREF="#tree">tree</A>&amp; t) const = 0;
+  virtual void <A HREF="#parser_parse">parse</A>(<A HREF="#tree">tree</A>&amp; t, unsigned beam_size = 0) const = 0;
 
   enum { NO_CACHE = 0, FULL_CACHE = 2147483647};
   static <A HREF="#parser">parser</A>* <A HREF="#parser_load_cstring">load</A>(const char* file, unsigned cache = 1000);
@@ -1336,7 +1336,7 @@ using an existing parser model.
 <h3>6.7.1. parser::parse()</h3>
 
 <pre>
-virtual void parse(<A HREF="#tree">tree</A>&amp; t) const = 0;
+virtual void parse(<A HREF="#tree">tree</A>&amp; t, unsigned beam_size = 0) const = 0;
 </pre>
 
 <p>
@@ -1344,6 +1344,11 @@ Parses the sentence (passed in the <a href="#tree"><code>tree</code></a> instanc
 and returns a dependency tree. If there are any links in the
 input tree, they are discarded using
 <a href="#tree_unlink_all_nodes"><code>tree::unlink_all_nodes</code></a> first.
+</p>
+<p>
+The beam size of the decoding can optionally be specified, with the value
+<code>0</code> representing parser model default. If the parser model does not
+support beam search, the argument is ignored.
 </p>
 
 <a id="parser_load_cstring" name="parser_load_cstring"></a>
@@ -1495,7 +1500,7 @@ class TreeOutputFormat {
 
 class Parser {
  public:
-  virtual void parse(tree&amp; t) const;
+  virtual void parse(tree&amp; t, unsigned beam_size = 0) const;
 
   enum { NO_CACHE = 0, FULL_CACHE = 2147483647};
   static Parser* load(string file, unsigned cache = 1000);

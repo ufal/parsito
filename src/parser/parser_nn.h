@@ -23,7 +23,7 @@ namespace parsito {
 
 class parser_nn : public parser {
  public:
-  virtual void parse(tree& t) const override;
+  virtual void parse(tree& t, unsigned beam_size = 0) const override;
 
  protected:
   virtual void load(binary_decoder& data, unsigned cache) override;

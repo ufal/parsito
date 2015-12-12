@@ -11,6 +11,7 @@
 #include "parser/parser.h"
 #include "utils/iostreams.h"
 #include "utils/options.h"
+#include "utils/parse_int.h"
 #include "tree/tree_format.h"
 #include "version/version.h"
 
@@ -21,12 +22,14 @@ int main(int argc, char* argv[]) {
 
   options::map options;
   if (!options::parse({{"input", options::value{"conllu"}},
+                       {"beam_size", options::value::any},
                        {"version", options::value::none},
                        {"help", options::value::none}}, argc, argv, options) ||
       options.count("help") ||
       (argc < 2 && !options.count("version")))
     runtime_failure("Usage: " << argv[0] << " [options] model_file\n"
                     "Options: --input=conllu\n"
+                    "         --beam_size=beam size during decoding\n"
                     "         --version\n"
                     "         --help");
   if (options.count("version"))
@@ -36,6 +39,9 @@ int main(int argc, char* argv[]) {
   unique_ptr<tree_input_format> input_format(tree_input_format::new_input_format(input_format_name));
   if (!input_format)
     runtime_failure("Unknown input format '" << input_format_name << "'!");
+
+  int beam_size = options.count("beam_size") ? parse_int(options["beam_size"], "beam_size") : 0;
+  if (beam_size < 0) runtime_failure("Beam size cannot be negative!");
 
   cerr << "Loading parser: ";
   unique_ptr<parser> p(parser::load(argv[1]));
@@ -59,7 +65,7 @@ int main(int argc, char* argv[]) {
 
       // Parse the tree
       t.unlink_all_nodes();
-      p->parse(t);
+      p->parse(t, beam_size);
 
       // Evaluate parsed tree
       for (int i = 1; i < int(t.nodes.size()); i++) {

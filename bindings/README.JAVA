@@ -100,7 +100,7 @@ Main Classes
 
   class Parser {
    public:
-    virtual void parse(tree& t) const;
+    virtual void parse(tree& t, unsigned beam_size = 0) const;
 
     enum { NO_CACHE = 0, FULL_CACHE = 2147483647};
     static Parser* load(string file, unsigned cache = 1000);

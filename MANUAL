@@ -872,7 +872,7 @@ Class parser
    public:
     virtual ~parser() {};
 
-    virtual void parse(tree& t) const = 0;
+    virtual void parse(tree& t, unsigned beam_size = 0) const = 0;
 
     enum { NO_CACHE = 0, FULL_CACHE = 2147483647};
     static parser* load(const char* file, unsigned cache = 1000);
@@ -885,11 +885,15 @@ The parser class allows parsing given sentence, using an existing parser model.
 parser::parse()
 ---------------
 
-  virtual void parse(tree& t) const = 0;
+  virtual void parse(tree& t, unsigned beam_size = 0) const = 0;
 
 Parses the sentence (passed in the tree instance) and returns a dependency tree.
 If there are any links in the input tree, they are discarded using
 tree::unlink_all_nodes first.
+
+The beam size of the decoding can optionally be specified, with the value 0
+representing parser model default. If the parser model does not support beam
+search, the argument is ignored.
 
 
 parser::load(const char*)
@@ -1023,7 +1027,7 @@ Main Classes
 
   class Parser {
    public:
-    virtual void parse(tree& t) const;
+    virtual void parse(tree& t, unsigned beam_size = 0) const;
 
     enum { NO_CACHE = 0, FULL_CACHE = 2147483647};
     static Parser* load(string file, unsigned cache = 1000);
