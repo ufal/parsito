@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <list>
+
 #include "common.h"
 #include "configuration/node_extractor.h"
 #include "configuration/value_extractor.h"
@@ -30,6 +32,8 @@ class parser_nn : public parser {
 
  private:
   friend class parser_nn_trainer;
+  void parse_greedy(tree& t) const;
+  void parse_beam_search(tree& t, unsigned beam_size) const;
 
   vector<string> labels;
   unique_ptr<transition_system> system;
@@ -47,11 +51,34 @@ class parser_nn : public parser {
 
     string word, word_buffer;
     vector<vector<int>> embeddings;
+    vector<vector<string>> embeddings_values;
 
     vector<int> extracted_nodes;
     vector<const vector<int>*> extracted_embeddings;
 
     vector<float> outcomes, network_buffer;
+
+    // Beam-size structures
+    struct beam_size_configuration {
+      configuration conf;
+      vector<int> heads;
+      vector<string> deprels;
+      double cost;
+
+      void refresh_tree();
+      void save_tree();
+    };
+    struct beam_size_alternative {
+      const beam_size_configuration* bs_conf;
+      int transition;
+      double cost;
+      bool operator<(const beam_size_alternative& other) const { return cost > other.cost; }
+
+      beam_size_alternative(const beam_size_configuration* bs_conf, int transition, double cost)
+          : bs_conf(bs_conf), transition(transition), cost(cost) {}
+    };
+    vector<beam_size_configuration> bs_confs[2]; size_t bs_confs_size[2];
+    vector<beam_size_alternative> bs_alternatives;
   };
   mutable threadsafe_stack<workspace> workspaces;
 };
