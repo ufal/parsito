@@ -113,7 +113,13 @@ void parser_nn::parse_beam_search(tree& t, unsigned beam_size) const {
       auto& bs_conf = w->bs_confs[iteration & 1][c];
 
       if (bs_conf.conf.final()) {
+        if (w->bs_alternatives.size() == beam_size) {
+          if (bs_conf.cost <= w->bs_alternatives[0].cost) continue;
+          pop_heap(w->bs_alternatives.begin(), w->bs_alternatives.end());
+          w->bs_alternatives.pop_back();
+        }
         w->bs_alternatives.emplace_back(&bs_conf, -1, bs_conf.cost);
+        push_heap(w->bs_alternatives.begin(), w->bs_alternatives.end());
         continue;
       }
       all_final = false;
@@ -140,11 +146,17 @@ void parser_nn::parse_beam_search(tree& t, unsigned beam_size) const {
 
       // Store all alternatives
       for (unsigned i = 0; i < w->outcomes.size(); i++)
-        if (system->applicable(bs_conf.conf, i))
-          w->bs_alternatives.emplace_back(&bs_conf, i, (bs_conf.cost * iteration + log(w->outcomes[i])) / (iteration + 1));
+        if (system->applicable(bs_conf.conf, i)) {
+          double cost = (bs_conf.cost * iteration + log(w->outcomes[i])) / (iteration + 1);
+          if (w->bs_alternatives.size() == beam_size) {
+            if (cost <= w->bs_alternatives[0].cost) continue;
+            pop_heap(w->bs_alternatives.begin(), w->bs_alternatives.end());
+            w->bs_alternatives.pop_back();
+          }
+          w->bs_alternatives.emplace_back(&bs_conf, i, cost);
+          push_heap(w->bs_alternatives.begin(), w->bs_alternatives.end());
+        }
     }
-
-    sort(w->bs_alternatives.begin(), w->bs_alternatives.end());
 
     w->bs_confs_size[(iteration + 1) & 1] = 0;
     for (auto&& alternative : w->bs_alternatives) {
@@ -156,10 +168,15 @@ void parser_nn::parse_beam_search(tree& t, unsigned beam_size) const {
         system->perform(bs_conf_new.conf, alternative.transition);
         bs_conf_new.save_tree();
       }
-      if (w->bs_confs_size[(iteration + 1) & 1] >= beam_size) break;
     }
   }
-  w->bs_confs[iteration & 1][0].refresh_tree();
+
+  // Return the best tree
+  size_t best = 0;
+  for (size_t i = 1; i < w->bs_confs_size[iteration & 1]; i++)
+    if (w->bs_confs[iteration & 1][i].cost > w->bs_confs[iteration & 1][best].cost)
+      best = i;
+  w->bs_confs[iteration & 1][best].refresh_tree();
 
   // Store workspace
   workspaces.push(w);
