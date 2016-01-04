@@ -17,7 +17,7 @@ namespace parsito {
 
 // Returns current version.
 version version::current() {
-  return {1, 0, 1, "devel"};
+  return {1, 1, 0, ""};
 }
 
 // Returns multi-line formated version and copyright string.
