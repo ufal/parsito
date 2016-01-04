@@ -354,7 +354,7 @@ and provides Parsito REST API
 (http://lindat.mff.cuni.cz/services/parsito/api-reference.php).
 
 The full command syntax of parsito_server is
-  parsito_server [options] port (model_name model_file acknowledgements)+
+  parsito_server [options] port (model_name model_file acknowledgements beam_size)+
   Options: --daemon
            --version
            --help

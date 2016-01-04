@@ -24,7 +24,7 @@ bool parsito_service::init(const vector<model_description>& model_descriptions) 
     if (!parser) return false;
 
     // Store the model
-    models.emplace_back(model_description.rest_id, model_description.acknowledgements, parser);
+    models.emplace_back(model_description.rest_id, model_description.acknowledgements, parser, model_description.beam_size);
   }
 
   // Fill rest_models_map with model name and aliases
@@ -86,7 +86,7 @@ const parsito_service::model_info* parsito_service::load_rest_model(const string
 inline microrestd::string_piece sp(string_piece str) { return microrestd::string_piece(str.str, str.len); }
 inline microrestd::string_piece sp(const char* str, size_t len) { return microrestd::string_piece(str, len); }
 
-parsito_service::rest_response_generator::rest_response_generator(const model_info* model) {
+parsito_service::rest_response_generator::rest_response_generator(const model_info* model) : model(model) {
   json.object();
   json.indent().key("model").indent().value(model->rest_id);
   json.indent().key("acknowledgements").indent().array();
@@ -121,8 +121,8 @@ bool parsito_service::handle_rest_parse(microrestd::rest_request& req) {
 
   class generator : public rest_response_generator {
    public:
-    generator(const model_info* model, const char* data, tree_input_format* input_format, tree_output_format* output_format, const Parser* parser)
-        : rest_response_generator(model), input_format(input_format), output_format(output_format), parser(parser) {
+    generator(const model_info* model, const char* data, tree_input_format* input_format, tree_output_format* output_format)
+        : rest_response_generator(model), input_format(input_format), output_format(output_format) {
       input_format->set_text(data);
     }
 
@@ -132,7 +132,7 @@ bool parsito_service::handle_rest_parse(microrestd::rest_request& req) {
         return false;
       }
 
-      parser->parse(t);
+      model->parser->parse(t, model->beam_size);
 
       output_format->write_tree(t, output, input_format.get());
       json.value(output, true);
@@ -146,9 +146,8 @@ bool parsito_service::handle_rest_parse(microrestd::rest_request& req) {
 
     unique_ptr<tree_input_format> input_format;
     unique_ptr<tree_output_format> output_format;
-    const Parser* parser;
   };
-  return req.respond(generator::mime, new generator(model, data, input_format.release(), output_format.release(), model->parser.get()));
+  return req.respond(generator::mime, new generator(model, data, input_format.release(), output_format.release()));
 }
 
 // REST service helpers

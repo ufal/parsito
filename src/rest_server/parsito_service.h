@@ -27,9 +27,10 @@ class parsito_service : public microrestd::rest_service {
 
   struct model_description {
     string rest_id, file, acknowledgements;
+    unsigned beam_size;
 
-    model_description(const string& rest_id, const string& file, const string& acknowledgements)
-        : rest_id(rest_id), file(file), acknowledgements(acknowledgements) {}
+    model_description(const string& rest_id, const string& file, const string& acknowledgements, unsigned beam_size)
+        : rest_id(rest_id), file(file), acknowledgements(acknowledgements), beam_size(beam_size) {}
   };
 
   bool init(const vector<model_description>& model_descriptions);
@@ -41,12 +42,13 @@ class parsito_service : public microrestd::rest_service {
 
   // Models
   struct model_info {
-    model_info(const string& rest_id, const string& acknowledgements, Parser* parser)
-        : rest_id(rest_id), acknowledgements(acknowledgements), parser(parser) {}
+    model_info(const string& rest_id, const string& acknowledgements, Parser* parser, unsigned beam_size)
+        : rest_id(rest_id), acknowledgements(acknowledgements), parser(parser), beam_size(beam_size) {}
 
     string rest_id;
     string acknowledgements;
     unique_ptr<Parser> parser;
+    unsigned beam_size;
   };
   vector<model_info> models;
   unordered_map<string, const model_info*> rest_models_map;
@@ -57,6 +59,8 @@ class parsito_service : public microrestd::rest_service {
   class rest_response_generator : public microrestd::json_response_generator {
    public:
     rest_response_generator(const model_info* model);
+   protected:
+    const model_info* model;
   };
 
   bool handle_rest_models(microrestd::rest_request& req);
