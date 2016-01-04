@@ -38,6 +38,7 @@ The full command syntax of ``run_parser`` is
 run_parsito [options] model_file [file[:output_file]]...
 Options: --input=conllu
          --output=conllu
+         --beam_size=beam size during decoding
          --version
          --help
 ```
@@ -55,6 +56,13 @@ The output format is specified using the ``--output`` option. Currently
 supported output formats are:
 - ``conllu`` (default): the [CoNLL-U format http://universaldependencies.github.io/docs/format.html]
 -
+
+=== Beam Search ===[parsito_beam_size]
+
+Optionally, beam search can be used to improve parsing accuracy, at the expense
+of parsing speed. When using beam search of size //b//, parsing is roughly
+//1.2 * b// times slower, but the accuracy usually increases.
+
 
 == Running the Parsito REST Server ==[parsito_server]
 
@@ -244,3 +252,7 @@ Measuring custom parser model accuracy can be performed by running:
 This binary reads input in the [CoNLL-U format http://universaldependencies.github.io/docs/format.html]
 containing (probably user-annotated) dependency trees, and evaluates the
 accuracy of the parser model on the given testing data.
+
+Optionally, beam search can be used to improve parsing accuracy, at the expense
+of parsing speed. When using beam search of size //b//, parsing is roughly
+//1.2 * b// times slower, but the accuracy usually increases.

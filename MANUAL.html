@@ -83,6 +83,8 @@
       </li>
       <li><a href="#parsito_output_format">5.2.2. Output Format</a>
       </li>
+      <li><a href="#parsito_beam_size">5.2.3. Beam Search</a>
+      </li>
       </ul>
     </li>
     <li><a href="#parsito_server">5.3. Running the Parsito REST Server</a>
@@ -586,6 +588,7 @@ The full command syntax of <code>run_parser</code> is
 run_parsito [options] model_file [file[:output_file]]...
 Options: --input=conllu
          --output=conllu
+         --beam_size=beam size during decoding
          --version
          --help
 </pre>
@@ -613,6 +616,15 @@ supported output formats are:
 <li><code>conllu</code> (default): the <a href="http://universaldependencies.github.io/docs/format.html">CoNLL-U format</a>
 </li>
 </ul>
+
+<a id="parsito_beam_size" name="parsito_beam_size"></a>
+<h3>5.2.3. Beam Search</h3>
+
+<p>
+Optionally, beam search can be used to improve parsing accuracy, at the expense
+of parsing speed. When using beam search of size <i>b</i>, parsing is roughly
+<i>1.2 * b</i> times slower, but the accuracy usually increases.
+</p>
 
 <a id="parsito_server" name="parsito_server"></a>
 <h2>5.3. Running the Parsito REST Server</h2>
@@ -913,6 +925,11 @@ parsito_accuracy parser_model &lt;test_data
 This binary reads input in the <a href="http://universaldependencies.github.io/docs/format.html">CoNLL-U format</a>
 containing (probably user-annotated) dependency trees, and evaluates the
 accuracy of the parser model on the given testing data.
+</p>
+<p>
+Optionally, beam search can be used to improve parsing accuracy, at the expense
+of parsing speed. When using beam search of size <i>b</i>, parsing is roughly
+<i>1.2 * b</i> times slower, but the accuracy usually increases.
 </p>
 
 <a id="api_reference" name="api_reference"></a>
