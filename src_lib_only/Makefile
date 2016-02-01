@@ -12,7 +12,7 @@ include ../src/Makefile.lib
 
 MERGE=$(call exe,merge_sources/merge_sources)
 
-parsito.cpp: $(MERGE) ../src/Makefile.lib $(patsubst %,../src/%.cpp,$(PARSITO_O))
+parsito.cpp: $(MERGE) force
 	@$(call echo,>$@,// This file is part of Parsito <http://github.com/ufal/parsito/>.)
 	@$(call echo,>>$@,//)
 	@$(call echo,>>$@,// This file is a bundle of all sources and headers of Parsito library.)
@@ -21,6 +21,9 @@ parsito.cpp: $(MERGE) ../src/Makefile.lib $(patsubst %,../src/%.cpp,$(PARSITO_O)
 
 $(MERGE):$(call exe,%):$$(call obj,%)
 	$(call link_exe,$@,$^,$(call win_subsystem,console))
+
+.PHONY: force
+force:
 
 .PHONY: clean
 clean:
