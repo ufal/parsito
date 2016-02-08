@@ -8,7 +8,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 include Makefile.builtem
-include Makefile.lib
+include Makefile.include
 include rest_server/microrestd/Makefile.include
 
 EXECUTABLES = $(call exe,parsito_accuracy run_parsito train_parsito)
@@ -23,7 +23,7 @@ lib: $(LIBRARIES)
 full: exe server lib
 
 # library
-$(call lib,libparsito): $(call obj,$(PARSITO_O))
+$(call lib,libparsito): $(call obj,$(PARSITO_OBJECTS))
 	$(call link_lib,$@,$^)
 
 C_FLAGS += $(call include_dir,.)
@@ -32,7 +32,7 @@ $(call exe,train_parsito): LD_FLAGS += $(call use_threads)
 $(call exe,train_parsito): $(call obj,embedding/embedding_encode network/neural_network_trainer parser/parser_nn_trainer utils/compressor_save)
 $(call exe,rest_server/parsito_server): LD_FLAGS+=$(call use_library,$(if $(filter win-%,$(PLATFORM)),$(MICRORESTD_LIBRARIES_WIN),$(MICRORESTD_LIBRARIES_POSIX)))
 $(call exe,rest_server/parsito_server): $(call obj,rest_server/parsito_service $(addprefix rest_server/microrestd/,$(MICRORESTD_OBJECTS) $(MICRORESTD_PUGIXML_OBJECTS)))
-$(EXECUTABLES) $(SERVER): $(call exe,%): $$(call obj,% utils/options $(PARSITO_O))
+$(EXECUTABLES) $(SERVER): $(call exe,%): $$(call obj,% utils/options $(PARSITO_OBJECTS))
 	$(call link_exe,$@,$^,$(call win_subsystem,console))
 
 # cleaning

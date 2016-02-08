@@ -1,7 +1,0 @@
-PARSITO_O = configuration/configuration configuration/node_extractor
-PARSITO_O += configuration/value_extractor embedding/embedding network/neural_network
-PARSITO_O += parser/parser parser/parser_nn transition/transition
-PARSITO_O += transition/transition_system transition/transition_system_link2
-PARSITO_O += transition/transition_system_projective transition/transition_system_swap
-PARSITO_O += tree/tree tree/tree_format tree/tree_format_conllu unilib/unicode unilib/utf8
-PARSITO_O += unilib/version utils/compressor_load version/version
