@@ -244,7 +244,7 @@ stack 1,child 0,child 0
 stack 1,child -1,child -1
 ```
 
-=== Measuring Tagger Accuracy ===[parsito_accuracy]
+=== Measuring Parser Accuracy ===[parsito_accuracy]
 
 Measuring custom parser model accuracy can be performed by running:
 ``` parsito_accuracy parser_model <test_data
