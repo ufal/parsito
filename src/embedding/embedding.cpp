@@ -13,7 +13,6 @@
 #include "embedding.h"
 #include "unilib/unicode.h"
 #include "unilib/utf8.h"
-#include "utils/binary_decoder.h"
 
 namespace ufal {
 namespace parsito {

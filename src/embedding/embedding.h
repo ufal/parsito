@@ -12,13 +12,12 @@
 #include <unordered_map>
 
 #include "common.h"
+#include "utils/binary_decoder.h"
+#include "utils/binary_encoder.h"
 #include "utils/string_piece.h"
 
 namespace ufal {
 namespace parsito {
-
-class binary_decoder;
-class binary_encoder;
 
 class embedding {
  public:
