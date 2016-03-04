@@ -18,7 +18,7 @@ namespace parsito {
 // Input CoNLL-U format
 
 bool tree_input_format_conllu::read_block(istream& in, string& block) const {
-  return getpara(in, block);
+  return bool(getpara(in, block));
 }
 
 void tree_input_format_conllu::set_text(string_piece text, bool make_copy) {
