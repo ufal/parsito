@@ -8,7 +8,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 include ../../src/Makefile.builtem
-include ../../src/Makefile.lib
+include ../../src/Makefile.include
 
 SWIG_FLAGS+=-O -c++ -outcurrentdir
 BINDING_C_FLAGS+=$(call include_dir,../../src_lib_only)
