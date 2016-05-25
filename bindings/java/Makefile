@@ -26,7 +26,7 @@ endif
 all: $(BINDING_MODULE) parsito.jar
 
 $(call dynobj,parsito_java):C_FLAGS+=$(BINDING_C_FLAGS)
-$(BINDING_MODULE): $(call dynobj,parsito_java) $(BINDING_PARSITO_O)
+$(BINDING_MODULE): $(call dynobj,parsito_java) $(BINDING_PARSITO_OBJECTS)
 	$(call link_dynlib,$@,$^ $(BINDING_C_FLAGS), $(BINDING_LD_FLAGS))
 
 parsito_java.cpp: parsito_java.i ../common/parsito.i

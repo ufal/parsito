@@ -18,7 +18,7 @@ BINDING_C_FLAGS+=$(if $(filter osx-%,$(PLATFORM)),-Wno-reserved-user-defined-lit
 all: $(BINDING_MODULE)
 
 $(call dynobj,parsito_perl):C_FLAGS+=$(BINDING_C_FLAGS)
-$(BINDING_MODULE): $(call dynobj,parsito_perl) $(BINDING_PARSITO_O)
+$(BINDING_MODULE): $(call dynobj,parsito_perl) $(BINDING_PARSITO_OBJECTS)
 	@$(call mkdir,$(dir $@))
 	@$(call touch,$(dir $@)Parsito.bs)
 	$(call link_dynlib,$@,$^ $(BINDING_C_FLAGS), $(BINDING_LD_FLAGS))

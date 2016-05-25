@@ -12,15 +12,15 @@ include ../../src/Makefile.include
 
 SWIG_FLAGS+=-O -c++ -outcurrentdir
 BINDING_C_FLAGS+=$(call include_dir,../../src_lib_only)
-BINDING_PARSITO_O=$(addprefix ../../src/,$(call dynobj,$(PARSITO_O)))
+BINDING_PARSITO_OBJECTS=$(addprefix ../../src/,$(call dynobj,$(PARSITO_OBJECTS)))
 ifneq ($(filter osx-%,$(PLATFORM)),)
   BINDING_LD_FLAGS+=-Wl,-undefined -Wl,dynamic_lookup
 endif
 
 .PHONY: binding_parsito_o
-$(BINDING_PARSITO_O): binding_parsito_o
+$(BINDING_PARSITO_OBJECTS): binding_parsito_o
 binding_parsito_o:
-	@$(MAKE) -C ../../src $(call dynobj,$(PARSITO_O))
+	@$(MAKE) -C ../../src $(call dynobj,$(PARSITO_OBJECTS))
 
 .PHONY: veryclean
 veryclean: clean

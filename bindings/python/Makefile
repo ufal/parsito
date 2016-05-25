@@ -17,7 +17,7 @@ BINDING_C_FLAGS+=$(if $(filter %-gcc %-clang,$(PLATFORM)),-w)
 all: $(BINDING_MODULE)
 
 $(call dynobj,parsito_python):C_FLAGS+=$(BINDING_C_FLAGS)
-$(BINDING_MODULE): $(call dynobj,parsito_python) $(BINDING_PARSITO_O)
+$(BINDING_MODULE): $(call dynobj,parsito_python) $(BINDING_PARSITO_OBJECTS)
 	$(call link_dynlib,$@,$^ $(BINDING_C_FLAGS), $(BINDING_LD_FLAGS))
 
 parsito_python.cpp: parsito_python.i ../common/parsito.i
