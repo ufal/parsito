@@ -14,6 +14,7 @@
 
 namespace ufal {
 namespace parsito {
+namespace utils {
 
 class url_detector {
  public:
@@ -25,6 +26,6 @@ class url_detector {
   static url_type detect(string_piece str, size_t* length = nullptr);
 };
 
+} // namespace utils
 } // namespace parsito
 } // namespace ufal
-

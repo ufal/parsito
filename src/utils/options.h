@@ -17,6 +17,7 @@
 
 namespace ufal {
 namespace parsito {
+namespace utils {
 
 class options {
  public:
@@ -44,5 +45,6 @@ class options {
 };
 
 
+} // namespace utils
 } // namespace parsito
 } // namespace ufal
