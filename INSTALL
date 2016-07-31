@@ -31,7 +31,8 @@ To compile Parsito, run make in the src directory.
 
 Make targets and options:
 - exe: compile the binaries (default)
-- server: compile the REST server
+- tools: compile the tools (in the tools subdirectory)
+- server: compile the REST server (in the rest_server subdirectory)
 - lib: compile the static library
 - BITS=32 or BITS=64: compile for specified 32-bit or 64-bit architecture
   instead of the default one
