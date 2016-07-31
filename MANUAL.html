@@ -834,6 +834,8 @@ embedding_source dimension minimum_frequency [precomputed_embeddings [update_wei
   </li>
   <li><code>1</code>: yes, update the precomputed embeddings
   </li>
+  <li><code>2</code>: yes, update the precomputed embeddings, and keep only the embeddings for words found in the training data (contrary to <code>0</code> and <code>1</code>)
+  </li>
   </ul>
 </li>
 <li><code>maximum_precomputed_embeddings</code> (default infinity): use at most this many precomputed embeddings (the ones at the beginning of the file are used, which is fine, because the embeddings are usually sorted from the most frequent value)
@@ -841,7 +843,27 @@ embedding_source dimension minimum_frequency [precomputed_embeddings [update_wei
 </ul>
 
 <p style="margin-bottom:0">
-If unsure, you can use embeddings from <i>Straka et al. 2015: Parsing Universal Dependency Treebanks using Neural Networks and Search-Based Oracle</i> (in the paper, embeddings for forms were precomputed using word2vec on the training data):
+When precomputed embeddings are given, their casing is preserved. During
+inference time, several variants of a given word are tried when looking up an
+embedding, stopping with the first one found:
+</p>
+<ul style="margin-top:0">
+<li>original word
+</li>
+<li>if the first and any other letter of the word are in uppercase (or titlecase),
+  all but the first one letters are lowercased
+</li>
+<li>all letters lowercased
+</li>
+<li>if the word begins with a digit and it does not contain any letters,
+  the first digit alone is used
+</li>
+<li>otherwise, embedding for unknown word is used
+</li>
+</ul>
+
+<p style="margin-bottom:0">
+If unsure what embedding description to use, you can use embeddings from <i>Straka et al. 2015: Parsing Universal Dependency Treebanks using Neural Networks and Search-Based Oracle</i> (in the paper, embeddings for forms were precomputed using word2vec on the training data):
 </p>
 <pre style="margin-top:0">
 universal_tag 20 1

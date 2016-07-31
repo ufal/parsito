@@ -501,15 +501,28 @@ file. Each line in the file describes one embedding in the following format:
   updated further during training:
   - 0: no, keep the original precomputed embeddings
   - 1: yes, update the precomputed embeddings
+  - 2: yes, update the precomputed embeddings, and keep only the embeddings for
+    words found in the training data (contrary to 0 and 1)
 - maximum_precomputed_embeddings (default infinity): use at most this many
   precomputed embeddings (the ones at the beginning of the file are used, which
   is fine, because the embeddings are usually sorted from the most frequent
   value)
 
-If unsure, you can use embeddings from Straka et al. 2015: Parsing Universal
-Dependency Treebanks using Neural Networks and Search-Based Oracle (in the
-paper, embeddings for forms were precomputed using word2vec on the training
-data):
+When precomputed embeddings are given, their casing is preserved. During
+inference time, several variants of a given word are tried when looking up an
+embedding, stopping with the first one found:
+- original word
+- if the first and any other letter of the word are in uppercase (or
+  titlecase), all but the first one letters are lowercased
+- all letters lowercased
+- if the word begins with a digit and it does not contain any letters, the
+  first digit alone is used
+- otherwise, embedding for unknown word is used
+
+If unsure what embedding description to use, you can use embeddings from Straka
+et al. 2015: Parsing Universal Dependency Treebanks using Neural Networks and
+Search-Based Oracle (in the paper, embeddings for forms were precomputed using
+word2vec on the training data):
   universal_tag 20 1
   feats 20 1
   form 50 2 [precomputed_embeddings_if_any]
