@@ -4,11 +4,23 @@
 
 %pragma(java) jniclasscode=%{
   static {
-    java.io.File localParsito = new java.io.File(System.mapLibraryName("parsito_java"));
+    java.io.File libraryFile = new java.io.File(parsito_java.libraryPath);
 
-    if (localParsito.exists())
-      System.load(localParsito.getAbsolutePath());
+    if (libraryFile.exists())
+      System.load(libraryFile.getAbsolutePath());
     else
       System.loadLibrary("parsito_java");
+  }
+%}
+
+%pragma(java) modulecode=%{
+  static String libraryPath;
+
+  static {
+    libraryPath = System.mapLibraryName("parsito_java");
+  }
+
+  public static void setLibraryPath(String path) {
+    libraryPath = path;
   }
 %}
