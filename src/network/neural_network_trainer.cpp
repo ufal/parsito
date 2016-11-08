@@ -291,7 +291,7 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
       for (unsigned j = 0; j < w.weights_batch[i].size(); j++)
         if (!w.weights_batch[i][j].empty()) {
           for (unsigned k = 0; k < w.weights_batch[i][j].size(); k++)
-            network.weights[i][j][k] += TRAINER::delta(w.weights_batch[i][j][k], trainer, TRAINER::need_trainer_data ? w.weights_trainer[i][j][k] : none_trainer_data) - l2_regularization * network.weights[i][j][k];
+            network.weights[i][j][k] += TRAINER::delta(w.weights_batch[i][j][k], trainer, TRAINER::need_trainer_data ? w.weights_trainer[i][j][k] : none_trainer_data) - (j+1 == w.weights_batch[i].size() ? /*bias*/ 0. : l2_regularization) * network.weights[i][j][k];
           w.weights_batch[i][j].clear();
         }
     }
@@ -340,11 +340,13 @@ void neural_network_trainer::l1_regularize() {
   if (!l1_regularization) return;
 
   for (auto&& weights : network.weights)
-    for (auto&& row : weights)
+    for (unsigned i = 0; i + 1 /*ignore biases*/ < weights.size(); i++) {
+      auto& row = weights[i];
       for (auto&& weight : row)
         if (weight < l1_regularization) weight += l1_regularization;
         else if (weight > l1_regularization) weight -= l1_regularization;
         else weight = 0;
+    }
 }
 
 void neural_network_trainer::maxnorm_regularize() {
