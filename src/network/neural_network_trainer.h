@@ -55,7 +55,6 @@ class neural_network_trainer {
   void backpropagate(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w);
 
   void finalize_sentence();
-  void finalize_dropout_weights(bool finalize = true);
 
   void save_network(binary_encoder& enc) const;
 

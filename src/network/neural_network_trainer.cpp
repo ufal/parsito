@@ -70,14 +70,14 @@ void neural_network_trainer::propagate(const vector<embedding>& embeddings, cons
   // Initialize dropout if requested
   if (dropout_input) {
     w.input_dropout.resize(network.weights[0].size());
-    bernoulli_distribution dropout(1 - dropout_input);
+    bernoulli_distribution dropout(dropout_input);
     for (auto&& flag : w.input_dropout)
       flag = dropout(generator);
   }
 
   if (dropout_hidden) {
     w.hidden_dropout.resize(network.weights[1].size());
-    bernoulli_distribution dropout(1 - dropout_hidden);
+    bernoulli_distribution dropout(dropout_hidden);
     for (auto&& flag : w.hidden_dropout)
       flag = dropout(generator);
   }
@@ -107,9 +107,13 @@ void neural_network_trainer::propagate(const vector<embedding>& embeddings, cons
       } else {
         index += embeddings[i].dimension;
       }
-  if (w.input_dropout.empty() || !w.input_dropout[index]) // Bias
+  if (dropout_input) { // Dropout normalization
+    float dropout_factor = 1. / (1. - dropout_input);
     for (auto&& i : w.hidden_kept)
-      w.hidden_layer[i] += network.weights[0][index][i];
+      w.hidden_layer[i] *= dropout_factor;
+  }
+  for (auto&& i : w.hidden_kept) // Bias
+    w.hidden_layer[i] += network.weights[0][index][i];
 
   // Activation function
   switch (network.hidden_layer_activation) {
@@ -130,9 +134,13 @@ void neural_network_trainer::propagate(const vector<embedding>& embeddings, cons
   for (auto&& i : w.hidden_kept)
     for (unsigned j = 0; j < outcomes_size; j++)
       w.outcomes[j] += w.hidden_layer[i] * network.weights[1][i][j];
-  if (w.hidden_dropout.empty() || !w.hidden_dropout[hidden_layer_size]) // Bias
+  if (dropout_hidden) { // Dropout normalization
+    float dropout_factor = 1. / (1. - dropout_hidden);
     for (unsigned i = 0; i < outcomes_size; i++)
-      w.outcomes[i] += network.weights[1][hidden_layer_size][i];
+      w.outcomes[i] *= dropout_factor;
+  }
+  for (unsigned i = 0; i < outcomes_size; i++) // Bias
+    w.outcomes[i] += network.weights[1][hidden_layer_size][i];
 
   // Softmax
   float max = w.outcomes[0];
@@ -358,22 +366,6 @@ void neural_network_trainer::maxnorm_regularize() {
 
 void neural_network_trainer::finalize_sentence() {
   if (l1_regularization) l1_regularize();
-}
-
-void neural_network_trainer::finalize_dropout_weights(bool finalize) {
-  if (dropout_input) {
-    bool factor = finalize ? dropout_input : 1 / dropout_input;
-    for (auto&& row : network.weights[0])
-      for (auto&& weight : row)
-        weight *= factor;
-  }
-
-  if (dropout_hidden) {
-    bool factor = finalize ? dropout_hidden : 1 / dropout_hidden;
-    for (auto&& row : network.weights[1])
-      for (auto&& weight : row)
-        weight *= factor;
-  }
 }
 
 void neural_network_trainer::save_matrix(const vector<vector<float>>& m, binary_encoder& enc) const {
