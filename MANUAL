@@ -443,6 +443,7 @@ values):
 - hidden_layer_type (default tanh): hidden layer activation function
   - tanh
   - cubic
+  - relu
 - initialization_range (default 0.1): maximum absolute value of initial random
   weights in the network
 - input (default conllu): input format to use

@@ -115,6 +115,10 @@ void neural_network_trainer::propagate(const vector<embedding>& embeddings, cons
       for (auto&& weight : w.hidden_layer)
         weight = weight * weight * weight;
       break;
+    case activation_function::RELU:
+      for (auto&& weight : w.hidden_layer)
+        if (weight < 0) weight = 0;
+      break;
   }
 
   for (auto&& i : w.hidden_kept)
@@ -205,6 +209,11 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
         float hidden_layer = cbrt(w.hidden_layer[i]);
         w.error_hidden[i] *= 3 * hidden_layer * hidden_layer;
       }
+      break;
+    case activation_function::RELU:
+      for (auto&& i : w.hidden_kept)
+        if (w.hidden_layer[i] <= 0)
+          w.error_hidden[i] = 0;
       break;
   }
 
