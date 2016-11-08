@@ -764,7 +764,7 @@ The additional options of <code>train_parsito nn</code> are (again with suggeste
   </li>
   </ul>
 </li>
-<li><code>initialization_range</code> (default <code>0.1</code>): maximum absolute value of initial random weights in the network
+<li><code>initialization_range</code> (default <code>0.1</code>): maximum absolute value of initial random weights in the network; if negative value is used, the maximum absolute value of initial random weights is <i>-initialization_range * sqrt(6.0 / (n+m))</i>
 </li>
 <li><code>input</code> (default <code>conllu</code>): <a href="#model_training_nn_input_format">input format to use</a>
 </li>

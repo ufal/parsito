@@ -152,7 +152,7 @@ The additional options of ``train_parsito nn`` are (again with suggested default
   - ``tanh``
   - ``cubic``
   - ``relu``
-- ``initialization_range`` (default ``0.1``): maximum absolute value of initial random weights in the network
+- ``initialization_range`` (default ``0.1``): maximum absolute value of initial random weights in the network; if negative value is used, the maximum absolute value of initial random weights is //-initialization_range * sqrt(6.0 / (n+m))//
 - ``input`` (default ``conllu``): [input format to use #model_training_nn_input_format]
 - ``l1_regularization`` (default ``0``): L1 regularization
 - ``l2_regularization`` (default ``0``): L2 regularization (``0.3``)
