@@ -17,7 +17,7 @@ endif
 all: $(BINDING_MODULE)
 
 $(call dynobj,parsito_csharp):C_FLAGS+=$(BINDING_C_FLAGS)
-$(BINDING_MODULE): $(call dynobj,parsito_csharp) $(BINDING_PARSITO_O)
+$(BINDING_MODULE): $(call dynobj,parsito_csharp) $(BINDING_PARSITO_OBJECTS)
 	$(call link_dynlib,$@,$^ $(BINDING_C_FLAGS), $(BINDING_LD_FLAGS))
 
 parsito_csharp.cpp: parsito_csharp.i ../common/parsito.i

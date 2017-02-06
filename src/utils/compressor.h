@@ -13,6 +13,7 @@
 
 namespace ufal {
 namespace parsito {
+namespace utils {
 
 class binary_decoder;
 class binary_encoder;
@@ -23,5 +24,6 @@ class compressor {
   static bool save(ostream& os, const binary_encoder& enc);
 };
 
+} // namespace utils
 } // namespace parsito
 } // namespace ufal

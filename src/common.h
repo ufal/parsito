@@ -11,3 +11,11 @@
 
 #include "utils/common.h"
 #include "utils/string_piece.h"
+
+namespace ufal {
+namespace parsito {
+
+using namespace utils;
+
+} // namespace parsito
+} // namespace ufal

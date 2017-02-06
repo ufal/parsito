@@ -30,16 +30,15 @@ Online
 Online Demo
 -----------
 
-Online demo (http://lindat.mff.cuni.cz/services/parsito/) is available as one of
-LINDAT/CLARIN services (http://lindat.mff.cuni.cz/services/).
+LINDAT/CLARIN (http://lindat.cz) hosts Parsito Online Demo
+(http://lindat.mff.cuni.cz/services/parsito/).
 
 
 Web Service
 -----------
 
-Web service (http://lindat.mff.cuni.cz/services/parsito/api-reference.php) is
-also available as one of LINDAT/CLARIN services
-(http://lindat.mff.cuni.cz/services/).
+LINDAT/CLARIN (http://lindat.cz) also hosts Parsito Web Service
+(http://lindat.mff.cuni.cz/services/parsito/api-reference.php).
 
 
 Release
@@ -131,14 +130,15 @@ To compile Parsito, run make in the src directory.
 
 Make targets and options:
 - exe: compile the binaries (default)
-- server: compile the REST server
+- tools: compile the tools (in the tools subdirectory)
+- server: compile the REST server (in the rest_server subdirectory)
 - lib: compile the static library
 - BITS=32 or BITS=64: compile for specified 32-bit or 64-bit architecture
   instead of the default one
-- mode=RELEASE: create release build which statically links the C++ runtime and
+- MODE=release: create release build which statically links the C++ runtime and
   uses LTO
-- mode=DEBUG: create debug build
-- mode=PROFILE: create profile build
+- MODE=debug: create debug build
+- MODE=profile: create profile build
 
 
 Platforms
@@ -501,15 +501,28 @@ file. Each line in the file describes one embedding in the following format:
   updated further during training:
   - 0: no, keep the original precomputed embeddings
   - 1: yes, update the precomputed embeddings
+  - 2: yes, update the precomputed embeddings, and keep only the embeddings for
+    words found in the training data (contrary to 0 and 1)
 - maximum_precomputed_embeddings (default infinity): use at most this many
   precomputed embeddings (the ones at the beginning of the file are used, which
   is fine, because the embeddings are usually sorted from the most frequent
   value)
 
-If unsure, you can use embeddings from Straka et al. 2015: Parsing Universal
-Dependency Treebanks using Neural Networks and Search-Based Oracle (in the
-paper, embeddings for forms were precomputed using word2vec on the training
-data):
+When precomputed embeddings are given, their casing is preserved. During
+inference time, several variants of a given word are tried when looking up an
+embedding, stopping with the first one found:
+- original word
+- if the first and any other letter of the word are in uppercase (or
+  titlecase), all but the first one letters are lowercased
+- all letters lowercased
+- if the word begins with a digit and it does not contain any letters, the
+  first digit alone is used
+- otherwise, embedding for unknown word is used
+
+If unsure what embedding description to use, you can use embeddings from Straka
+et al. 2015: Parsing Universal Dependency Treebanks using Neural Networks and
+Search-Based Oracle (in the paper, embeddings for forms were precomputed using
+word2vec on the training data):
   universal_tag 20 1
   feats 20 1
   form 50 2 [precomputed_embeddings_if_any]
@@ -1079,7 +1092,9 @@ getField and setField wrappers.
 
 The bindings require native C++ library libparsito_java (called parsito_java on
 Windows). If the library is found in the current directory, it is used,
-otherwise standard library search process is used.
+otherwise standard library search process is used. The path to the C++ library
+can also be specified using static parsito_java.setLibraryPath(String path) call
+(before the first call inside the C++ library, of course).
 
 
 Perl Bindings
@@ -1149,8 +1164,8 @@ Bibtex for Referencing
   }
 
 
-Permanent Identifier
---------------------
+Persistent Identifier
+---------------------
 
-If you prefer to reference Parsito by a permanent identifier (PID), you can use
+If you prefer to reference Parsito by a persistent identifier (PID), you can use
 http://hdl.handle.net/11234/1-1584.

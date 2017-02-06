@@ -4,5 +4,6 @@
 libparsito.*
 parsito_accuracy
 rest_server/parsito_server
+tools/parsito_embeddings
 run_parsito
 train_parsito

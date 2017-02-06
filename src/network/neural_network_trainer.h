@@ -94,4 +94,3 @@ class neural_network_trainer {
 
 } // namespace parsito
 } // namespace ufal
-

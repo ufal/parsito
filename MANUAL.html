@@ -189,7 +189,7 @@
     </li>
     <li><a href="#bibtex_for_referencing">8.2. Bibtex for Referencing</a>
     </li>
-    <li><a href="#permanent_identifier">8.3. Permanent Identifier</a>
+    <li><a href="#persistent_identifier">8.3. Persistent Identifier</a>
     </li>
     </ul>
   </li>
@@ -229,16 +229,14 @@ Mathematics and Physics, Charles University in Prague, Czech Republic.
 <h2>2.1. Online Demo</h2>
 
 <p>
-<a href="http://lindat.mff.cuni.cz/services/parsito/">Online demo</a> is available as
-one of <a href="http://lindat.mff.cuni.cz/services/">LINDAT/CLARIN services</a>.
+<a href="http://lindat.cz">LINDAT/CLARIN</a> hosts <a href="http://lindat.mff.cuni.cz/services/parsito/">Parsito Online Demo</a>.
 </p>
 
 <a id="web_service" name="web_service"></a>
 <h2>2.2. Web Service</h2>
 
 <p>
-<a href="http://lindat.mff.cuni.cz/services/parsito/api-reference.php">Web service</a> is also
-available as one of <a href="http://lindat.mff.cuni.cz/services/">LINDAT/CLARIN services</a>.
+<a href="http://lindat.cz">LINDAT/CLARIN</a> also hosts <a href="http://lindat.mff.cuni.cz/services/parsito/api-reference.php">Parsito Web Service</a>.
 </p>
 
 <a id="release" name="release"></a>
@@ -352,17 +350,19 @@ Make targets and options:
 <ul style="margin-top:0">
 <li><code>exe</code>: compile the binaries (default)
 </li>
-<li><code>server</code>: compile the REST server
+<li><code>tools</code>: compile the tools (in the <code>tools</code> subdirectory)
+</li>
+<li><code>server</code>: compile the REST server (in the <code>rest_server</code> subdirectory)
 </li>
 <li><code>lib</code>: compile the static library
 </li>
 <li><code>BITS=32</code> or <code>BITS=64</code>: compile for specified 32-bit or 64-bit architecture instead of the default one
 </li>
-<li><code>mode=RELEASE</code>: create release build which statically links the C++ runtime and uses LTO
+<li><code>MODE=release</code>: create release build which statically links the C++ runtime and uses LTO
 </li>
-<li><code>mode=DEBUG</code>: create debug build
+<li><code>MODE=debug</code>: create debug build
 </li>
-<li><code>mode=PROFILE</code>: create profile build
+<li><code>MODE=profile</code>: create profile build
 </li>
 </ul>
 
@@ -834,6 +834,8 @@ embedding_source dimension minimum_frequency [precomputed_embeddings [update_wei
   </li>
   <li><code>1</code>: yes, update the precomputed embeddings
   </li>
+  <li><code>2</code>: yes, update the precomputed embeddings, and keep only the embeddings for words found in the training data (contrary to <code>0</code> and <code>1</code>)
+  </li>
   </ul>
 </li>
 <li><code>maximum_precomputed_embeddings</code> (default infinity): use at most this many precomputed embeddings (the ones at the beginning of the file are used, which is fine, because the embeddings are usually sorted from the most frequent value)
@@ -841,7 +843,27 @@ embedding_source dimension minimum_frequency [precomputed_embeddings [update_wei
 </ul>
 
 <p style="margin-bottom:0">
-If unsure, you can use embeddings from <i>Straka et al. 2015: Parsing Universal Dependency Treebanks using Neural Networks and Search-Based Oracle</i> (in the paper, embeddings for forms were precomputed using word2vec on the training data):
+When precomputed embeddings are given, their casing is preserved. During
+inference time, several variants of a given word are tried when looking up an
+embedding, stopping with the first one found:
+</p>
+<ul style="margin-top:0">
+<li>original word
+</li>
+<li>if the first and any other letter of the word are in uppercase (or titlecase),
+  all but the first one letters are lowercased
+</li>
+<li>all letters lowercased
+</li>
+<li>if the word begins with a digit and it does not contain any letters,
+  the first digit alone is used
+</li>
+<li>otherwise, embedding for unknown word is used
+</li>
+</ul>
+
+<p style="margin-bottom:0">
+If unsure what embedding description to use, you can use embeddings from <i>Straka et al. 2015: Parsing Universal Dependency Treebanks using Neural Networks and Search-Based Oracle</i> (in the paper, embeddings for forms were precomputed using word2vec on the training data):
 </p>
 <pre style="margin-top:0">
 universal_tag 20 1
@@ -1564,6 +1586,9 @@ wrappers.
 The bindings require native C++ library <code>libparsito_java</code> (called
 <code>parsito_java</code> on Windows). If the library is found in the current
 directory, it is used, otherwise standard library search process is used.
+The path to the C++ library can also be specified using static
+<code>parsito_java.setLibraryPath(String path)</code> call (before the first call
+inside the C++ library, of course).
 </p>
 
 <a id="perl_bindings" name="perl_bindings"></a>
@@ -1644,11 +1669,11 @@ Acknowledgements for individual language models are listed in <a href="#users_ma
 }
 </pre>
 
-<a id="permanent_identifier" name="permanent_identifier"></a>
-<h2>8.3. Permanent Identifier</h2>
+<a id="persistent_identifier" name="persistent_identifier"></a>
+<h2>8.3. Persistent Identifier</h2>
 
 <p>
-If you prefer to reference Parsito by a permanent identifier (PID),
+If you prefer to reference Parsito by a persistent identifier (PID),
 you can use <code>http://hdl.handle.net/11234/1-1584</code>.
 </p>
 </div>
