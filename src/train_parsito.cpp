@@ -31,6 +31,7 @@ void train_parser_nn(int argc, char* argv[]) {
                        {"batch_size", options::value::any},
                        {"dropout_hidden", options::value::any},
                        {"dropout_input", options::value::any},
+                       {"early_stopping", options::value::any},
                        {"embeddings", options::value::any},
                        {"heldout", options::value::any},
                        {"hidden_layer", options::value::any},
@@ -58,6 +59,7 @@ void train_parser_nn(int argc, char* argv[]) {
                     "         --batch_size=batch size\n"
                     "         --dropout_hidden=hidden layer dropout\n"
                     "         --dropout_input=input dropout\n"
+                    "         --early_stopping=[0|1] use early stopping\n"
                     "         --embeddings=embedding description file\n"
                     "         --heldout=heldout data file\n"
                     "         --hidden_layer=hidden layer size\n"
@@ -101,6 +103,7 @@ void train_parser_nn(int argc, char* argv[]) {
   parameters.maxnorm_regularization = options.count("maxnorm_regularization") ? parse_double(options["maxnorm_regularization"], "max-norm regularization") : 0;
   parameters.dropout_hidden = options.count("dropout_hidden") ? parse_double(options["dropout_hidden"], "hidden layer dropout") : 0;
   parameters.dropout_input = options.count("dropout_input") ? parse_double(options["dropout_input"], "input dropout") : 0;
+  parameters.early_stopping = options.count("early_stopping") ? parse_int(options["early_stopping"], "early stopping") : options.count("heldout");
 
   int threads = options.count("threads") ? parse_int(options["threads"], "number of threads") : 1;
   if (threads <= 0) runtime_failure("The number of threads must be positive!");
@@ -213,6 +216,7 @@ void train_parser_nn(int argc, char* argv[]) {
     }
     cerr << heldout.size() << " sentences with " << train_words << " words." << endl;
   }
+  if (parameters.early_stopping && !heldout.size()) runtime_failure("Early stopping required, but no heldout data!");
 
   // Prepare the binary encoder
   binary_encoder enc;

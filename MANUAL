@@ -384,6 +384,7 @@ The full command syntax of train_parsito nn is:
            --batch_size=batch size
            --dropout_hidden=hidden layer dropout
            --dropout_input=input dropout
+           --early_stopping=[0|1] use early stopping
            --embeddings=embedding description file
            --heldout=heldout data file
            --hidden_layer=hidden layer size
@@ -441,6 +442,8 @@ values):
 - batch_size (default 1): use batches of specified size (10)
 - dropout_hidden (default 0): probability of dropout of hidden layer node
 - dropout_input (default 0): probability of dropout of input layer node
+- early_stopping (default 1 if heldout data is given else 0): use early
+  stopping depending on heldout LAS accuracy
 - heldout: use the specified file as heldout data and report the results of the
   trained model on them
 - hidden_layer_type (default tanh): hidden layer activation function

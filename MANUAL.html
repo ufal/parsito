@@ -675,6 +675,7 @@ Options: --adadelta=momentum,epsilon
          --batch_size=batch size
          --dropout_hidden=hidden layer dropout
          --dropout_input=input dropout
+         --early_stopping=[0|1] use early stopping
          --embeddings=embedding description file
          --heldout=heldout data file
          --hidden_layer=hidden layer size
@@ -754,6 +755,8 @@ The additional options of <code>train_parsito nn</code> are (again with suggeste
 <li><code>dropout_hidden</code> (default <code>0</code>): probability of dropout of hidden layer node
 </li>
 <li><code>dropout_input</code> (default <code>0</code>): probability of dropout of input layer node
+</li>
+<li><code>early_stopping</code> (default <code>1</code> if heldout data is given else <code>0</code>): use early stopping depending on heldout LAS accuracy
 </li>
 <li><code>heldout</code>: use the specified file as heldout data and report the results of the trained model on them
 </li>

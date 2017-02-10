@@ -224,6 +224,9 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
   scaled_parameters.l2_regularization /= total_nodes;
   neural_network_trainer network_trainer(parser.network, total_dimension * parser.nodes.node_count(), parser.system->transition_count(), scaled_parameters, generator);
 
+  neural_network heldout_best_network;
+  unsigned heldout_best_correct_labelled = 0, heldout_best_iteration = 0;
+
   vector<int> permutation;
   for (size_t i = 0; i < train.size(); i++)
     permutation.push_back(permutation.size());
@@ -456,9 +459,20 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
       }
 
       cerr << ", heldout UAS " << fixed << setprecision(2) << (100. * correct_unlabelled / total) << "%, LAS " << (100. * correct_labelled / total) << "%";
+
+      if (parameters.early_stopping && correct_labelled > heldout_best_correct_labelled) {
+        heldout_best_network = parser.network;
+        heldout_best_correct_labelled = correct_labelled;
+        heldout_best_iteration = iteration;
+      }
     }
 
     cerr << endl;
+  }
+
+  if (parameters.early_stopping && heldout_best_iteration > 0) {
+    cerr << "Using early stopping -- choosing network from iteration " << heldout_best_iteration << endl;
+    parser.network = heldout_best_network;
   }
 
   // Encode transition system
