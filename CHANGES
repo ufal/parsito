@@ -1,6 +1,9 @@
 Version 1.1.1-devel
 -------------------
 - Add Adam optimizer.
+- Add ReLU activation.
+- Fix dropout implementation.
+- Add Xavier initialization.
 
 
 Version 1.1.0 [04 Jan 2016]
