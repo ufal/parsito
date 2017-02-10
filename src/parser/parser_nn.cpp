@@ -210,7 +210,7 @@ void parser_nn::load(binary_decoder& data, unsigned cache) {
   string description, error;
 
   version = versioned ? data.next_1B() : 1;
-  if (!(version >= 1 && version <= 2))
+  if (!(version >= 1 && version <= VERSION_LATEST))
     throw binary_decoder_error("Unrecognized version of the parser_nn model");
 
   // Load labels

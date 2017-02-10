@@ -39,6 +39,7 @@ class parser_nn : public parser {
 
   bool versioned;
   unsigned version;
+  enum { VERSION_LATEST = 2 };
 
   vector<string> labels;
   unique_ptr<transition_system> system;

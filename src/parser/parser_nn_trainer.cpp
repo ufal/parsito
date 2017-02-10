@@ -42,7 +42,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
       }
 
   // Create parser instance to be trained
-  parser_nn parser(true); parser.version = 2;
+  parser_nn parser(true); parser.version = parser_nn::VERSION_LATEST;
 
   // Generate labels for transition system
   unordered_set<string> labels_set;
