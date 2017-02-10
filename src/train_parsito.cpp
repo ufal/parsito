@@ -220,7 +220,7 @@ void train_parser_nn(int argc, char* argv[]) {
 
   // Prepare the binary encoder
   binary_encoder enc;
-  enc.add_str("nn");
+  enc.add_str("nn_versioned");
 
   // Train the parser_nn
   cerr << "Training the parser" << endl;

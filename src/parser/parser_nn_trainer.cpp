@@ -41,10 +41,11 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
         if (node.deprel.empty()) runtime_failure("The node '" << node.form << "' with id " << node.id << " has no deprel set!");
       }
 
-  // Generate labels for transition system
-  parser_nn parser;
-  unordered_set<string> labels_set;
+  // Create parser instance to be trained
+  parser_nn parser(true); parser.version = 2;
 
+  // Generate labels for transition system
+  unordered_set<string> labels_set;
   for (auto&& tree : train)
     for (auto&& node : tree.nodes)
       if (node.id && !labels_set.count(node.deprel)) {
@@ -474,6 +475,9 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     cerr << "Using early stopping -- choosing network from iteration " << heldout_best_iteration << endl;
     parser.network = heldout_best_network;
   }
+
+  // Encode version
+  enc.add_1B(parser.version);
 
   // Encode transition system
   enc.add_2B(parser.labels.size());

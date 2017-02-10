@@ -15,6 +15,12 @@
 namespace ufal {
 namespace parsito {
 
+// Versions:
+// 1: initial version
+// 2: add ReLU activation function
+
+parser_nn::parser_nn(bool versioned) : versioned(versioned) {}
+
 void parser_nn::parse(tree& t, unsigned beam_size) const {
   if (beam_size > 1)
     parse_beam_search(t, beam_size);
@@ -202,6 +208,10 @@ void parser_nn::workspace::beam_size_configuration::save_tree() {
 
 void parser_nn::load(binary_decoder& data, unsigned cache) {
   string description, error;
+
+  version = versioned ? data.next_1B() : 1;
+  if (!(version >= 1 && version <= 2))
+    throw binary_decoder_error("Unrecognized version of the parser_nn model");
 
   // Load labels
   labels.resize(data.next_2B());

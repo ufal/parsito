@@ -25,6 +25,8 @@ namespace parsito {
 
 class parser_nn : public parser {
  public:
+  parser_nn(bool versioned);
+
   virtual void parse(tree& t, unsigned beam_size = 0) const override;
 
  protected:
@@ -34,6 +36,9 @@ class parser_nn : public parser {
   friend class parser_nn_trainer;
   void parse_greedy(tree& t) const;
   void parse_beam_search(tree& t, unsigned beam_size) const;
+
+  bool versioned;
+  unsigned version;
 
   vector<string> labels;
   unique_ptr<transition_system> system;
