@@ -27,6 +27,7 @@ void train_parser_nn(int argc, char* argv[]) {
   options::map options;
   if (!options::parse({{"adadelta", options::value::any},
                        {"adagrad", options::value::any},
+                       {"adam", options::value::any},
                        {"batch_size", options::value::any},
                        {"dropout_hidden", options::value::any},
                        {"dropout_input", options::value::any},
@@ -53,6 +54,7 @@ void train_parser_nn(int argc, char* argv[]) {
     runtime_failure("Usage: " << argv[0] << " nn [options]\n"
                     "Options: --adadelta=momentum,epsilon\n"
                     "         --adagrad=learning rate,epsilon\n"
+                    "         --adam=learning rate[,beta1,beta2,final learning rate]\n"
                     "         --batch_size=batch size\n"
                     "         --dropout_hidden=hidden layer dropout\n"
                     "         --dropout_input=input dropout\n"
@@ -129,6 +131,7 @@ void train_parser_nn(int argc, char* argv[]) {
     split(options["adagrad"], ',', parts);
     if (parts.size() != 2) runtime_failure("Expecting two values to the --adagrad option!");
     parameters.trainer.learning_rate = parse_double(parts[0], "learning rate");
+    parameters.trainer.learning_rate_final = parameters.trainer.learning_rate;
     parameters.trainer.epsilon = parse_double(parts[1], "adagrad epsilon");
   } else if (options.count("adadelta")) {
     parameters.trainer.algorithm = network_trainer::ADADELTA;
@@ -136,6 +139,16 @@ void train_parser_nn(int argc, char* argv[]) {
     if (parts.size() != 2) runtime_failure("Expecting two values to the --adadelta option!");
     parameters.trainer.momentum = parse_double(parts[0], "momentum");
     parameters.trainer.epsilon = parse_double(parts[1], "adadelta epsilon");
+  } else if (options.count("adam")) {
+    parameters.trainer.algorithm = network_trainer::ADAM;
+    split(options["adam"], ',', parts);
+    if (parts.size() < 1) runtime_failure("Expecting at least one value to the --adam option!");
+    if (parts.size() > 4) runtime_failure("More than four values given to the --adam option!");
+    parameters.trainer.learning_rate = parse_double(parts[0], "learning rate");
+    parameters.trainer.momentum = parts.size() > 1 ? parse_double(parts[1], "beta1") : 0.9;
+    parameters.trainer.momentum2 = parts.size() > 2 ? parse_double(parts[2], "beta2") : 0.999;
+    parameters.trainer.learning_rate_final = parts.size() > 3 ? parse_double(parts[3], "final learning rate") : parameters.trainer.learning_rate;
+    parameters.trainer.epsilon = 1e-8;
   } else
     runtime_failure("No trainer algorithm was specified!");
 

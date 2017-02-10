@@ -671,6 +671,7 @@ The full command syntax of <code>train_parsito nn</code> is:
 train_parsito nn [options] &lt;training_data &gt;parser_model
 Options: --adadelta=momentum,epsilon
          --adagrad=learning rate,epsilon
+         --adam=learning rate[,beta1,beta2,final learning rate]
          --batch_size=batch size
          --dropout_hidden=hidden layer dropout
          --dropout_input=input dropout
@@ -708,7 +709,7 @@ defaults are suggested in parentheses:
 </li>
 <li><code>nodes</code>: file containing <a href="#model_training_nn_nodes">nodes description</a>
 </li>
-<li><code>sgd</code>, <code>sgd_momentum</code>, <code>adadelta</code>, <code>adagrad</code>: which neural network training algorithm to use (<code>sgd=0.02,0.001</code>)
+<li><code>sgd</code>, <code>sgd_momentum</code>, <code>adadelta</code>, <code>adagrad</code>, <code>adam</code>: which neural network training algorithm to use (<code>sgd=0.02,0.001</code>)
   <ul>
   <li><code>sgd=learning rate[,final learning rate]</code>: use SGD with specified learning rate, using exponential decay
   </li>
@@ -717,6 +718,8 @@ defaults are suggested in parentheses:
   <li><code>adadelta=momentum,epsilon</code>: use AdaDelta with specified parameters
   </li>
   <li><code>adagrad=learning rate,epsilon</code>: use AdaGrad with specified parameters
+  </li>
+  <li><code>adam=learning rate[,beta1,beta2,final learning rate]</code>: use Adam with specified parameters, optionally using exponential decay
   </li>
   </ul>
 </li>

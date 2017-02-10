@@ -41,7 +41,7 @@ neural_network_trainer::neural_network_trainer(neural_network& network, unsigned
   }
 
   // Store the network_parameters
-  iteration = 0;
+  iteration = steps = 0;
   iterations = parameters.iterations;
   trainer = parameters.trainer;
   batch_size = parameters.batch_size;
@@ -58,7 +58,7 @@ neural_network_trainer::neural_network_trainer(neural_network& network, unsigned
 bool neural_network_trainer::next_iteration() {
   if (iteration++ >= iterations) return false;
 
-  if (trainer.algorithm == network_trainer::SGD)
+  if (trainer.algorithm != network_trainer::ADADELTA)
     if (trainer.learning_rate != trainer.learning_rate_final && iteration > 1)
       trainer.learning_rate =
           exp(((iterations - iteration) * log(trainer.learning_rate) + log(trainer.learning_rate_final)) / (iterations - iteration + 1));
@@ -181,6 +181,15 @@ float neural_network_trainer::trainer_adadelta::delta(float gradient, const netw
   data.delta = trainer.momentum * data.delta + (1 - trainer.momentum) * delta * delta;
   return delta;
 }
+
+// Adam
+bool neural_network_trainer::trainer_adam::need_trainer_data = true;
+float neural_network_trainer::trainer_adam::delta(float gradient, const network_trainer& trainer, workspace::trainer_data& data) {
+  data.gradient = trainer.momentum * data.gradient + (1 - trainer.momentum) * gradient;
+  data.delta = trainer.momentum2 * data.delta + (1 - trainer.momentum2) * gradient * gradient;
+  return trainer.learning_rate * data.gradient / sqrt(data.delta + trainer.epsilon);
+}
+
 
 // Backpropagation
 template <class TRAINER>
@@ -318,6 +327,8 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
 
 
 void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w) {
+  steps++;
+
   switch (trainer.algorithm) {
     case network_trainer::SGD:
       backpropagate_template<trainer_sgd>(embeddings, embedding_ids_sequences, required_outcome, w);
@@ -330,6 +341,12 @@ void neural_network_trainer::backpropagate(vector<embedding>& embeddings, const 
       return;
     case network_trainer::ADADELTA:
       backpropagate_template<trainer_adadelta>(embeddings, embedding_ids_sequences, required_outcome, w);
+      return;
+    case network_trainer::ADAM:
+      float original_learning_rate = trainer.learning_rate;
+      trainer.learning_rate *= sqrt(1-pow(trainer.momentum2, steps)) / (1-pow(trainer.momentum, steps));
+      backpropagate_template<trainer_adam>(embeddings, embedding_ids_sequences, required_outcome, w);
+      trainer.learning_rate = original_learning_rate;
       return;
   }
 

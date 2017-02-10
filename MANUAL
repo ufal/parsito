@@ -380,6 +380,7 @@ The full command syntax of train_parsito nn is:
   train_parsito nn [options] <training_data >parser_model
   Options: --adadelta=momentum,epsilon
            --adagrad=learning rate,epsilon
+           --adam=learning rate[,beta1,beta2,final learning rate]
            --batch_size=batch size
            --dropout_hidden=hidden layer dropout
            --dropout_input=input dropout
@@ -409,14 +410,16 @@ are suggested in parentheses:
 - hidden_layer: size of the hidden layer (200)
 - embeddings: file containing embedding description
 - nodes: file containing nodes description
-- sgd, sgd_momentum, adadelta, adagrad: which neural network training algorithm
-  to use (sgd=0.02,0.001)
+- sgd, sgd_momentum, adadelta, adagrad, adam: which neural network training
+  algorithm to use (sgd=0.02,0.001)
   - sgd=learning rate[,final learning rate]: use SGD with specified learning
     rate, using exponential decay
   - sgd_momentum=momentum,learning rate[,final learning rate]: use SGD with
     momentum and specified learning rate, using exponential decay
   - adadelta=momentum,epsilon: use AdaDelta with specified parameters
   - adagrad=learning rate,epsilon: use AdaGrad with specified parameters
+  - adam=learning rate[,beta1,beta2,final learning rate]: use Adam with
+    specified parameters, optionally using exponential decay
 - transition_system: which transition system to use for parsing (language
   dependant, you can try all and choose the best)
   - projective: projective stack-based arc standard system with shift, left_arc

@@ -21,11 +21,12 @@ struct network_trainer {
     SGD_MOMENTUM,
     ADAGRAD,
     ADADELTA,
+    ADAM,
   };
 
   network_trainer_algorithm algorithm;
   float learning_rate, learning_rate_final;
-  float momentum;
+  float momentum, momentum2;
   float epsilon;
 };
 

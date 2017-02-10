@@ -75,6 +75,10 @@ class neural_network_trainer {
     static bool need_trainer_data;
     static inline float delta(float gradient, const network_trainer& trainer, workspace::trainer_data& data);
   };
+  struct trainer_adam {
+    static bool need_trainer_data;
+    static inline float delta(float gradient, const network_trainer& trainer, workspace::trainer_data& data);
+  };
   template <class TRAINER> void backpropagate_template(vector<embedding>& embeddings, const vector<const vector<int>*>& embedding_ids_sequences, unsigned required_outcome, workspace& w);
 
   void l1_regularize();
@@ -84,7 +88,7 @@ class neural_network_trainer {
 
   neural_network& network;
   mt19937& generator;
-  unsigned iteration, iterations;
+  unsigned iteration, iterations, steps;
   network_trainer trainer;
   unsigned batch_size;
   float l1_regularization, l2_regularization, maxnorm_regularization;
