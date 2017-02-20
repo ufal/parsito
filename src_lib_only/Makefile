@@ -17,7 +17,7 @@ parsito.cpp: $(MERGE) force
 	@$(call echo,>>$@,//)
 	@$(call echo,>>$@,// This file is a bundle of all sources and headers of Parsito library.)
 	@$(call echo,>>$@,// Comments and copyrights of all individual files are kept.)
-	$(call platform_name,$(MERGE) ufal::parsito ../src/ $(patsubst %,%.cpp,$(PARSITO_OBJECTS))) >>$@
+	$(call platform_name,$(MERGE)) ufal::parsito ../src/ $(patsubst %,%.cpp,$(PARSITO_OBJECTS)) >>$@
 
 $(MERGE):$(call exe,%):$$(call obj,%)
 	$(call link_exe,$@,$^,$(call win_subsystem,console))
