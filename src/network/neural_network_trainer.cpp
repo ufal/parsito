@@ -97,7 +97,9 @@ void neural_network_trainer::propagate(const vector<embedding>& embeddings, cons
 
   unsigned index = 0;
   for (auto&& embedding_ids : embedding_ids_sequences)
-    for (unsigned i = 0; i < embeddings.size(); i++)
+    // Note: The unnecessary brackets on the following for cycle are needed
+    // to compile on VS 2015 Update 3, which otherwise fail to compile it.
+    for (unsigned i = 0; i < embeddings.size(); i++) {
       if (embedding_ids && (*embedding_ids)[i] >= 0) {
         const float* embedding = embeddings[i].weight((*embedding_ids)[i]);
         for (unsigned dimension = embeddings[i].dimension; dimension; dimension--, embedding++, index++)
@@ -107,6 +109,7 @@ void neural_network_trainer::propagate(const vector<embedding>& embeddings, cons
       } else {
         index += embeddings[i].dimension;
       }
+    }
   if (dropout_input) { // Dropout normalization
     float dropout_factor = 1. / (1. - dropout_input);
     for (auto&& i : w.hidden_kept)
@@ -256,7 +259,9 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
   // Update weights[0] and backpropagate to error_embedding
   unsigned index = 0;
   for (auto&& embedding_ids : embedding_ids_sequences)
-    for (unsigned i = 0; i < embeddings.size(); i++)
+    // Note: The unnecessary brackets on the following for cycle are needed
+    // to compile on VS 2015 Update 3, which otherwise fail to compile it.
+    for (unsigned i = 0; i < embeddings.size(); i++) {
       if (embedding_ids && (*embedding_ids)[i] >= 0) {
         int embedding_id = (*embedding_ids)[i];
 
@@ -283,6 +288,7 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
       } else {
         index += embeddings[i].dimension;
       }
+    }
   // Bias
   if (w.input_dropout.empty() || !w.input_dropout[index]) {
     if (w.weights_batch[0][index].empty()) w.weights_batch[0][index].resize(hidden_layer_size);
