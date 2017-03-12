@@ -17,12 +17,16 @@ namespace parsito {
 
 class configuration {
  public:
+  configuration(bool single_root) : single_root(single_root) {}
+
   void init(tree* t);
   bool final();
 
   tree* t;
   vector<int> stack;
   vector<int> buffer;
+
+  bool single_root;
 };
 
 } // namespace parsito

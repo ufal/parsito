@@ -33,7 +33,7 @@ void parser_nn::parse_greedy(tree& t) const {
 
   // Retrieve or create workspace
   workspace* w = workspaces.pop();
-  if (!w) w = new workspace();
+  if (!w) w = new workspace(single_root);
 
   // Create configuration
   w->conf.init(&t);
@@ -85,11 +85,12 @@ void parser_nn::parse_beam_search(tree& t, unsigned beam_size) const {
 
   // Retrieve or create workspace
   workspace* w = workspaces.pop();
-  if (!w) w = new workspace();
+  if (!w) w = new workspace(single_root);
 
   // Allocate and initialize configuration
   for (int i = 0; i < 2; i++) {
-    w->bs_confs[i].resize(beam_size);
+    while (w->bs_confs[i].size() < beam_size) w->bs_confs[i].emplace_back(single_root);
+    while (w->bs_confs[i].size() > beam_size) w->bs_confs[i].pop_back();
     w->bs_confs_size[i] = 0;
   }
   w->bs_confs[0][0].cost = 0;
@@ -212,6 +213,8 @@ void parser_nn::load(binary_decoder& data, unsigned cache) {
   version = versioned ? data.next_1B() : 1;
   if (!(version >= 1 && version <= VERSION_LATEST))
     throw binary_decoder_error("Unrecognized version of the parser_nn model");
+
+  single_root = version >= 2 ? data.next_1B() : false;
 
   // Load labels
   labels.resize(data.next_2B());

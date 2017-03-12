@@ -690,6 +690,7 @@ Options: --adadelta=momentum,epsilon
          --structured_interval=structured prediction interval
          --sgd=learning rate[,final learning rate]
          --sgd_momentum=momentum,learning rate[,final learning rate]
+         --single_root=[0|1] allow only single root
          --threads=number of training threads
          --transition_oracle=static|static_eager|static_lazy|dynamic
          --transition_system=projective|swap|link2
@@ -779,6 +780,8 @@ The additional options of <code>train_parsito nn</code> are (again with suggeste
 <li><code>l2_regularization</code> (default <code>0</code>): L2 regularization (<code>0.3</code>)
 </li>
 <li><code>maxnorm_regularization</code> (default <code>0</code>): if the L2 norm of a row in the network is larger than specified maximum, the row vector is scaled so that its norm is exactly the specified maximum
+</li>
+<li><code>single_root</code> (default <code>0</code>): allow only single root when parsing
 </li>
 <li><code>structured_interval</code> (default <code>0</code>): use search-based oracle in addition to the <code>translation_oracle</code> specified. This almost always gives better results, but makes training 2-3 times slower. For details, see the paper <i>Straka et al. 2015: Parsing Universal Dependency Treebanks using Neural Networks and Search-Based Oracle</i> (use <code>10</code> if you want high accuracy and do not mind slower training time)
 </li>

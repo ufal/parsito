@@ -399,6 +399,7 @@ The full command syntax of train_parsito nn is:
            --structured_interval=structured prediction interval
            --sgd=learning rate[,final learning rate]
            --sgd_momentum=momentum,learning rate[,final learning rate]
+           --single_root=[0|1] allow only single root
            --threads=number of training threads
            --transition_oracle=static|static_eager|static_lazy|dynamic
            --transition_system=projective|swap|link2
@@ -459,6 +460,7 @@ values):
 - maxnorm_regularization (default 0): if the L2 norm of a row in the network is
   larger than specified maximum, the row vector is scaled so that its norm is
   exactly the specified maximum
+- single_root (default 0): allow only single root when parsing
 - structured_interval (default 0): use search-based oracle in addition to the
   translation_oracle specified. This almost always gives better results, but
   makes training 2-3 times slower. For details, see the paper Straka et al.

@@ -39,6 +39,7 @@ class parser_nn : public parser {
 
   bool versioned;
   unsigned version;
+  bool single_root;
   enum { VERSION_LATEST = 2 };
 
   vector<string> labels;
@@ -53,6 +54,8 @@ class parser_nn : public parser {
   neural_network::embeddings_cache embeddings_cache;
 
   struct workspace {
+    workspace(bool single_root) : conf(single_root) {}
+
     configuration conf;
 
     string word, word_buffer;
@@ -66,6 +69,8 @@ class parser_nn : public parser {
 
     // Beam-size structures
     struct beam_size_configuration {
+      beam_size_configuration(bool single_root) : conf(single_root) {}
+
       configuration conf;
       vector<int> heads;
       vector<string> deprels;

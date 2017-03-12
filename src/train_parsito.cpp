@@ -45,6 +45,7 @@ void train_parser_nn(int argc, char* argv[]) {
                        {"nodes", options::value::any},
                        {"sgd", options::value::any},
                        {"sgd_momentum", options::value::any},
+                       {"single_root", options::value::any},
                        {"structured_interval", options::value::any},
                        {"threads", options::value::any},
                        {"transition_oracle", options::value{"static", "static_eager", "static_lazy", "dynamic"}},
@@ -74,6 +75,7 @@ void train_parser_nn(int argc, char* argv[]) {
                     "         --structured_interval=structured prediction interval\n"
                     "         --sgd=learning rate[,final learning rate]\n"
                     "         --sgd_momentum=momentum,learning rate[,final learning rate]\n"
+                    "         --single_root=[0|1] allow only single root\n"
                     "         --threads=number of training threads\n"
                     "         --transition_oracle=static|static_eager|static_lazy|dynamic\n"
                     "         --transition_system=projective|swap|link2\n"
@@ -104,6 +106,8 @@ void train_parser_nn(int argc, char* argv[]) {
   parameters.dropout_hidden = options.count("dropout_hidden") ? parse_double(options["dropout_hidden"], "hidden layer dropout") : 0;
   parameters.dropout_input = options.count("dropout_input") ? parse_double(options["dropout_input"], "input dropout") : 0;
   parameters.early_stopping = options.count("early_stopping") ? parse_int(options["early_stopping"], "early stopping") : options.count("heldout");
+
+  bool single_root = options.count("single_root") ? parse_int(options["single_root"], "single root") : false;
 
   int threads = options.count("threads") ? parse_int(options["threads"], "number of threads") : 1;
   if (threads <= 0) runtime_failure("The number of threads must be positive!");
@@ -224,7 +228,7 @@ void train_parser_nn(int argc, char* argv[]) {
 
   // Train the parser_nn
   cerr << "Training the parser" << endl;
-  parser_nn_trainer::train(options["transition_system"], options["transition_oracle"],
+  parser_nn_trainer::train(options["transition_system"], options["transition_oracle"], single_root,
                            embeddings, nodes, parameters, threads, train, heldout, enc);
 
   // Encode the parser

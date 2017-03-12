@@ -25,7 +25,7 @@
 namespace ufal {
 namespace parsito {
 
-void parser_nn_trainer::train(const string& transition_system_name, const string& transition_oracle_name,
+void parser_nn_trainer::train(const string& transition_system_name, const string& transition_oracle_name, bool single_root,
                               const string& embeddings_description, const string& nodes_description, const network_parameters& parameters,
                               unsigned number_of_threads, const vector<tree>& train, const vector<tree>& heldout, binary_encoder& enc) {
   if (train.empty()) runtime_failure("No training data was given!");
@@ -240,7 +240,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
     atomic<double> atomic_logprob(0);
     auto training = [&]() {
       tree t;
-      configuration conf;
+      configuration conf(single_root);
       string word, word_buffer;
       vector<vector<int>> nodes_embeddings;
       vector<int> extracted_nodes;
@@ -250,7 +250,7 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
 
       // Data for structured prediction
       tree t_eval;
-      configuration conf_eval;
+      configuration conf_eval(single_root);
       vector<vector<int>> nodes_embeddings_eval;
       vector<int>  extracted_nodes_eval;
       vector<const vector<int>*>  extracted_embeddings_eval;
@@ -478,6 +478,9 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
 
   // Encode version
   enc.add_1B(parser.version);
+
+  // Encode single_root
+  enc.add_1B(single_root);
 
   // Encode transition system
   enc.add_2B(parser.labels.size());
