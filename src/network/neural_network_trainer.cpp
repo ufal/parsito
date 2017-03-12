@@ -133,15 +133,15 @@ void neural_network_trainer::propagate(const vector<embedding>& embeddings, cons
         if (weight < 0) weight = 0;
       break;
   }
+  if (dropout_hidden) { // Dropout normalization
+    float dropout_factor = 1. / (1. - dropout_hidden);
+    for (auto&& i : w.hidden_kept)
+      w.hidden_layer[i] *= dropout_factor;
+  }
 
   for (auto&& i : w.hidden_kept)
     for (unsigned j = 0; j < outcomes_size; j++)
       w.outcomes[j] += w.hidden_layer[i] * network.weights[1][i][j];
-  if (dropout_hidden) { // Dropout normalization
-    float dropout_factor = 1. / (1. - dropout_hidden);
-    for (unsigned i = 0; i < outcomes_size; i++)
-      w.outcomes[i] *= dropout_factor;
-  }
   for (unsigned i = 0; i < outcomes_size; i++) // Bias
     w.outcomes[i] += network.weights[1][hidden_layer_size][i];
 
@@ -223,6 +223,12 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
   for (auto&& i : w.hidden_kept)
     for (unsigned j = 0; j < outcomes_size; j++)
       w.error_hidden[i] += network.weights[1][i][j] * w.error_outcomes[j];
+  // Dropout normalization
+  if (dropout_hidden) {
+    float dropout_factor = 1. / (1. - dropout_hidden);
+    for (auto&& i : w.hidden_kept)
+      w.error_hidden[i] *= dropout_factor;
+  }
 
   // Perform activation function derivation
   switch (network.hidden_layer_activation) {
@@ -250,12 +256,16 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
       w.weights_batch[1][i][j] += w.hidden_layer[i] * w.error_outcomes[j];
   }
   // Bias
-  if (w.hidden_dropout.empty() || !w.hidden_dropout[hidden_layer_size]) {
-    if (w.weights_batch[1][hidden_layer_size].empty()) w.weights_batch[1][hidden_layer_size].resize(outcomes_size);
-    for (unsigned i = 0; i < outcomes_size; i++)
-      w.weights_batch[1][hidden_layer_size][i] += w.error_outcomes[i];
-  }
+  if (w.weights_batch[1][hidden_layer_size].empty()) w.weights_batch[1][hidden_layer_size].resize(outcomes_size);
+  for (unsigned i = 0; i < outcomes_size; i++)
+    w.weights_batch[1][hidden_layer_size][i] += w.error_outcomes[i];
 
+  // Dropout normalization
+  if (dropout_input) {
+    float dropout_factor = 1. / (1. - dropout_input);
+    for (auto&& i : w.hidden_kept)
+      w.error_hidden[i] *= dropout_factor;
+  }
   // Update weights[0] and backpropagate to error_embedding
   unsigned index = 0;
   for (auto&& embedding_ids : embedding_ids_sequences)
@@ -290,10 +300,11 @@ void neural_network_trainer::backpropagate_template(vector<embedding>& embedding
       }
     }
   // Bias
-  if (w.input_dropout.empty() || !w.input_dropout[index]) {
+  {
+    float negate_input_dropout = 1. - dropout_hidden;
     if (w.weights_batch[0][index].empty()) w.weights_batch[0][index].resize(hidden_layer_size);
     for (auto&& i : w.hidden_kept)
-      w.weights_batch[0][index][i] += w.error_hidden[i];
+      w.weights_batch[0][index][i] += w.error_hidden[i] * negate_input_dropout;
   }
 
   // End if not at the end of the batch
