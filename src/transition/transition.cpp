@@ -14,7 +14,10 @@ namespace parsito {
 
 // Left arc
 bool transition_left_arc::applicable(const configuration& conf) const {
-  return conf.stack.size() >= 2 && conf.stack[conf.stack.size() - 2];
+  if (conf.single_root && label_is_root)
+    return false;
+  else
+    return conf.stack.size() >= 2 && conf.stack[conf.stack.size() - 2];
 }
 
 int transition_left_arc::perform(configuration& conf) const {
@@ -29,8 +32,10 @@ int transition_left_arc::perform(configuration& conf) const {
 
 // Right arc
 bool transition_right_arc::applicable(const configuration& conf) const {
-  if (conf.single_root)
-    return conf.stack.size() > 2 || (conf.stack.size() == 2 && conf.buffer.empty());
+  if (conf.single_root && label_is_root)
+    return conf.stack.size() == 2 && conf.buffer.empty();
+  else if (conf.single_root) // && !label_is_root
+    return conf.stack.size() > 2;
   else
     return conf.stack.size() >= 2;
 }
@@ -74,7 +79,10 @@ int transition_swap::perform(configuration& conf) const {
 
 // Left arc 2
 bool transition_left_arc_2::applicable(const configuration& conf) const {
-  return conf.stack.size() >= 3 && conf.stack[conf.stack.size() - 3];
+  if (conf.single_root && label_is_root)
+    return false;
+  else
+    return conf.stack.size() >= 3 && conf.stack[conf.stack.size() - 3];
 }
 
 int transition_left_arc_2::perform(configuration& conf) const {
@@ -91,7 +99,9 @@ int transition_left_arc_2::perform(configuration& conf) const {
 
 // Right arc 2
 bool transition_right_arc_2::applicable(const configuration& conf) const {
-  if (conf.single_root)
+  if (conf.single_root && label_is_root)
+    return false;
+  else if (conf.single_root) // && !label_is_root
     return conf.stack.size() >= 4;
   else
     return conf.stack.size() >= 3;

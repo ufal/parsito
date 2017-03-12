@@ -53,6 +53,29 @@ void parser_nn_trainer::train(const string& transition_system_name, const string
         parser.labels.push_back(node.deprel);
       }
 
+  // If single_root, check that exactly root nodes have "root" deprel
+  if (single_root) {
+    for (auto&& tree : train) {
+      unsigned roots = 0;
+      for (auto&& node : tree.nodes)
+        if (node.id) {
+          if (node.head == 0 && node.deprel != "root")
+            runtime_failure("When single root is required, every root node must have 'root' deprel!");
+          if (node.head != 0 && node.deprel == "root")
+            runtime_failure("When single root is required, any non-root cannot have 'root' deprel!");
+          roots += node.head == 0;
+        }
+      if (roots != 1)
+        runtime_failure("When single root is required, every training tree must have single root!");
+    }
+
+    // Make sure (in case input is really small) there is "root" deprel plus another one
+    if (!labels_set.count("root"))
+      runtime_failure("When single root is required, the deprel 'root' must be present!");
+    if (labels_set.size() <= 1)
+      runtime_failure("When single root is required, deprel different from 'root' must exist!");
+  }
+
   // Create transition system and transition oracle
   parser.system.reset(transition_system::create(transition_system_name, parser.labels));
   if (!parser.system) runtime_failure("Cannot create transition system '" << transition_system_name << "'!");
