@@ -17,13 +17,7 @@
   <ol>
   <li><a href="#introduction">Introduction</a>
   </li>
-  <li><a href="#online">Online</a>
-    <ul>
-    <li><a href="#online_demo">2.1. Online Demo</a>
-    </li>
-    <li><a href="#web_service">2.2. Web Service</a>
-    </li>
-    </ul>
+  <li><a href="#online">Online Web Application and Web Service</a>
   </li>
   <li><a href="#release">Release</a>
     <ul>
@@ -34,8 +28,6 @@
       </ul>
     </li>
     <li><a href="#license">3.2. License</a>
-    </li>
-    <li><a href="#platforms_and_requirements">3.3. Platforms and Requirements</a>
     </li>
     </ul>
   </li>
@@ -223,20 +215,15 @@ Mathematics and Physics, Charles University in Prague, Czech Republic.
 </p>
 
 <a id="online" name="online"></a>
-<h1>2. Online</h1>
-
-<a id="online_demo" name="online_demo"></a>
-<h2>2.1. Online Demo</h2>
+<h1>2. Online Web Application and Web Service</h1>
 
 <p>
-<a href="http://lindat.cz">LINDAT/CLARIN</a> hosts <a href="http://lindat.mff.cuni.cz/services/parsito/">Parsito Online Demo</a>.
+Parsito Web Application is available at <a href="http://lindat.mff.cuni.cz/services/parsito/">http://lindat.mff.cuni.cz/services/parsito/</a>
+using <a href="http://lindat.cz">LINDAT/CLARIN infrastructure</a>.
 </p>
-
-<a id="web_service" name="web_service"></a>
-<h2>2.2. Web Service</h2>
-
 <p>
-<a href="http://lindat.cz">LINDAT/CLARIN</a> also hosts <a href="http://lindat.mff.cuni.cz/services/parsito/api-reference.php">Parsito Web Service</a>.
+Parsito REST Web Service is also available, with the API documentation available at
+<a href="http://lindat.mff.cuni.cz/services/parsito/api-reference.php">http://lindat.mff.cuni.cz/services/parsito/api-reference.php</a>.
 </p>
 
 <a id="release" name="release"></a>
@@ -246,12 +233,14 @@ Mathematics and Physics, Charles University in Prague, Czech Republic.
 <h2>3.1. Download</h2>
 
 <p>
-Parsito releases are available on <a href="http://github.com/ufal/parsito">GitHub</a>, either as
-a pre-compiled binary package, or source code only. The binary package contains Linux,
+Parsito releases are available on <a href="http://github.com/ufal/parsito">GitHub</a>, both as
+source code and as a pre-compiled binary package. The binary package contains Linux,
 Windows and OS X binaries, Java bindings binary, C# bindings binary, and source
 code of Parsito and all language bindings). While the binary
 packages do not contain compiled Python or Perl bindings, packages for those
-languages are available in standard package repositories, i.e. on PyPI and CPAN.
+languages are available in standard package repositories,
+i.e. on <a href="https://pypi.python.org/pypi/ufal.parsito/">PyPI</a>
+and <a href="https://metacpan.org/pod/Ufal::Parsito">CPAN</a>.
 </p>
 
 <ul>
@@ -292,16 +281,6 @@ additional licensing conditions.
 If you use this tool for scientific work, please give credit to us by
 referencing <a href="#bibtex_for_referencing">Straka et al. 2015</a> and
 <a href="http://ufal.mff.cuni.cz/parsito">Parsito website</a>.
-</p>
-
-<a id="platforms_and_requirements" name="platforms_and_requirements"></a>
-<h2>3.3. Platforms and Requirements</h2>
-
-<p>
-Parsito is available as a standalone tool and as a library for Linux/Windows/OS
-X. It does not require any additional libraries. As any supervised machine
-learning tool, it needs trained linguistic models to perform dependency
-parsing.
 </p>
 
 <a id="instalation" name="instalation"></a>

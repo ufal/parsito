@@ -1,10 +1,8 @@
 Parsito Online
 ==============
 
-== Online Demo ==[online_demo]
+Parsito Web Application is available at http://lindat.mff.cuni.cz/services/parsito/
+using [LINDAT/CLARIN infrastructure http://lindat.cz].
 
-[LINDAT/CLARIN http://lindat.cz] hosts [Parsito Online Demo http://lindat.mff.cuni.cz/services/parsito/].
-
-== Web Service ==[web_service]
-
-[LINDAT/CLARIN http://lindat.cz] also hosts [Parsito Web Service http://lindat.mff.cuni.cz/services/parsito/api-reference.php].
+Parsito REST Web Service is also available, with the API documentation available at
+http://lindat.mff.cuni.cz/services/parsito/api-reference.php.

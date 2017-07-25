@@ -23,22 +23,15 @@ Copyright 2015 by Institute of Formal and Applied Linguistics, Faculty of
 Mathematics and Physics, Charles University in Prague, Czech Republic.
 
 
-Online
-======
+Online Web Application and Web Service
+======================================
 
+Parsito Web Application is available at
+http://lindat.mff.cuni.cz/services/parsito/ using LINDAT/CLARIN infrastructure
+(http://lindat.cz).
 
-Online Demo
------------
-
-LINDAT/CLARIN (http://lindat.cz) hosts Parsito Online Demo
-(http://lindat.mff.cuni.cz/services/parsito/).
-
-
-Web Service
------------
-
-LINDAT/CLARIN (http://lindat.cz) also hosts Parsito Web Service
-(http://lindat.mff.cuni.cz/services/parsito/api-reference.php).
+Parsito REST Web Service is also available, with the API documentation available
+at http://lindat.mff.cuni.cz/services/parsito/api-reference.php.
 
 
 Release
@@ -48,12 +41,14 @@ Release
 Download
 --------
 
-Parsito releases are available on GitHub (http://github.com/ufal/parsito),
-either as a pre-compiled binary package, or source code only. The binary package
-contains Linux, Windows and OS X binaries, Java bindings binary, C# bindings
-binary, and source code of Parsito and all language bindings). While the binary
-packages do not contain compiled Python or Perl bindings, packages for those
-languages are available in standard package repositories, i.e. on PyPI and CPAN.
+Parsito releases are available on GitHub (http://github.com/ufal/parsito), both
+as source code and as a pre-compiled binary package. The binary package contains
+Linux, Windows and OS X binaries, Java bindings binary, C# bindings binary, and
+source code of Parsito and all language bindings). While the binary packages do
+not contain compiled Python or Perl bindings, packages for those languages are
+available in standard package repositories, i.e. on PyPI
+(https://pypi.python.org/pypi/ufal.parsito/) and CPAN
+(https://metacpan.org/pod/Ufal::Parsito).
 
 - Latest release (http://github.com/ufal/parsito/releases/latest)
 - All releases (http://github.com/ufal/parsito/releases), Changelog
@@ -87,14 +82,6 @@ licensing conditions.
 If you use this tool for scientific work, please give credit to us by
 referencing Straka et al. 2015 and Parsito website
 (http://ufal.mff.cuni.cz/parsito).
-
-
-Platforms and Requirements
---------------------------
-
-Parsito is available as a standalone tool and as a library for Linux/Windows/OS
-X. It does not require any additional libraries. As any supervised machine
-learning tool, it needs trained linguistic models to perform dependency parsing.
 
 
 Parsito Installation

@@ -6,7 +6,7 @@ Version 1.1.1-devel
 %!include: manual_about.t2t
 
 
-= Online =[online]
+= Online Web Application and Web Service =[online]
 
 %!include: manual_online.t2t
 
@@ -15,12 +15,14 @@ Version 1.1.1-devel
 
 == Download ==[download]
 
-Parsito releases are available on [GitHub http://github.com/ufal/parsito], either as
-a pre-compiled binary package, or source code only. The binary package contains Linux,
+Parsito releases are available on [GitHub http://github.com/ufal/parsito], both as
+source code and as a pre-compiled binary package. The binary package contains Linux,
 Windows and OS X binaries, Java bindings binary, C# bindings binary, and source
 code of Parsito and all language bindings). While the binary
 packages do not contain compiled Python or Perl bindings, packages for those
-languages are available in standard package repositories, i.e. on PyPI and CPAN.
+languages are available in standard package repositories,
+i.e. on [PyPI https://pypi.python.org/pypi/ufal.parsito/]
+and [CPAN https://metacpan.org/pod/Ufal::Parsito].
 
 - [Latest release http://github.com/ufal/parsito/releases/latest]
 - [All releases http://github.com/ufal/parsito/releases], [Changelog https://github.com/ufal/parsito/blob/master/CHANGES]
@@ -50,13 +52,6 @@ additional licensing conditions.
 If you use this tool for scientific work, please give credit to us by
 referencing [Straka et al. 2015 #bibtex_for_referencing] and
 [Parsito website http://ufal.mff.cuni.cz/parsito].
-
-== Platforms and Requirements ==[platforms_and_requirements]
-
-Parsito is available as a standalone tool and as a library for Linux/Windows/OS
-X. It does not require any additional libraries. As any supervised machine
-learning tool, it needs trained linguistic models to perform dependency
-parsing.
 
 
 = Parsito Installation =[instalation]
