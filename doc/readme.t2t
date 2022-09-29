@@ -4,8 +4,7 @@ Parsito
 %!include: manual_about.t2t
 
 Parsito website http://ufal.mff.cuni.cz/parsito contains download links
-of both the released packages and trained models, hosts documentation and
-offers online demo.
+of both the released packages and trained models, and hosts documentation.
 
 Parsito development repository http://github.com/ufal/parsito is hosted
 on GitHub.

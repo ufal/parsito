@@ -68,8 +68,7 @@ of parsing speed. When using beam search of size //b//, parsing is roughly
 
 Parsito also provides REST server binary ``parsito_server``.
 The binary uses [MicroRestD http://github.com/ufal/microrestd] as a REST
-server implementation and provides
-[Parsito REST API http://lindat.mff.cuni.cz/services/parsito/api-reference.php].
+server implementation and provides Parsito REST API.
 
 The full command syntax of ``parsito_server`` is
 ```

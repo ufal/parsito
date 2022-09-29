@@ -6,11 +6,6 @@ Version 1.1.1-devel
 %!include: manual_about.t2t
 
 
-= Online Web Application and Web Service =[online]
-
-%!include: manual_online.t2t
-
-
 = Release =[release]
 
 == Download ==[download]

@@ -23,17 +23,6 @@ Copyright 2015 by Institute of Formal and Applied Linguistics, Faculty of
 Mathematics and Physics, Charles University in Prague, Czech Republic.
 
 
-Online Web Application and Web Service
-======================================
-
-Parsito Web Application is available at
-http://lindat.mff.cuni.cz/services/parsito/ using LINDAT/CLARIN infrastructure
-(http://lindat.cz).
-
-Parsito REST Web Service is also available, with the API documentation available
-at http://lindat.mff.cuni.cz/services/parsito/api-reference.php.
-
-
 Release
 =======
 
@@ -337,8 +326,7 @@ Running the Parsito REST Server
 
 Parsito also provides REST server binary parsito_server. The binary uses
 MicroRestD (http://github.com/ufal/microrestd) as a REST server implementation
-and provides Parsito REST API
-(http://lindat.mff.cuni.cz/services/parsito/api-reference.php).
+and provides Parsito REST API.
 
 The full command syntax of parsito_server is
   parsito_server [options] port (model_name model_file acknowledgements beam_size)+
