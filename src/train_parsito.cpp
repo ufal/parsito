@@ -219,7 +219,7 @@ void train_parser_nn(int argc, char* argv[]) {
       if (!input_format->last_error().empty())
         runtime_failure(input_format->last_error());
     }
-    cerr << heldout.size() << " sentences with " << train_words << " words." << endl;
+    cerr << heldout.size() << " sentences with " << heldout_words << " words." << endl;
   }
   if (parameters.early_stopping && !heldout.size()) runtime_failure("Early stopping required, but no heldout data!");
 
