@@ -34,7 +34,7 @@ parsito_java.cpp: parsito_java.i ../common/parsito.i
 	swig $(SWIG_FLAGS) -java -package cz.cuni.mff.ufal.parsito -outdir $(call platform_name,cz/cuni/mff/ufal/parsito) -o $@ $<
 
 parsito.jar: parsito_java.cpp
-	javac -source 1.4 -Xlint:-options $(wildcard cz/cuni/mff/ufal/parsito/*.java)
+	javac -source 6 -Xlint:-options $(wildcard cz/cuni/mff/ufal/parsito/*.java)
 	jar cf $@ $(patsubst %.java,%.class,$(wildcard cz/cuni/mff/ufal/parsito/*.java))
 
 .PHONY: clean
