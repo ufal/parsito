@@ -155,7 +155,7 @@ void train_parser_nn(int argc, char* argv[]) {
     parameters.trainer.momentum = parts.size() > 1 ? parse_double(parts[1], "beta1") : 0.9;
     parameters.trainer.momentum2 = parts.size() > 2 ? parse_double(parts[2], "beta2") : 0.999;
     parameters.trainer.learning_rate_final = parts.size() > 3 ? parse_double(parts[3], "final learning rate") : parameters.trainer.learning_rate;
-    parameters.trainer.epsilon = 1e-8;
+    parameters.trainer.epsilon = 1e-8f;
   } else
     runtime_failure("No trainer algorithm was specified!");
 
