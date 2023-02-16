@@ -1,5 +1,5 @@
 # Parsito
-[![Build Status](https://travis-ci.org/ufal/parsito.svg?branch=master)](https://travis-ci.org/ufal/parsito)
+[![Compile Status](https://github.com/ufal/parsito/actions/workflows/compile.yml/badge.svg)](https://github.com/ufal/parsito/actions/workflows/compile.yml)
 
 Parsito is a fast open-source dependency parser written in C++. Parsito is
 based on greedy transition-based parsing, it has very high accuracy and
