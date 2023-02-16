@@ -18,6 +18,7 @@
 #include "utils/options.h"
 #include "utils/parse_double.h"
 #include "utils/parse_int.h"
+#include "utils/path_from_utf8.h"
 #include "utils/split.h"
 #include "version/version.h"
 
@@ -48,7 +49,7 @@ int main(int argc, char* argv[]) {
   string model_file = argv[3];
 
   // Load model
-  ifstream model_is(model_file, ifstream::in | ifstream::binary);
+  ifstream model_is(path_from_utf8(model_file).c_str(), ifstream::in | ifstream::binary);
   if (!model_is.is_open()) runtime_failure("Cannot open file '" << model_file << "'!");
 
   binary_decoder model;

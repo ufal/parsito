@@ -15,6 +15,7 @@
 #include "utils/iostreams.h"
 #include "utils/options.h"
 #include "utils/parse_int.h"
+#include "utils/path_from_utf8.h"
 #include "version/version.h"
 
 using namespace ufal::parsito;
@@ -92,7 +93,7 @@ int main(int argc, char* argv[]) {
 
   // Open log file
   string log_file_name = string(argv[0]) + ".log";
-  ofstream log_file(log_file_name.c_str(), ofstream::app);
+  ofstream log_file(path_from_utf8(log_file_name).c_str(), ofstream::app);
   if (!log_file) runtime_failure("Cannot open log file '" << log_file_name << "' for writing!");
 
   // Daemonize if requested

@@ -18,6 +18,7 @@
 #include "utils/options.h"
 #include "utils/parse_double.h"
 #include "utils/parse_int.h"
+#include "utils/path_from_utf8.h"
 #include "utils/split.h"
 #include "version/version.h"
 
@@ -163,7 +164,7 @@ void train_parser_nn(int argc, char* argv[]) {
   if (!options.count("embeddings")) runtime_failure("The embedding description file is required!");
   string embeddings;
   {
-    ifstream in(options["embeddings"]);
+    ifstream in(path_from_utf8(options["embeddings"]).c_str());
     if (!in.is_open()) runtime_failure("Cannot open embedding description file '" << options["embeddings"] << "'!");
     for (string line; getline(in, line);)
       embeddings.append(line).push_back('\n');
@@ -173,7 +174,7 @@ void train_parser_nn(int argc, char* argv[]) {
   if (!options.count("nodes")) runtime_failure("The node selector file is required!");
   string nodes;
   {
-    ifstream in(options["nodes"]);
+    ifstream in(path_from_utf8(options["nodes"]).c_str());
     if (!in.is_open()) runtime_failure("Cannot open node selector file '" << options["nodes"] << "'!");
     for (string line; getline(in, line);)
       nodes.append(line).push_back('\n');
@@ -204,7 +205,7 @@ void train_parser_nn(int argc, char* argv[]) {
   // Load heldout data if present
   vector<tree> heldout;
   if (options.count("heldout")) {
-    ifstream in(options["heldout"]);
+    ifstream in(path_from_utf8(options["heldout"]).c_str());
     if (!in.is_open()) runtime_failure("Cannot open heldout file '" << options["heldout"] << "'!");
 
     unsigned heldout_words = 0;
