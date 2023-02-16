@@ -35,8 +35,8 @@ $(call exe,train_parsito): $(call obj,embedding/embedding_encode network/neural_
 $(call exe,rest_server/parsito_server): LD_FLAGS+=$(call use_library,$(if $(filter win-%,$(PLATFORM)),$(MICRORESTD_LIBRARIES_WIN),$(MICRORESTD_LIBRARIES_POSIX)))
 $(call exe,rest_server/parsito_server): $(call obj,rest_server/parsito_service $(addprefix rest_server/microrestd/,$(MICRORESTD_OBJECTS) $(MICRORESTD_PUGIXML_OBJECTS)))
 $(call exe,tools/parsito_embeddings): $(call obj,embedding/embedding_encode utils/compressor_save)
-$(EXECUTABLES) $(TOOLS) $(SERVER): $(call exe,%): $$(call obj,% utils/options $(PARSITO_OBJECTS))
-	$(call link_exe,$@,$^,$(call win_subsystem,console))
+$(EXECUTABLES) $(TOOLS) $(SERVER): $(call exe,%): $$(call obj,% $(PARSITO_OBJECTS) utils/options utils/win_wmain_utf8)
+	$(call link_exe,$@,$^,$(call win_subsystem,console,wmain))
 
 # cleaning
 .PHONY: clean
