@@ -445,6 +445,8 @@ void MatchFinder_Construct(CMatchFinder *p)
   p->bufferBase = 0;
   p->directInput = 0;
   p->hash = 0;
+  p->hashSizeSum = 0;
+  p->numSons = 0;
   MatchFinder_SetDefaultSettings(p);
 
   for (i = 0; i < 256; i++)
@@ -3154,40 +3156,6 @@ const uint8_t *LzmaEnc_GetCurBuf(CLzmaEncHandle pp)
 {
   const CLzmaEnc *p = (CLzmaEnc *)pp;
   return p->matchFinder.GetPointerToCurrentPos(p->matchFinderObj) - p->additionalOffset;
-}
-
-SRes LzmaEnc_CodeOneMemBlock(CLzmaEncHandle pp, bool reInit,
-    uint8_t *dest, size_t *destLen, uint32_t desiredPackSize, uint32_t *unpackSize)
-{
-  CLzmaEnc *p = (CLzmaEnc *)pp;
-  uint64_t nowPos64;
-  SRes res;
-  CSeqOutStreamBuf outStream;
-
-  outStream.funcTable.Write = MyWrite;
-  outStream.data = dest;
-  outStream.rem = *destLen;
-  outStream.overflow = false;
-
-  p->writeEndMark = false;
-  p->finished = false;
-  p->result = SZ_OK;
-
-  if (reInit)
-    LzmaEnc_Init(p);
-  LzmaEnc_InitPrices(p);
-  nowPos64 = p->nowPos64;
-  RangeEnc_Init(&p->rc);
-  p->rc.outStream = &outStream.funcTable;
-
-  res = LzmaEnc_CodeOneBlock(p, true, desiredPackSize, *unpackSize);
-  
-  *unpackSize = (uint32_t)(p->nowPos64 - nowPos64);
-  *destLen -= outStream.rem;
-  if (outStream.overflow)
-    return SZ_ERROR_OUTPUT_EOF;
-
-  return res;
 }
 
 static SRes LzmaEnc_Encode2(CLzmaEnc *p, ICompressProgress *progress)
