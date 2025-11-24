@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
 
       string word = string(parts[0].str, parts[0].len);
       if (word == "<unk>" && !unknown_word.empty()) runtime_failure("There are multiple embeddings for '<unk>'!");
-      vector<float>& weights = word == "<unk>" ? unknown_word : (words.emplace_back(move(word), vector<float>()), words.back().second);
+      vector<float>& weights = word == "<unk>" ? unknown_word : (words.emplace_back(std::move(word), vector<float>()), words.back().second);
       for (unsigned i = 0; i < e.dimension; i++)
         weights.push_back(parse_double(parts[1 + i], "embedding weight"));
     }
